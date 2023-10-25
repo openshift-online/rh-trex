@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Template
+name: uhc-acct-mangr-routes
+metadata:
+  name: route
+
+objects:
+
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: ocm-ex-service
+    labels:
+      app: ocm-ex-service
+  spec:
+    host: ocm-ex-service.apps-crc.testing
+    to:
+      kind: Service
+      name: ocm-ex-service
+    tls:
+      termination: reencrypt
+      insecureEdgeTerminationPolicy: Redirect
