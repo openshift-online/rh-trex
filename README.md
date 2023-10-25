@@ -1,19 +1,30 @@
-# OCM Example Service
+TRex
 ---
 
-This project is an example OCM microservice.
+ **TRex** is RH **T**AP's **R**est **Ex**ample
 
-To help you while reading the code the service implements a simple collection
-of _dinosaurs_, so you can immediately know when something is infrastructure or
-business logic. Anything that talks about dinosaurs is business logic, which you
-will replace with your business logic. The rest is infrastructure, and you
-will probably want to preserve without change.
+![Trexxy](rhtap-trex_sm.png)
 
-For a real service written using the same infrastructure see the
-[Account Manager service](https://gitlab.cee.redhat.com/service/uhc-account-manager).
 
-To contact the people that created this infrastructure go to the
-[slack](https://coreos.slack.com/) [#forum-cluster-management](https://coreos.slack.com/archives/CBDNMS43V).
+TRex is a full-featured REST API that persists _dinosaurs_, making it a solid foundation from which developers can quickly bootstrap new services.
+
+Some of the features included are:
+
+* Openapi generation
+* CRUD code foundation
+* Standard API guidelines, paging, etc.
+* Test driven development built-in
+* GORM and DB migrations
+* OIDC authentication
+* Responsive control plane
+* Blocking and Non-blocking locks
+
+When looking through the code, anything talking about dinosaurs is business logic, which you
+will replace with your business logic. The rest is infrastructure that you will probably want to preserve without change.
+
+It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a 
+framework with an upgrade path.
+
 
 ## Run for the first time
 
@@ -45,10 +56,6 @@ $ make db/login
 The initial migration will create the base data model as well as providing a way to add future migrations.
 
 ```shell
-
-
-# 3. specify the  environment
-export OCM_ENV=development
 
 # Run migrations
 ./ocm-example-service migrate
