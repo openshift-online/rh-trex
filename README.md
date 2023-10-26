@@ -74,7 +74,7 @@ ocmexample=# \dt
  public | dinosaurs  | table | ocm_example_service
  public | events     | table | ocm_example_service
  public | migrations | table | ocm_example_service
-(2 rows)
+(3 rows)
 
 
 ```
@@ -83,21 +83,26 @@ ocmexample=# \dt
 
 ```shell
 
-$ make test
-$ make test-integration
+make test
+make test-integration
 
 ```
 
 ### Running the Service
 
-```
-./ocm-example-service serve
+```shell
+
+make run
+
 ```
 
 To verify that the server is working use the curl command:
 
-$ curl http://localhost:8000//api/ocm-example-service/v1/dinosaurs | jq
+```shell
 
+curl http://localhost:8000/api/ocm-example-service/v1/dinosaurs | jq
+
+```
 
 That should return a 401 response like this, because it needs authentication:
 
@@ -105,7 +110,7 @@ That should return a 401 response like this, because it needs authentication:
 {
   "kind": "Error",
   "id": "401",
-  "href": "//api/ocm-example-service/errors/401",
+  "href": "/api/ocm-example-service/errors/401",
   "code": "API-401",
   "reason": "Request doesn't contain the 'Authorization' header or the 'cs_jwt' cookie"
 }
@@ -113,13 +118,19 @@ That should return a 401 response like this, because it needs authentication:
 
 
 Authentication in the default configuration is done through the RedHat SSO, so you need to login with a Red Hat customer portal user in the right account (created as part of the onboarding doc) and then you can retrieve the token to use below on https://console.redhat.com/openshift/token
-To authenticate, use the ocm tool against your local service:
+To authenticate, use the ocm tool against your local service. The ocm tool is available on https://console.redhat.com/openshift/downloads
 
-### Get a new Dinosaur
+#### Login to your local service
+```
+ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
+
+```
+
+#### Get a new Dinosaur
 This will be empty if no Dinosaur is ever created
 
 ```
-(base) ➜  ~ ocm get /api/ocm-example-service/v1/dinosaurs
+ocm get /api/ocm-example-service/v1/dinosaurs
 {
   "items": [],
   "kind": "DinosaurList",
@@ -129,10 +140,9 @@ This will be empty if no Dinosaur is ever created
 }
 ```
 
-### Post a new Dinosaur
+#### Post a new Dinosaur
 
 ```shell
-ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
 
 ocm post /api/ocm-example-service/v1/dinosaurs << EOF
 {
@@ -140,6 +150,28 @@ ocm post /api/ocm-example-service/v1/dinosaurs << EOF
 }
 EOF
 
+```
+
+#### Get your Dinosaur
+
+```shell
+ocm get /api/ocm-example-service/v1/dinosaurs
+{
+  "items": [
+    {
+      "created_at":"2023-10-26T08:15:54.509653Z",
+      "href":"/api/ocm-example-service/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
+      "id":"2XIENcJIi9t2eBblhWVCtWLdbDZ",
+      "kind":"Dinosaur",
+      "species":"foo",
+      "updated_at":"2023-10-26T08:15:54.509653Z"
+    }
+  ],
+  "kind":"DinosaurList",
+  "page":1,
+  "size":1,
+  "total":1
+}
 ```
 
 #### Run in CRC
