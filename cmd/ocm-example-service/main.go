@@ -6,8 +6,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/cmd/ocm-example-service/migrate"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/cmd/ocm-example-service/servecmd"
+	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/migrate"
+	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/servecmd"
 )
 
 // nolint

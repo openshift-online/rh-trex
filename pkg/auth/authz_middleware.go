@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/client/ocm"
+	"github.com/openshift-online/rh-trex/pkg/client/ocm"
 )
 
 type AuthorizationMiddleware interface {

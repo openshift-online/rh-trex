@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/test"
+	"github.com/openshift-online/rh-trex/test"
 )
 
 func TestMain(m *testing.M) {

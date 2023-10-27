@@ -1,7 +1,7 @@
 package presenters
 
 import (
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api/openapi"
+	"github.com/openshift-online/rh-trex/pkg/api/openapi"
 )
 
 func PresentReference(id, obj interface{}) openapi.ObjectReference {

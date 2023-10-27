@@ -1,0 +1,29 @@
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_1.20 AS builder
+
+COPY . .
+
+RUN go mod vendor
+RUN make binary
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+
+RUN \
+    microdnf update -y \
+    && \
+    microdnf install -y util-linux \
+    && \
+    microdnf clean all
+
+COPY --from=builder \
+    ocm-example-service \
+    /usr/local/bin/
+
+EXPOSE 8000
+
+ENTRYPOINT ["/usr/local/bin/ocm-example-service", "serve"]
+
+LABEL name="ocm-example-service" \
+      vendor="Red Hat" \
+      version="0.0.1" \
+      summary="OCM Example Service API" \
+      description="OCM Example Service API"

@@ -3,17 +3,18 @@ package integration
 import (
 	"context"
 	"fmt"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/dao"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/dao"
+
 	. "github.com/onsi/gomega"
 	"gopkg.in/resty.v1"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api/openapi"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/test"
+	"github.com/openshift-online/rh-trex/pkg/api/openapi"
+	"github.com/openshift-online/rh-trex/test"
 )
 
 func TestDinosaurGet(t *testing.T) {

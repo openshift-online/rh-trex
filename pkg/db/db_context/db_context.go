@@ -5,7 +5,7 @@ package db_context
 import (
 	"context"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/transaction"
+	"github.com/openshift-online/rh-trex/pkg/db/transaction"
 )
 
 type contextKey int

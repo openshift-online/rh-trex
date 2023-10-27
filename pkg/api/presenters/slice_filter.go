@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 type ProjectionList struct {

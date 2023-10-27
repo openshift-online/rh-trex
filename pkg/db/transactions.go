@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/transaction"
+	"github.com/openshift-online/rh-trex/pkg/db/transaction"
 )
 
 // By default do no roll back transaction.

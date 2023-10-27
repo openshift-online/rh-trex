@@ -5,11 +5,11 @@ import (
 	"flag"
 
 	"github.com/golang/glog"
+	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 	"github.com/spf13/cobra"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/db_session"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
 var dbConfig = config.NewDatabaseConfig()

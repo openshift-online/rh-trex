@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/openshift-online/rh-trex/pkg/logger"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang-jwt/jwt/v4"
@@ -23,13 +24,13 @@ import (
 
 	amv1 "github.com/openshift-online/ocm-sdk-go/accountsmgmt/v1"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/cmd/ocm-example-service/environments"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/cmd/ocm-example-service/server"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api/openapi"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/test/mocks"
+	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/environments"
+	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/server"
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/api/openapi"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/db"
+	"github.com/openshift-online/rh-trex/test/mocks"
 )
 
 const (

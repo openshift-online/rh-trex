@@ -9,9 +9,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/client/ocm"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/client/ocm"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 func init() {

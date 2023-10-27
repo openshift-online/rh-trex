@@ -7,7 +7,7 @@ import (
 	"github.com/jinzhu/inflection"
 	"gorm.io/gorm"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
+	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
 type GenericDao interface {

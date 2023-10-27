@@ -8,7 +8,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 // SendNotFound sends a 404 response with some details about the non existing resource.

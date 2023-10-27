@@ -3,10 +3,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/services"
 	"time"
+
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/logger"
+	"github.com/openshift-online/rh-trex/pkg/services"
 )
 
 /*
