@@ -8,6 +8,7 @@ import (
 
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/dao/mocks"
+	dbmocks "github.com/openshift-online/rh-trex/pkg/db/mocks"
 )
 
 func TestDinosaurFindBySpecies(t *testing.T) {
@@ -15,7 +16,7 @@ func TestDinosaurFindBySpecies(t *testing.T) {
 
 	dinoDAO := mocks.NewDinosaurDao()
 	events := NewEventService(mocks.NewEventDao())
-	dinoService := NewDinosaurService(dinoDAO, events)
+	dinoService := NewDinosaurService(dbmocks.NewMockAdvisoryLockFactory(), dinoDAO, events)
 
 	const Fukuisaurus = "Fukuisaurus"
 	const Seismosaurus = "Seismosaurus"

@@ -55,6 +55,9 @@ const (
 
 	// Invalid Search Query
 	ErrorFailedToParseSearch ServiceErrorCode = 23
+
+	// DatabaseAdvisoryLock occurs whe the advisory lock is failed to get
+	ErrorDatabaseAdvisoryLock ServiceErrorCode = 26
 )
 
 type ServiceErrorCode int
@@ -84,6 +87,7 @@ func Errors() ServiceErrors {
 		ServiceError{ErrorMalformedRequest, "Unable to read request body", http.StatusBadRequest},
 		ServiceError{ErrorBadRequest, "Bad request", http.StatusBadRequest},
 		ServiceError{ErrorFailedToParseSearch, "Failed to parse search query", http.StatusBadRequest},
+		ServiceError{ErrorDatabaseAdvisoryLock, "Database advisory lock error", http.StatusInternalServerError},
 	}
 }
 
@@ -196,4 +200,8 @@ func BadRequest(reason string, values ...interface{}) *ServiceError {
 func FailedToParseSearch(reason string, values ...interface{}) *ServiceError {
 	message := fmt.Sprintf("Failed to parse search query: %s", reason)
 	return New(ErrorFailedToParseSearch, message, values...)
+}
+
+func DatabaseAdvisoryLock(err error) *ServiceError {
+	return New(ErrorDatabaseAdvisoryLock, err.Error(), []string{})
 }

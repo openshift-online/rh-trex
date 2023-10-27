@@ -60,14 +60,10 @@ func (h dinosaurHandler) Patch(w http.ResponseWriter, r *http.Request) {
 		func() (interface{}, *errors.ServiceError) {
 			ctx := r.Context()
 			id := mux.Vars(r)["id"]
-			found, err := h.dinosaur.Get(ctx, id)
-			if err != nil {
-				return nil, err
-			}
-
-			found.Species = *patch.Species
-
-			dino, err := h.dinosaur.Replace(ctx, found)
+			dino, err := h.dinosaur.Replace(ctx, &api.Dinosaur{
+				Meta:    api.Meta{ID: id},
+				Species: *patch.Species,
+			})
 			if err != nil {
 				return nil, err
 			}
