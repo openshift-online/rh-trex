@@ -21,6 +21,9 @@ image_tag:=$(version)
 environment:=${USER}
 namespace:=ocm-${USER}
 
+# a tool for managing containers and images, etc. You can set it as docker
+container_tool ?= podman
+
 # In the development environment we are pushing the image directly to the image
 # registry inside the development cluster. That registry has a different name
 # when it is accessed from outside the cluster and when it is accessed from
@@ -77,7 +80,7 @@ help:
 
 # Encourage consistent tool versions
 OPENAPI_GENERATOR_VERSION:=5.4.0
-GO_VERSION:=go1.21.0
+GO_VERSION:=go1.21.
 
 ### Constants:
 version:=$(shell date +%s)
@@ -185,10 +188,10 @@ test-integration: install
 # Regenerate openapi client and models
 generate:
 	rm -rf pkg/api/openapi
-	podman build -t ams-openapi -f Dockerfile.openapi .
-	$(eval OPENAPI_IMAGE_ID=`podman create -t ams-openapi -f Dockerfile.openapi .`)
-	podman cp $(OPENAPI_IMAGE_ID):/local/pkg/api/openapi ./pkg/api/openapi
-	podman cp $(OPENAPI_IMAGE_ID):/local/data/generated/openapi/openapi.go ./data/generated/openapi/openapi.go
+	$(container_tool) build -t ams-openapi -f Dockerfile.openapi .
+	$(eval OPENAPI_IMAGE_ID=`$(container_tool) create -t ams-openapi -f Dockerfile.openapi .`)
+	$(container_tool) cp $(OPENAPI_IMAGE_ID):/local/pkg/api/openapi ./pkg/api/openapi
+	$(container_tool) cp $(OPENAPI_IMAGE_ID):/local/data/generated/openapi/openapi.go ./data/generated/openapi/openapi.go
 .PHONY: generate
 
 run: install
@@ -259,11 +262,11 @@ project:
 
 .PHONY: image
 image: cmds
-	podman build -t "$(external_image_registry)/$(image_repository):$(image_tag)" .
+	$(container_tool) build -t "$(external_image_registry)/$(image_repository):$(image_tag)" .
 
 .PHONY: push
 push: image
-	podman push "$(external_image_registry)/$(image_repository):$(image_tag)"
+	$(container_tool) push "$(external_image_registry)/$(image_repository):$(image_tag)"
 
 deploy-%: project %-template
 	$(oc) apply --filename="templates/$*-template.json" | egrep --color=auto 'configured|$$'
@@ -303,19 +306,19 @@ undeploy: \
 
 .PHONY: db/setup
 db/setup:
-	podman run --name psql-example -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
+	$(container_tool) run --name psql-example -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
 
 .PHONY: db/login
 db/login:
-	podman exec -it psql-example bash -c "psql -h localhost -U $(db_user) $(db_name)"
+	$(container_tool) exec -it psql-example bash -c "psql -h localhost -U $(db_user) $(db_name)"
 
 .PHONY: db/teardown
 db/teardown:
-	podman stop psql-example
-	podman rm psql-example
+	$(container_tool) stop psql-example
+	$(container_tool) rm psql-example
 
 crc/login:
 	@echo "Logging into CRC"
 	@crc console --credentials -ojson | jq -r .clusterConfig.adminCredentials.password | oc login --username kubeadmin --insecure-skip-tls-verify=true https://api.crc.testing:6443
-	@oc whoami --show-token | podman login --username kubeadmin --password-stdin "$(external_image_registry)"
+	@oc whoami --show-token | $(container_tool) login --username kubeadmin --password-stdin "$(external_image_registry)"
 .PHONY: crc/login
