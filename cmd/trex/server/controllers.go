@@ -13,7 +13,10 @@ import (
 func NewControllersServer() *ControllersServer {
 
 	s := &ControllersServer{
-		KindControllerManager: controllers.NewKindControllerManager(env().Services.Events()),
+		KindControllerManager: controllers.NewKindControllerManager(
+			db.NewAdvisoryLockFactory(env().Database.SessionFactory),
+			env().Services.Events(),
+		),
 	}
 
 	dinoServices := env().Services.Dinosaurs()
