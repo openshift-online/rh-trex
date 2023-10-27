@@ -1,9 +1,12 @@
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_1.20 AS builder
 
-COPY . .
+ENV SOURCE_DIR=/rh-trex
+WORKDIR $SOURCE_DIR
+COPY . $SOURCE_DIR
 
-RUN go mod vendor
+ENV GOFLAGS=""
 RUN make binary
+RUN pwd
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
@@ -15,7 +18,7 @@ RUN \
     microdnf clean all
 
 COPY --from=builder \
-    ocm-example-service \
+    /rh-trex/ocm-example-service \
     /usr/local/bin/
 
 EXPOSE 8000
