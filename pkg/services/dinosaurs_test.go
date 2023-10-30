@@ -6,8 +6,8 @@ import (
 
 	gm "github.com/onsi/gomega"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/dao/mocks"
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/dao/mocks"
 )
 
 func TestDinosaurFindBySpecies(t *testing.T) {

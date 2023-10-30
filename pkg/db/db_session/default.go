@@ -12,9 +12,9 @@ import (
 
 	"github.com/lib/pq"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
-	ocmlogger "gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/db"
+	ocmlogger "github.com/openshift-online/rh-trex/pkg/logger"
 )
 
 type Default struct {

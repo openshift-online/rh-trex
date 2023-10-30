@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/golang/glog"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/migrations"
+	"github.com/openshift-online/rh-trex/pkg/db/migrations"
 
 	"gorm.io/gorm"
 )

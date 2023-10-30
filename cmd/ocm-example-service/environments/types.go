@@ -3,10 +3,10 @@ package environments
 import (
 	"sync"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/auth"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/client/ocm"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
+	"github.com/openshift-online/rh-trex/pkg/auth"
+	"github.com/openshift-online/rh-trex/pkg/client/ocm"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
 const (

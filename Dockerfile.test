@@ -28,12 +28,12 @@ ENV PATH="/ocm/bin:/usr/local/go/bin:${PATH}"
 ENV GOPATH="/ocm"
 ENV CGO_ENABLED=0
 
-RUN mkdir -p /ocm/src/gitlab.cee.redhat.com/service/sdb-ocm-example-service
-COPY . /ocm/src/gitlab.cee.redhat.com/service/sdb-ocm-example-service
+RUN mkdir -p /ocm/src/github.com/openshift-online/rh-trex
+COPY . /ocm/src/github.com/openshift-online/rh-trex
 
 # Docker built / owned  as 'root' but the 'postgres' user runs the image
 RUN chown -R postgres:postgres /ocm /usr/local/go
-WORKDIR /ocm/src/gitlab.cee.redhat.com/service/sdb-ocm-example-service
+WORKDIR /ocm/src/github.com/openshift-online/rh-trex
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 

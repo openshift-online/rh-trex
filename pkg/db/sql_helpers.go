@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/jinzhu/inflection"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 	"github.com/yaacov/tree-search-language/pkg/tsl"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
 	"gorm.io/gorm"
 )
 

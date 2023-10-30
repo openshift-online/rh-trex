@@ -3,7 +3,8 @@ package test
 import (
 	"context"
 	"fmt"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
+
+	"github.com/openshift-online/rh-trex/pkg/api"
 )
 
 func (helper *Helper) NewDinosaur(species string) *api.Dinosaur {

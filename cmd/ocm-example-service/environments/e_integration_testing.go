@@ -3,7 +3,7 @@ package environments
 import (
 	"os"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/db_session"
+	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 )
 
 var _ EnvironmentImpl = &testingEnvImpl{}

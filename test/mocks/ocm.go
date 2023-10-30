@@ -2,7 +2,8 @@ package mocks
 
 import (
 	"context"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/client/ocm"
+
+	"github.com/openshift-online/rh-trex/pkg/client/ocm"
 )
 
 /*

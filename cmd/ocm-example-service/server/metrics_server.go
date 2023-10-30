@@ -8,9 +8,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/handlers"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/handlers"
+	"github.com/openshift-online/rh-trex/pkg/logger"
 )
 
 func NewMetricsServer() Server {

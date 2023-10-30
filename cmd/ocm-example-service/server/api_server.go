@@ -16,9 +16,9 @@ import (
 	sdk "github.com/openshift-online/ocm-sdk-go"
 	"github.com/openshift-online/ocm-sdk-go/authentication"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/cmd/ocm-example-service/environments"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/data/generated/openapi"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/environments"
+	"github.com/openshift-online/rh-trex/data/generated/openapi"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 type apiServer struct {

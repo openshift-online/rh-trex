@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 
-	dbContext "gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/db_context"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
+	dbContext "github.com/openshift-online/rh-trex/pkg/db/db_context"
+	"github.com/openshift-online/rh-trex/pkg/logger"
 )
 
 // NewContext returns a new context with transaction stored in it.
