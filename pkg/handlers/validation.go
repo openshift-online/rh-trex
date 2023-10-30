@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api/openapi"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/api/openapi"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 func validateNotEmpty(i interface{}, fieldName string, field string) validate {

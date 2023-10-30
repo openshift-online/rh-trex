@@ -6,7 +6,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 type JWTMiddleware interface {

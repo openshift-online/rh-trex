@@ -2,11 +2,12 @@ package services
 
 import (
 	"context"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/dao"
-	logger "gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/dao"
+	logger "github.com/openshift-online/rh-trex/pkg/logger"
+
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 type DinosaurService interface {

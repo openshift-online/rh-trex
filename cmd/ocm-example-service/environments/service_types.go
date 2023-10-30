@@ -1,8 +1,8 @@
 package environments
 
 import (
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/dao"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/services"
+	"github.com/openshift-online/rh-trex/pkg/dao"
+	"github.com/openshift-online/rh-trex/pkg/services"
 )
 
 type DinosaurServiceLocator func() services.DinosaurService

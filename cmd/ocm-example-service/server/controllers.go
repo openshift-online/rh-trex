@@ -2,11 +2,12 @@ package server
 
 import (
 	"context"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/controllers"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/logger"
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/controllers"
+	"github.com/openshift-online/rh-trex/pkg/db"
+
+	"github.com/openshift-online/rh-trex/pkg/logger"
 )
 
 func NewControllersServer() *ControllersServer {

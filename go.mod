@@ -1,4 +1,4 @@
-module gitlab.cee.redhat.com/service/sdb-ocm-example-service
+module github.com/openshift-online/rh-trex
 
 go 1.21
 

@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/config"
 )
 
 type SessionFactory interface {

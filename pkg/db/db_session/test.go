@@ -12,8 +12,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
 type Test struct {

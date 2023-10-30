@@ -4,9 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/spf13/pflag"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/cmd/ocm-example-service/environments"
 	"time"
+
+	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/environments"
+	"github.com/spf13/pflag"
 )
 
 func init() {

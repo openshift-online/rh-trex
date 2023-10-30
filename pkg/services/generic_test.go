@@ -2,17 +2,18 @@ package services
 
 import (
 	"context"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/dao"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
 	"testing"
+
+	"github.com/openshift-online/rh-trex/pkg/dao"
+	"github.com/openshift-online/rh-trex/pkg/db"
 
 	"github.com/onsi/gomega/types"
 	"github.com/yaacov/tree-search-language/pkg/tsl"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/config"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/db_session"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/config"
+	"github.com/openshift-online/rh-trex/pkg/db/db_session"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 
 	. "github.com/onsi/gomega"
 )

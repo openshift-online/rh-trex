@@ -6,8 +6,8 @@ import (
 
 	"gorm.io/gorm/clause"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/api"
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db"
+	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
 type EventDao interface {

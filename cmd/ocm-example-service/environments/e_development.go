@@ -1,7 +1,7 @@
 package environments
 
 import (
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/db/db_session"
+	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 )
 
 // devEnvImpl environment is intended for local use while developing features

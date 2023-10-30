@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"gitlab.cee.redhat.com/service/sdb-ocm-example-service/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 // Field names suspected to contain personally identifiable information
