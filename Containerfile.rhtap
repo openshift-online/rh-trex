@@ -29,6 +29,7 @@ LABEL name="ocm-example-service" \
       vendor="Red Hat" \
       version="0.0.1" \
       summary="OCM Example Service API" \
+      description="OCM Example Service API" \
       io.k8s.description="OCM Example Service API" \
       io.k8s.display-name="RH-TREX" \
       io.openshift.tags="rh-trex"
