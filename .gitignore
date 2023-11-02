@@ -40,3 +40,6 @@
 
 # Ignore IntelliJ config
 .idea/
+
+# Don't push the testing password file
+secrets/db.password
