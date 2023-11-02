@@ -33,3 +33,5 @@ LABEL name="ocm-example-service" \
       io.k8s.description="OCM Example Service API" \
       io.k8s.display-name="RH-TREX" \
       io.openshift.tags="rh-trex"
+
+#11022023
