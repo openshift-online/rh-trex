@@ -95,7 +95,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursGetExecute(r ApiApiRHTrexV1Dinos
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/rh-trex/v1/dinosaurs"
+	localVarPath := localBasePath + "/api/rhtrex/v1/dinosaurs"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -243,7 +243,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdGetExecute(r ApiApiRHTrexV1Din
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/rh-trex/v1/dinosaurs/{id}"
+	localVarPath := localBasePath + "/api/rhtrex/v1/dinosaurs/{id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -395,7 +395,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdPatchExecute(r ApiApiRHTrexV1D
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/rh-trex/v1/dinosaurs/{id}"
+	localVarPath := localBasePath + "/api/rhtrex/v1/dinosaurs/{id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -571,7 +571,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursPostExecute(r ApiApiRHTrexV1Dino
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/rh-trex/v1/dinosaurs"
+	localVarPath := localBasePath + "/api/rhtrex/v1/dinosaurs"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}

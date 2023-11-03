@@ -42,7 +42,7 @@ $ make binary
 $ make db/setup
 $ make db/login
         
-    root@f076ddf94520:/# psql -h localhost -U rh_trex rhtrex
+    root@f076ddf94520:/# psql -h localhost -U trex rhtrex
     psql (14.4 (Debian 14.4-1.pgdg110+1))
     Type "help" for help.
     
@@ -58,12 +58,12 @@ The initial migration will create the base data model as well as providing a way
 ```shell
 
 # Run migrations
-./rh-trex migrate
+./trex migrate
 
 # Verify they ran in the database
 $ make db/login
 
-root@f076ddf94520:/# psql -h localhost -U rh_trex rhtrex
+root@f076ddf94520:/# psql -h localhost -U trex rhtrex
 psql (14.4 (Debian 14.4-1.pgdg110+1))
 Type "help" for help.
 
@@ -71,9 +71,9 @@ rhtrex=# \dt
                  List of relations
  Schema |    Name    | Type  |        Owner        
 --------+------------+-------+---------------------
- public | dinosaurs  | table | rh_trex
- public | events     | table | rh_trex
- public | migrations | table | rh_trex
+ public | dinosaurs  | table | trex
+ public | events     | table | trex
+ public | migrations | table | trex
 (3 rows)
 
 
@@ -100,7 +100,7 @@ To verify that the server is working use the curl command:
 
 ```shell
 
-curl http://localhost:8000/api/rh-trex/v1/dinosaurs | jq
+curl http://localhost:8000/api/rhtrex/v1/dinosaurs | jq
 
 ```
 
@@ -110,7 +110,7 @@ That should return a 401 response like this, because it needs authentication:
 {
   "kind": "Error",
   "id": "401",
-  "href": "/api/rh-trex/errors/401",
+  "href": "/api/rhtrex/errors/401",
   "code": "API-401",
   "reason": "Request doesn't contain the 'Authorization' header or the 'cs_jwt' cookie"
 }
@@ -130,7 +130,7 @@ ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
 This will be empty if no Dinosaur is ever created
 
 ```
-ocm get /api/rh-trex/v1/dinosaurs
+ocm get /api/rhtrex/v1/dinosaurs
 {
   "items": [],
   "kind": "DinosaurList",
@@ -144,7 +144,7 @@ ocm get /api/rh-trex/v1/dinosaurs
 
 ```shell
 
-ocm post /api/rh-trex/v1/dinosaurs << EOF
+ocm post /api/rhtrex/v1/dinosaurs << EOF
 {
     "species": "foo"
 }
@@ -155,12 +155,12 @@ EOF
 #### Get your Dinosaur
 
 ```shell
-ocm get /api/rh-trex/v1/dinosaurs
+ocm get /api/rhtrex/v1/dinosaurs
 {
   "items": [
     {
       "created_at":"2023-10-26T08:15:54.509653Z",
-      "href":"/api/rh-trex/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
+      "href":"/api/rhtrex/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
       "id":"2XIENcJIi9t2eBblhWVCtWLdbDZ",
       "kind":"Dinosaur",
       "species":"foo",
@@ -203,9 +203,9 @@ Login Succeeded!
 
 $ make deploy
 
-$ ocm login --token=${OCM_ACCESS_TOKEN} --url=https://rh-trex.apps-crc.testing --insecure
+$ ocm login --token=${OCM_ACCESS_TOKEN} --url=https://trex.apps-crc.testing --insecure
 
-$ ocm post /api/rh-trex/v1/dinosaurs << EOF
+$ ocm post /api/rhtrex/v1/dinosaurs << EOF
 {
     "species": "foo"
 }

@@ -2,7 +2,7 @@
 kind: Template
 apiVersion: v1
 metadata:
-  name: rh-trex-service
+  name: trex-service
   annotations:
     openshift.io/display-name: RH TREX
     description: Example Service API for the Unified Hybrid Cloud deployment
@@ -11,7 +11,7 @@ metadata:
     template.openshift.io/provider-display-name: Red Hat, Inc.
     template.openshift.io/documentation-url: https://gitlab.cee.redhat.com/service/
 labels:
-  template: rh-trex
+  template: trex
 parameters:
 
 - name: ENVIRONMENT
@@ -185,20 +185,20 @@ objects:
   - kind: ServiceAccount
     apiVersion: v1
     metadata:
-      name: rh-trex
+      name: trex
       labels:
-        app: rh-trex
+        app: trex
 
   - kind: Deployment
     apiVersion: apps/v1
     metadata:
-      name: rh-trex
+      name: trex
       labels:
-        app: rh-trex
+        app: trex
     spec:
       selector:
         matchLabels:
-          app: rh-trex
+          app: trex
       replicas: ${{REPLICAS}}
       strategy:
         rollingUpdate:
@@ -208,19 +208,19 @@ objects:
       template:
         metadata:
           labels:
-            app: rh-trex
+            app: trex
         spec:
-          serviceAccountName: rh-trex
+          serviceAccountName: trex
           volumes:
           - name: tls
             secret:
-              secretName: rh-trex-tls
+              secretName: trex-tls
           - name: service
             secret:
-              secretName: rh-trex
+              secretName: trex
           - name: rds
             secret:
-              secretName: rh-trex-rds
+              secretName: trex-rds
           - name: authentication
             configMap:
               name: authentication
@@ -234,7 +234,7 @@ objects:
             - name: rds
               mountPath: /secrets/rds
             command:
-            - /usr/local/bin/rh-trex
+            - /usr/local/bin/trex
             - migrate
             - --db-host-file=/secrets/rds/db.host
             - --db-port-file=/secrets/rds/db.port
@@ -260,7 +260,7 @@ objects:
               - name: "AMS_ENV"
                 value: "${ENVIRONMENT}"
             command:
-            - /usr/local/bin/rh-trex
+            - /usr/local/bin/trex
             - serve
             - --db-host-file=/secrets/rds/db.host
             - --db-port-file=/secrets/rds/db.port
@@ -308,7 +308,7 @@ objects:
                 memory: ${MEMORY_LIMIT}
             livenessProbe:
               httpGet:
-                path: /api/rh-trex
+                path: /api/rhtrex
                 port: 8000
                 scheme: HTTPS
               initialDelaySeconds: 15
@@ -327,16 +327,16 @@ objects:
   - kind: Service
     apiVersion: v1
     metadata:
-      name: rh-trex
+      name: trex
       labels:
-        app: rh-trex
+        app: trex
         port: api
       annotations:
         description: Exposes and load balances the account manager pods
-        service.alpha.openshift.io/serving-cert-secret-name: rh-trex-tls
+        service.alpha.openshift.io/serving-cert-secret-name: trex-tls
     spec:
       selector:
-        app: rh-trex
+        app: trex
       ports:
         - port: 8000
           targetPort: 8000
@@ -347,16 +347,16 @@ objects:
   - kind: Service
     apiVersion: v1
     metadata:
-      name: rh-trex-metrics
+      name: trex-metrics
       labels:
-        app: rh-trex
+        app: trex
         port: metrics
       annotations:
         description: Exposes and load balances the RH TREX pods metrics endpoint
-        service.alpha.openshift.io/serving-cert-secret-name: rh-trex-metrics-tls
+        service.alpha.openshift.io/serving-cert-secret-name: trex-metrics-tls
     spec:
       selector:
-        app: rh-trex
+        app: trex
       ports:
       - port: 8080
         targetPort: 8080
@@ -365,13 +365,13 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: rh-trex-healthcheck
+      name: trex-healthcheck
       labels:
-        app: rh-trex
+        app: trex
         port: healthcheck
     spec:
       selector:
-        app: rh-trex
+        app: trex
       ports:
       - port: 8083
         targetPort: 8083

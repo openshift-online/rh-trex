@@ -4,8 +4,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/openshift-online/rh-trex/cmd/rh-trex/environments"
-	"github.com/openshift-online/rh-trex/cmd/rh-trex/server"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments"
+	"github.com/openshift-online/rh-trex/cmd/trex/server"
 )
 
 func NewServeCommand() *cobra.Command {

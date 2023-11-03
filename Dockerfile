@@ -7,14 +7,14 @@ RUN \
     microdnf clean all
 
 COPY \
-    rh-trex \
+    trex \
     /usr/local/bin/
 
 EXPOSE 8000
 
-ENTRYPOINT ["/usr/local/bin/rh-trex", "serve"]
+ENTRYPOINT ["/usr/local/bin/trex", "serve"]
 
-LABEL name="rh-trex" \
+LABEL name="trex" \
       vendor="Red Hat" \
       version="0.0.1" \
       summary="RH TREX API" \

@@ -1,14 +1,14 @@
 FROM quay.io/app-sre/postgres:buster
 
 ENV POSTGRES_PASSWORD foobar-bizz-buzz
-ENV POSTGRES_USER rh_trex
+ENV POSTGRES_USER trex
 ENV POSTGRES_DB rhtrex
 
 ENV GORM_DIALECT postgres
 ENV GORM_HOST 127.0.0.1
 ENV GORM_PORT 5432
 ENV GORM_NAME rhtrex
-ENV GORM_USERNAME rh_trex
+ENV GORM_USERNAME trex
 ENV GORM_PASSWORD foobar-bizz-buzz
 ENV GORM_SSLMODE disable
 ENV GORM_DEBUG false

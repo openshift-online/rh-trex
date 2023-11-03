@@ -13,7 +13,7 @@ func RequestLoggingMiddleware(handler http.Handler) http.Handler {
 
 		// these contribute greatly to log spam but are not useful or meaningful.
 		// consider a list/map of URLs should this grow in the future.
-		if path == "/api/rh-trex" {
+		if path == "/api/rhtrex" {
 			doLog = false
 		}
 

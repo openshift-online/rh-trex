@@ -11,7 +11,7 @@ import (
 func BenchmarkGetDynos(b *testing.B) {
 	b.ReportAllocs()
 	fn := func(b *testing.B) {
-		cmd := exec.Command("ocm", "get", "/api/rh-trex/v1/dinosaurs", "params='size=2'")
+		cmd := exec.Command("ocm", "get", "/api/rhtrex/v1/dinosaurs", "params='size=2'")
 		_, err := cmd.CombinedOutput()
 		if err != nil {
 			b.Errorf("ERROR %+v", err)

@@ -11,7 +11,7 @@ servers:
 - description: Staging server
   url: https://api.stage.openshift.com
 paths:
-  /api/rh-trex/v1/dinosaurs:
+  /api/rhtrex/v1/dinosaurs:
     get:
       parameters:
       - description: Page number of record list when record list exceeds specified
@@ -169,7 +169,7 @@ paths:
       security:
       - Bearer: []
       summary: Create a new dinosaur
-  /api/rh-trex/v1/dinosaurs/{id}:
+  /api/rhtrex/v1/dinosaurs/{id}:
     get:
       parameters:
       - description: The id of record

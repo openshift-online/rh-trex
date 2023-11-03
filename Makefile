@@ -42,9 +42,9 @@ image_repository:=$(namespace)/rh-trex
 
 # Database connection details
 db_name:=rhtrex
-db_host=rh-trex-db.$(namespace)
+db_host=trex-db.$(namespace)
 db_port=5432
-db_user:=rh_trex
+db_user:=trex
 db_password:=foobar-bizz-buzz
 db_password_file=${PWD}/secrets/db.password
 db_sslmode:=disable
@@ -142,12 +142,12 @@ lint:
 # Build binaries
 # NOTE it may be necessary to use CGO_ENABLED=0 for backwards compatibility with centos7 if not using centos7
 binary: check-gopath
-	${GO} build ./cmd/rh-trex
+	${GO} build ./cmd/trex
 .PHONY: binary
 
 # Install
 install: check-gopath
-	CGO_ENABLED=$(CGO_ENABLED) GOEXPERIMENT=boringcrypto ${GO} install -ldflags="$(ldflags)" ./cmd/rh-trex
+	CGO_ENABLED=$(CGO_ENABLED) GOEXPERIMENT=boringcrypto ${GO} install -ldflags="$(ldflags)" ./cmd/trex
 	@ ${GO} version | grep -q "$(GO_VERSION)" || \
 		( \
 			printf '\033[41m\033[97m\n'; \
@@ -196,14 +196,14 @@ generate:
 .PHONY: generate
 
 run: install
-	rh-trex migrate
-	rh-trex serve
+	trex migrate
+	trex serve
 .PHONY: run
 
 # Run Swagger and host the api docs
 run/docs:
 	@echo "Please open http://localhost/"
-	docker run -d -p 80:8080 -e SWAGGER_JSON=/rh-trex.yaml -v $(PWD)/openapi/rh-trex.yaml:/rh-trex.yaml swaggerapi/swagger-ui
+	docker run -d -p 80:8080 -e SWAGGER_JSON=/trex.yaml -v $(PWD)/openapi/rhtrex.yaml:/trex.yaml swaggerapi/swagger-ui
 .PHONY: run/docs
 
 # Delete temporary files

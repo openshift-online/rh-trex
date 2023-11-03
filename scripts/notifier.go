@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/openshift-online/rh-trex/cmd/rh-trex/environments"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 	"github.com/spf13/pflag"
 )
 

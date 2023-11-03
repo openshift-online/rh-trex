@@ -7,7 +7,7 @@ metadata:
     iconClass: icon-postgresql
     openshift.io/display-name: Example Service PostgreSQL Database
     tags: database,postgresql
-  name: rh-trex-db
+  name: trex-db
 parameters:
 
   - name: POSTGRESQL_IMAGESTREAM_NAMESPACE
@@ -19,7 +19,7 @@ parameters:
     description: The name of the OpenShift Service exposed for the database.
     displayName: Database Service Name
     required: true
-    value: rh-trex-db
+    value: trex-db
 
   - name: DATABASE_USER
     description: Username for PostgreSQL user that will be used for accessing the database.

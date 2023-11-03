@@ -11,7 +11,7 @@ servers:
   - url: https://api.stage.openshift.com
     description: Staging server
 paths:
-  /api/rh-trex/v1/{{.KindLowerPlural}}:
+  /api/rhtrex/v1/{{.KindLowerPlural}}:
     get:
       summary: Returns a list of {{.KindLowerPlural}}
       security:
@@ -95,7 +95,7 @@ paths:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
-  /api/rh-trex/v1/{{.KindLowerPlural}}/{id}:
+  /api/rhtrex/v1/{{.KindLowerPlural}}/{id}:
     get:
       summary: Get an {{.KindLowerSingular}} by id
       security:

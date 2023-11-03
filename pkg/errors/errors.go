@@ -18,7 +18,7 @@ const (
 	ERROR_CODE_PREFIX = "RH-TREX"
 
 	// HREF for API errors
-	ERROR_HREF = "/api/rh-trex/v1/errors/"
+	ERROR_HREF = "/api/rhtrex/v1/errors/"
 
 	// InvalidToken occurs when a token is invalid (generally, not found in the database)
 	ErrorInvalidToken ServiceErrorCode = 1
