@@ -347,7 +347,7 @@ spec:
         - name: kind
           value: task
         - name: ARGS
-          value: "--all-projects --exclude=test*,vendor,deps,pkg/config"
+          value: "--all-projects --exclude=test*,vendor,deps,pkg"
         resolver: bundles
       when:
       - input: $(params.skip-checks)
