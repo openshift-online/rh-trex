@@ -7,7 +7,7 @@ export LD_LIBRARY_PATH=/opt/rh/httpd24/root/usr/lib64:$LD_LIBRARY_PATH
 
 # Use same name for all instances.  This makes it easy to clean up a previously
 # failed instance.  This assumes only one instance will be running at a time.
-export IMAGE_NAME="test/ocmexampleservice"
+export IMAGE_NAME="test/rh-trex"
 
 function cleanUp {
   if [ -n "${IMAGE_NAME:-}" ] && \

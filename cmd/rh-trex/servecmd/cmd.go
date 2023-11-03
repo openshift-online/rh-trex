@@ -4,15 +4,15 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/environments"
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/server"
+	"github.com/openshift-online/rh-trex/cmd/rh-trex/environments"
+	"github.com/openshift-online/rh-trex/cmd/rh-trex/server"
 )
 
 func NewServeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serve",
-		Short: "Serve the ocm-example-service",
-		Long:  "Serve the ocm-example-service.",
+		Short: "Serve the rh-trex",
+		Long:  "Serve the rh-trex.",
 		Run:   runServe,
 	}
 	err := environments.Environment().AddFlags(cmd.PersistentFlags())

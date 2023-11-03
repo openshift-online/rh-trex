@@ -7,15 +7,15 @@ RUN \
     microdnf clean all
 
 COPY \
-    ocm-example-service \
+    rh-trex \
     /usr/local/bin/
 
 EXPOSE 8000
 
-ENTRYPOINT ["/usr/local/bin/ocm-example-service", "serve"]
+ENTRYPOINT ["/usr/local/bin/rh-trex", "serve"]
 
-LABEL name="ocm-example-service" \
+LABEL name="rh-trex" \
       vendor="Red Hat" \
       version="0.0.1" \
-      summary="OCM Example Service API" \
-      description="OCM Example Service API"
+      summary="RH TREX API" \
+      description="RH TREX API"

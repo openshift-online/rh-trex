@@ -33,11 +33,11 @@ func TestSQLTranslation(t *testing.T) {
 	tests := []map[string]interface{}{
 		{
 			"search": "garbage",
-			"error":  "OCM-EXAMPLE-21: Failed to parse search query: garbage",
+			"error":  "RH-TREX-21: Failed to parse search query: garbage",
 		},
 		{
 			"search": "id in ('123')",
-			"error":  "OCM-EXAMPLE-21: dinosaurs.id is not a valid field name",
+			"error":  "RH-TREX-21: dinosaurs.id is not a valid field name",
 		},
 	}
 	for _, test := range tests {

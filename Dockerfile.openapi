@@ -25,5 +25,5 @@ RUN go install -a github.com/go-bindata/go-bindata/...@v3.1.2
 RUN bash /usr/local/bin/docker-entrypoint.sh generate -i /local/openapi/openapi.yaml -g go -o /local/pkg/api/openapi
 RUN rm /local/pkg/api/openapi/go.mod /local/pkg/api/openapi/go.sum
 RUN rm -r /local/pkg/api/openapi/test
-RUN go generate /local/cmd/ocm-example-service/main.go
+RUN go generate /local/cmd/rh-trex/main.go
 RUN gofmt -w /local/pkg/api/openapi

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	BasePath = "/api/ocm-example-service/v1"
+	BasePath = "/api/rh-trex/v1"
 )
 
 func ObjectPath(id string, obj interface{}) *string {

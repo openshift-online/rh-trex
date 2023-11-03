@@ -6,8 +6,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/migrate"
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/servecmd"
+	"github.com/openshift-online/rh-trex/cmd/rh-trex/migrate"
+	"github.com/openshift-online/rh-trex/cmd/rh-trex/servecmd"
 )
 
 // nolint
@@ -28,8 +28,8 @@ func main() {
 	}
 
 	rootCmd := &cobra.Command{
-		Use:  "ocm-example-service",
-		Long: "ocm-example-service serves as a template for new microservices",
+		Use:  "rh-trex",
+		Long: "rh-trex serves as a template for new microservices",
 	}
 
 	// All subcommands under root

@@ -26,24 +26,24 @@ func TestDinosaurGet(t *testing.T) {
 	ctx := h.NewAuthenticatedContext(account)
 
 	// 401 using no JWT token
-	_, _, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdGet(context.Background(), "foo").Execute()
+	_, _, err := client.DefaultApi.ApiRHTrexV1DinosaursIdGet(context.Background(), "foo").Execute()
 	Expect(err).To(HaveOccurred(), "Expected 401 but got nil error")
 
 	// GET responses per openapi spec: 200 and 404,
-	_, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdGet(ctx, "foo").Execute()
+	_, resp, err := client.DefaultApi.ApiRHTrexV1DinosaursIdGet(ctx, "foo").Execute()
 	Expect(err).To(HaveOccurred(), "Expected 404")
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
 	dino := h.NewDinosaur(h.NewID())
 
-	dinosaur, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdGet(ctx, dino.ID).Execute()
+	dinosaur, resp, err := client.DefaultApi.ApiRHTrexV1DinosaursIdGet(ctx, dino.ID).Execute()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	Expect(*dinosaur.Id).To(Equal(dino.ID), "found object does not match test object")
 	Expect(*dinosaur.Species).To(Equal(dino.Species), "species mismatch")
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
-	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/ocm-example-service/v1/dinosaurs/%s", dino.ID)))
+	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", dino.ID)))
 	Expect(*dinosaur.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*dinosaur.UpdatedAt).To(BeTemporally("~", dino.UpdatedAt))
 }
@@ -60,13 +60,13 @@ func TestDinosaurPost(t *testing.T) {
 	}
 
 	// 201 Created
-	dinosaur, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursPost(ctx).Dinosaur(dino).Execute()
+	dinosaur, resp, err := client.DefaultApi.ApiRHTrexV1DinosaursPost(ctx).Dinosaur(dino).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	Expect(*dinosaur.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
 	Expect(*dinosaur.Species).To(Equal(*dino.Species), "species mismatch")
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
-	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/ocm-example-service/v1/dinosaurs/%s", *dinosaur.Id)))
+	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", *dinosaur.Id)))
 
 	// 400 bad request. posting junk json is one way to trigger 400.
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
@@ -92,14 +92,14 @@ func TestDinosaurPatch(t *testing.T) {
 
 	// 200 OK
 	species := "Dodo"
-	dinosaur, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+	dinosaur, resp, err := client.DefaultApi.ApiRHTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	Expect(*dinosaur.Id).To(Equal(dino.ID))
 	Expect(*dinosaur.Species).To(Equal(species), "species mismatch")
 	Expect(*dinosaur.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
-	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/ocm-example-service/v1/dinosaurs/%s", *dinosaur.Id)))
+	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", *dinosaur.Id)))
 
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
 	// 500 server error. posting junk json is one way to trigger 500.
@@ -148,14 +148,14 @@ func TestDinosaurPaging(t *testing.T) {
 	// Paging
 	_ = h.NewDinosaurList("Bronto", 20)
 
-	list, _, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursGet(ctx).Execute()
+	list, _, err := client.DefaultApi.ApiRHTrexV1DinosaursGet(ctx).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
 	Expect(len(list.Items)).To(Equal(20))
 	Expect(list.Size).To(Equal(int32(20)))
 	Expect(list.Total).To(Equal(int32(20)))
 	Expect(list.Page).To(Equal(int32(1)))
 
-	list, _, err = client.DefaultApi.ApiOcmExampleServiceV1DinosaursGet(ctx).Page(2).Size(5).Execute()
+	list, _, err = client.DefaultApi.ApiRHTrexV1DinosaursGet(ctx).Page(2).Size(5).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
 	Expect(len(list.Items)).To(Equal(5))
 	Expect(list.Size).To(Equal(int32(5)))
@@ -172,7 +172,7 @@ func TestDinosaurListSearch(t *testing.T) {
 	dinosaurs := h.NewDinosaurList("bronto", 20)
 
 	search := fmt.Sprintf("id in ('%s')", dinosaurs[0].ID)
-	list, _, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursGet(ctx).Search(search).Execute()
+	list, _, err := client.DefaultApi.ApiRHTrexV1DinosaursGet(ctx).Search(search).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
 	Expect(len(list.Items)).To(Equal(1))
 	Expect(list.Total).To(Equal(int32(20)))

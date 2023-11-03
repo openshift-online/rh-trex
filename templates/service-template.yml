@@ -2,16 +2,16 @@
 kind: Template
 apiVersion: v1
 metadata:
-  name: ocm-ex-service-service
+  name: rh-trex-service
   annotations:
-    openshift.io/display-name: OCM Example Service
+    openshift.io/display-name: RH TREX
     description: Example Service API for the Unified Hybrid Cloud deployment
     tags: golang,uhc,service-delivery
     iconClass: icon-shadowman
     template.openshift.io/provider-display-name: Red Hat, Inc.
     template.openshift.io/documentation-url: https://gitlab.cee.redhat.com/service/
 labels:
-  template: ocm-ex-service
+  template: rh-trex
 parameters:
 
 - name: ENVIRONMENT
@@ -185,20 +185,20 @@ objects:
   - kind: ServiceAccount
     apiVersion: v1
     metadata:
-      name: ocm-ex-service
+      name: rh-trex
       labels:
-        app: ocm-ex-service
+        app: rh-trex
 
   - kind: Deployment
     apiVersion: apps/v1
     metadata:
-      name: ocm-ex-service
+      name: rh-trex
       labels:
-        app: ocm-ex-service
+        app: rh-trex
     spec:
       selector:
         matchLabels:
-          app: ocm-ex-service
+          app: rh-trex
       replicas: ${{REPLICAS}}
       strategy:
         rollingUpdate:
@@ -208,19 +208,19 @@ objects:
       template:
         metadata:
           labels:
-            app: ocm-ex-service
+            app: rh-trex
         spec:
-          serviceAccountName: ocm-ex-service
+          serviceAccountName: rh-trex
           volumes:
           - name: tls
             secret:
-              secretName: ocm-ex-service-tls
+              secretName: rh-trex-tls
           - name: service
             secret:
-              secretName: ocm-ex-service
+              secretName: rh-trex
           - name: rds
             secret:
-              secretName: ocm-ex-service-rds
+              secretName: rh-trex-rds
           - name: authentication
             configMap:
               name: authentication
@@ -234,7 +234,7 @@ objects:
             - name: rds
               mountPath: /secrets/rds
             command:
-            - /usr/local/bin/ocm-example-service
+            - /usr/local/bin/rh-trex
             - migrate
             - --db-host-file=/secrets/rds/db.host
             - --db-port-file=/secrets/rds/db.port
@@ -260,7 +260,7 @@ objects:
               - name: "AMS_ENV"
                 value: "${ENVIRONMENT}"
             command:
-            - /usr/local/bin/ocm-example-service
+            - /usr/local/bin/rh-trex
             - serve
             - --db-host-file=/secrets/rds/db.host
             - --db-port-file=/secrets/rds/db.port
@@ -308,7 +308,7 @@ objects:
                 memory: ${MEMORY_LIMIT}
             livenessProbe:
               httpGet:
-                path: /api/ocm-example-service
+                path: /api/rh-trex
                 port: 8000
                 scheme: HTTPS
               initialDelaySeconds: 15
@@ -327,16 +327,16 @@ objects:
   - kind: Service
     apiVersion: v1
     metadata:
-      name: ocm-ex-service
+      name: rh-trex
       labels:
-        app: ocm-ex-service
+        app: rh-trex
         port: api
       annotations:
         description: Exposes and load balances the account manager pods
-        service.alpha.openshift.io/serving-cert-secret-name: ocm-ex-service-tls
+        service.alpha.openshift.io/serving-cert-secret-name: rh-trex-tls
     spec:
       selector:
-        app: ocm-ex-service
+        app: rh-trex
       ports:
         - port: 8000
           targetPort: 8000
@@ -347,16 +347,16 @@ objects:
   - kind: Service
     apiVersion: v1
     metadata:
-      name: ocm-ex-service-metrics
+      name: rh-trex-metrics
       labels:
-        app: ocm-ex-service
+        app: rh-trex
         port: metrics
       annotations:
-        description: Exposes and load balances the ocm example service pods metrics endpoint
-        service.alpha.openshift.io/serving-cert-secret-name: ocm-ex-service-metrics-tls
+        description: Exposes and load balances the RH TREX pods metrics endpoint
+        service.alpha.openshift.io/serving-cert-secret-name: rh-trex-metrics-tls
     spec:
       selector:
-        app: ocm-ex-service
+        app: rh-trex
       ports:
       - port: 8080
         targetPort: 8080
@@ -365,13 +365,13 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ocm-ex-service-healthcheck
+      name: rh-trex-healthcheck
       labels:
-        app: ocm-ex-service
+        app: rh-trex
         port: healthcheck
     spec:
       selector:
-        app: ocm-ex-service
+        app: rh-trex
       ports:
       - port: 8083
         targetPort: 8083
