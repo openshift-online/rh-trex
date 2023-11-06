@@ -46,6 +46,7 @@ db_host=ocm-ex-service-db.$(namespace)
 db_port=5432
 db_user:=ocm_example_service
 db_password:=foobar-bizz-buzz
+db_password_file=${PWD}/secrets/db.password
 db_sslmode:=disable
 db_image?=docker.io/library/postgres:14.2
 
@@ -306,6 +307,7 @@ undeploy: \
 
 .PHONY: db/setup
 db/setup:
+	@echo $(db_password) > $(db_password_file)
 	$(container_tool) run --name psql-example -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
 
 .PHONY: db/login
