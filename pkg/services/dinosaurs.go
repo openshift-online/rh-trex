@@ -4,11 +4,15 @@ import (
 	"context"
 
 	"github.com/openshift-online/rh-trex/pkg/dao"
+	"github.com/openshift-online/rh-trex/pkg/db"
 	logger "github.com/openshift-online/rh-trex/pkg/logger"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 )
+
+// This flag will only be used in integration test to prove that the advisory lock works
+var DisableAdvisoryLock = false
 
 type DinosaurService interface {
 	Get(ctx context.Context, id string) (*api.Dinosaur, *errors.ServiceError)
@@ -25,8 +29,9 @@ type DinosaurService interface {
 	OnDelete(ctx context.Context, id string) error
 }
 
-func NewDinosaurService(dinosaurDao dao.DinosaurDao, events EventService) DinosaurService {
+func NewDinosaurService(lockFactory db.LockFactory, dinosaurDao dao.DinosaurDao, events EventService) DinosaurService {
 	return &sqlDinosaurService{
+		lockFactory: lockFactory,
 		dinosaurDao: dinosaurDao,
 		events:      events,
 	}
@@ -35,6 +40,7 @@ func NewDinosaurService(dinosaurDao dao.DinosaurDao, events EventService) Dinosa
 var _ DinosaurService = &sqlDinosaurService{}
 
 type sqlDinosaurService struct {
+	lockFactory db.LockFactory
 	dinosaurDao dao.DinosaurDao
 	events      EventService
 }
@@ -85,20 +91,42 @@ func (s *sqlDinosaurService) Create(ctx context.Context, dinosaur *api.Dinosaur)
 }
 
 func (s *sqlDinosaurService) Replace(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, *errors.ServiceError) {
-	dinosaur, err := s.dinosaurDao.Replace(ctx, dinosaur)
+	if !DisableAdvisoryLock {
+		// Updates the dinosaur species only when its species changes.
+		// If there are multiple requests at the same time, it will cause the race conditions among these
+		// requests (read–modify–write), the advisory lock is used here to prevent the race conditions.
+		lockOwnerID, err := s.lockFactory.NewAdvisoryLock(ctx, dinosaur.ID, db.Dinosaurs)
+		if err != nil {
+			return nil, errors.DatabaseAdvisoryLock(err)
+		}
+		defer s.lockFactory.Unlock(ctx, lockOwnerID)
+	}
+
+	found, err := s.dinosaurDao.Get(ctx, dinosaur.ID)
+	if err != nil {
+		return nil, handleGetError("Dinosaur", "id", dinosaur.ID, err)
+	}
+
+	// New species is no change, the update action is not needed.
+	if found.Species == dinosaur.Species {
+		return found, nil
+	}
+
+	found.Species = dinosaur.Species
+	updated, err := s.dinosaurDao.Replace(ctx, found)
 	if err != nil {
 		return nil, handleUpdateError("Dinosaur", err)
 	}
 
 	_, eErr := s.events.Create(ctx, &api.Event{
 		Source:    "Dinosaurs",
-		SourceID:  dinosaur.ID,
+		SourceID:  updated.ID,
 		EventType: api.UpdateEventType,
 	})
 	if eErr != nil {
 		return nil, handleUpdateError("Dinosaur", err)
 	}
-	return dinosaur, nil
+	return updated, nil
 }
 
 func (s *sqlDinosaurService) Delete(ctx context.Context, id string) *errors.ServiceError {

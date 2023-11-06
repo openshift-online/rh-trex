@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/dao"
+	"github.com/openshift-online/rh-trex/pkg/services"
 
 	. "github.com/onsi/gomega"
 	"gopkg.in/resty.v1"
@@ -74,6 +76,7 @@ func TestDinosaurPost(t *testing.T) {
 		SetBody(`{ this is invalid }`).
 		Post(h.RestURL("/dinosaurs"))
 
+	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(restyResp.StatusCode()).To(Equal(http.StatusBadRequest))
 }
 
@@ -106,6 +109,7 @@ func TestDinosaurPatch(t *testing.T) {
 		SetBody(`{ this is invalid }`).
 		Patch(h.RestURL("/dinosaurs/foo"))
 
+	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(restyResp.StatusCode()).To(Equal(http.StatusBadRequest))
 
 	// species can not be empty in request body
@@ -114,6 +118,7 @@ func TestDinosaurPatch(t *testing.T) {
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
 		SetBody(`{"species":""}`).
 		Patch(h.RestURL(fmt.Sprintf("/dinosaurs/%s", *dinosaur.Id)))
+	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(restyResp.StatusCode()).To(Equal(http.StatusBadRequest))
 	Expect(restyResp.String()).To(ContainSubstring("species cannot be empty"))
 
@@ -172,4 +177,95 @@ func TestDinosaurListSearch(t *testing.T) {
 	Expect(len(list.Items)).To(Equal(1))
 	Expect(list.Total).To(Equal(int32(20)))
 	Expect(*list.Items[0].Id).To(Equal(dinosaurs[0].ID))
+}
+
+func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
+	h, client := test.RegisterIntegration(t)
+
+	account := h.NewRandAccount()
+	ctx := h.NewAuthenticatedContext(account)
+
+	dino := h.NewDinosaur("Stegosaurus")
+
+	// starts 20 threads to update this dinosaur at the same time
+	threads := 20
+	var wg sync.WaitGroup
+	wg.Add(threads)
+
+	for i := 0; i < threads; i++ {
+		go func() {
+			defer wg.Done()
+			species := "Pterosaur"
+			updated, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			Expect(*updated.Species).To(Equal(species), "species mismatch")
+		}()
+	}
+
+	// waits for all goroutines above to complete
+	wg.Wait()
+
+	dao := dao.NewEventDao(&h.Env().Database.SessionFactory)
+	events, err := dao.All(ctx)
+	Expect(err).NotTo(HaveOccurred(), "Error getting events:  %v", err)
+
+	updatedCount := 0
+	for _, e := range events {
+		if e.SourceID == dino.ID && e.EventType == api.UpdateEventType {
+			updatedCount = updatedCount + 1
+		}
+	}
+
+	// the dinosaur patch request is protected by the advisory lock, so there should only be one update
+	Expect(updatedCount).To(Equal(1))
+}
+
+func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
+	// we disable the advisory lock and try to update the dinosaurs
+	services.DisableAdvisoryLock = true
+
+	defer func() {
+		services.DisableAdvisoryLock = false
+	}()
+
+	h, client := test.RegisterIntegration(t)
+
+	account := h.NewRandAccount()
+	ctx := h.NewAuthenticatedContext(account)
+
+	dino := h.NewDinosaur("Tyrannosaurus")
+
+	// starts 20 threads to update this dinosaur at the same time
+	threads := 20
+	var wg sync.WaitGroup
+	wg.Add(threads)
+
+	for i := 0; i < threads; i++ {
+		go func() {
+			defer wg.Done()
+			species := "Triceratops"
+			updated, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			Expect(*updated.Species).To(Equal(species), "species mismatch")
+		}()
+	}
+
+	// waits for all goroutines above to complete
+	wg.Wait()
+
+	dao := dao.NewEventDao(&h.Env().Database.SessionFactory)
+	events, err := dao.All(ctx)
+	Expect(err).NotTo(HaveOccurred(), "Error getting events:  %v", err)
+
+	updatedCount := 0
+	for _, e := range events {
+		if e.SourceID == dino.ID && e.EventType == api.UpdateEventType {
+			updatedCount = updatedCount + 1
+		}
+	}
+
+	// the dinosaur patch request is not protected by the advisory lock, so there should be at least one update
+	Expect(updatedCount >= 1).To(BeTrue())
 }
