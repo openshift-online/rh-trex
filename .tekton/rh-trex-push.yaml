@@ -346,8 +346,6 @@ spec:
           value: quay.io/redhat-appstudio-tekton-catalog/task-sast-snyk-check:0.1@sha256:edd4ba638b71de52c2662abd3e93fd876e6e75cd07b162d13fae014d3a1a1fac
         - name: kind
           value: task
-        - name: ARGS
-          value: "--all-projects --exclude=test*,vendor,deps,pkg"
         resolver: bundles
       when:
       - input: $(params.skip-checks)
