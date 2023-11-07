@@ -56,6 +56,9 @@ glog_v:=10
 # Location of the JSON web key set used to verify tokens:
 jwks_url:=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
 
+# Test output files
+unit_test_json_output ?= ${PWD}/unit-test-results.json
+
 # Prints a list of useful targets.
 help:
 	@echo ""
@@ -170,6 +173,19 @@ test: install
 		./pkg/... \
 		./cmd/...
 .PHONY: test
+
+# Runs the unit tests with json output
+#
+# Args:
+#   TESTFLAGS: Flags to pass to `go test`. The `-v` argument is always passed.
+#
+# Examples:
+#   make test-unit-json TESTFLAGS="-run TestSomething"
+test-unit-json: install
+	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+		./pkg/... \
+		./cmd/...
+.PHONY: test-unit-json
 
 # Runs the integration tests.
 #
