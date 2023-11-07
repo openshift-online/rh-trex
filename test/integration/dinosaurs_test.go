@@ -196,7 +196,7 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			species := "Pterosaur"
-			updated, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+			updated, resp, err := client.DefaultApi.ApiRHTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(*updated.Species).To(Equal(species), "species mismatch")
@@ -245,7 +245,7 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			species := "Triceratops"
-			updated, resp, err := client.DefaultApi.ApiOcmExampleServiceV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+			updated, resp, err := client.DefaultApi.ApiRHTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(*updated.Species).To(Equal(species), "species mismatch")

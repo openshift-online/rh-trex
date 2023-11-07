@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/dao/mocks"
+	dbmocks "github.com/openshift-online/rh-trex/pkg/db/mocks"
 	"github.com/openshift-online/rh-trex/pkg/services"
 )
 
@@ -48,7 +49,7 @@ func TestControllerFramework(t *testing.T) {
 	ctx := context.Background()
 	eventsDao := mocks.NewEventDao()
 	events := services.NewEventService(eventsDao)
-	mgr := NewKindControllerManager(events)
+	mgr := NewKindControllerManager(dbmocks.NewMockAdvisoryLockFactory(), events)
 
 	ctrl := &exampleController{}
 	config := newExampleControllerConfig(ctrl)
