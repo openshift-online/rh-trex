@@ -54,7 +54,9 @@ spec:
             value: $(params.EXPECTED_OUTPUT)
           script: |
             # Install Deps
-            dnf -y install jq git
+            dnf -y install jq git make golang
+
+            go install gotest.tools/gotestsum@latest  
 
             # Set Vars
             TARGET_COMPONENT_NAME="rh-trex"
