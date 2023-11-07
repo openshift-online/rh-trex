@@ -63,7 +63,7 @@ func TestConfigReadQuotedFile(t *testing.T) {
 	}
 
 	quotedFileName := "\"" + stringFile.Name() + "\""
-	val, err := readFile(quotedFileName)
+	val, err := ReadFile(quotedFileName)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(val).To(Equal("example"))
 }

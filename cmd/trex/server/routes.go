@@ -46,25 +46,25 @@ func (s *apiServer) routes() *mux.Router {
 	// Request logging middleware logs pertinent information about the request and response
 	mainRouter.Use(logging.RequestLoggingMiddleware)
 
-	//  /api/rhtrex
-	apiRouter := mainRouter.PathPrefix("/api/rhtrex").Subrouter()
+	//  /api/rh-trex
+	apiRouter := mainRouter.PathPrefix("/api/rh-trex").Subrouter()
 	apiRouter.HandleFunc("", api.SendAPI).Methods(http.MethodGet)
 
-	//  /api/rhtrex/v1
+	//  /api/rh-trex/v1
 	apiV1Router := apiRouter.PathPrefix("/v1").Subrouter()
 	apiV1Router.HandleFunc("", api.SendAPIV1).Methods(http.MethodGet)
 	apiV1Router.HandleFunc("/", api.SendAPIV1).Methods(http.MethodGet)
 
-	//  /api/rhtrex/v1/openapi
+	//  /api/rh-trex/v1/openapi
 	apiV1Router.HandleFunc("/openapi", handlers.NewOpenAPIHandler(openAPIDefinitions).Get).Methods(http.MethodGet)
 	registerApiMiddleware(apiV1Router)
 
-	//  /api/rhtrex/v1/errors
+	//  /api/rh-trex/v1/errors
 	apiV1ErrorsRouter := apiV1Router.PathPrefix("/errors").Subrouter()
 	apiV1ErrorsRouter.HandleFunc("", errorsHandler.List).Methods(http.MethodGet)
 	apiV1ErrorsRouter.HandleFunc("/{id}", errorsHandler.Get).Methods(http.MethodGet)
 
-	//  /api/rhtrex/v1/dinosaurs
+	//  /api/rh-trex/v1/dinosaurs
 	apiV1DinosaursRouter := apiV1Router.PathPrefix("/dinosaurs").Subrouter()
 	apiV1DinosaursRouter.HandleFunc("", dinosaurHandler.List).Methods(http.MethodGet)
 	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Get).Methods(http.MethodGet)

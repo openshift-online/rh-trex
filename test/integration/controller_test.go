@@ -72,14 +72,14 @@ func TestControllerRacing(t *testing.T) {
 		}()
 	}
 
-	_ = h.NewDinosaurList("bronto", 2)
+	_ = h.NewDinosaurList("bronto", 50)
 
 	// This is to check only two create events is processed. It waits for 5 seconds to ensure all events have been
 	// processed by the controllers.
 	Eventually(func() error {
-		if len(proccessedEvent) != 2 {
+		if len(proccessedEvent) != 50 {
 			return fmt.Errorf("should have only 2 create events but got %d", len(proccessedEvent))
 		}
 		return nil
-	}, 30*time.Second, 5*time.Second).Should(Succeed())
+	}, 5*time.Second, 1*time.Second).Should(Succeed())
 }

@@ -10,6 +10,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
+/*
+
+scripts/notifier.go
+
+This script inserts messages into a postgres channel. See pg_notify function below.
+
+Listeners in the code pick up and process the messages.
+
+This script was used to understand/develop the kind controller framework.
+
+*/
+
 func init() {
 	_ = flag.Set("logtostderr", "true")
 	flags := pflag.CommandLine

@@ -28,8 +28,8 @@ ENTRYPOINT ["/usr/local/bin/trex", "serve"]
 LABEL name="trex" \
       vendor="Red Hat, Inc." \
       version="0.0.1" \
-      summary="RH TREX API" \
-      description="RH TREX API" \
-      io.k8s.description="RH TREX API" \
-      io.k8s.display-name="RH-TREX" \
+      summary="rh-trex API" \
+      description="rh-trex API" \
+      io.k8s.description="rh-trex API" \
+      io.k8s.display-name="rh-trex" \
       io.openshift.tags="trex"
