@@ -32,4 +32,10 @@ LABEL name="trex" \
       description="RH TREX API" \
       io.k8s.description="RH TREX API" \
       io.k8s.display-name="RH-TREX" \
+<<<<<<< HEAD
       io.openshift.tags="trex"
+=======
+      io.openshift.tags="rh-trex"
+
+#20231107
+>>>>>>> 44f6943 (Trigger Rebuild)
