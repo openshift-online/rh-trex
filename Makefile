@@ -38,13 +38,13 @@ internal_image_registry:=image-registry.openshift-image-registry.svc:5000
 # corresponding image stream inside that namespace. If the namespace doesn't
 # exist the push fails. This doesn't apply when the image is pushed to a public
 # repository, like `docker.io` or `quay.io`.
-image_repository:=$(namespace)/ocm-example-services
+image_repository:=$(namespace)/rh-trex
 
 # Database connection details
-db_name:=ocmexample
-db_host=ocm-ex-service-db.$(namespace)
+db_name:=rhtrex
+db_host=trex-db.$(namespace)
 db_port=5432
-db_user:=ocm_example_service
+db_user:=trex
 db_password:=foobar-bizz-buzz
 db_password_file=${PWD}/secrets/db.password
 db_sslmode:=disable
@@ -142,12 +142,12 @@ lint:
 # Build binaries
 # NOTE it may be necessary to use CGO_ENABLED=0 for backwards compatibility with centos7 if not using centos7
 binary: check-gopath
-	${GO} build ./cmd/ocm-example-service
+	${GO} build ./cmd/trex
 .PHONY: binary
 
 # Install
 install: check-gopath
-	CGO_ENABLED=$(CGO_ENABLED) GOEXPERIMENT=boringcrypto ${GO} install -ldflags="$(ldflags)" ./cmd/ocm-example-service
+	CGO_ENABLED=$(CGO_ENABLED) GOEXPERIMENT=boringcrypto ${GO} install -ldflags="$(ldflags)" ./cmd/trex
 	@ ${GO} version | grep -q "$(GO_VERSION)" || \
 		( \
 			printf '\033[41m\033[97m\n'; \
@@ -196,14 +196,14 @@ generate:
 .PHONY: generate
 
 run: install
-	ocm-example-service migrate
-	ocm-example-service serve
+	trex migrate
+	trex serve
 .PHONY: run
 
 # Run Swagger and host the api docs
 run/docs:
 	@echo "Please open http://localhost/"
-	docker run -d -p 80:8080 -e SWAGGER_JSON=/ocm-example-service.yaml -v $(PWD)/openapi/ocm-example-service.yaml:/ocm-example-service.yaml swaggerapi/swagger-ui
+	docker run -d -p 80:8080 -e SWAGGER_JSON=/trex.yaml -v $(PWD)/openapi/rhtrex.yaml:/trex.yaml swaggerapi/swagger-ui
 .PHONY: run/docs
 
 # Delete temporary files

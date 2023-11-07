@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: OCM Example Service API
-  description: OCM Example Service API
+  title: RH-TREX Service API
+  description: RH-TREX Service API
   version: 0.0.1
 servers:
   - url: http://localhost:8000
@@ -11,7 +11,7 @@ servers:
   - url: https://api.stage.openshift.com
     description: Staging server
 paths:
-  /api/ocm-example-service/v1/dinosaurs:
+  /api/rhtrex/v1/dinosaurs:
     get:
       summary: Returns a list of dinosaurs
       security:
@@ -95,7 +95,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /api/ocm-example-service/v1/dinosaurs/{id}:
+  /api/rhtrex/v1/dinosaurs/{id}:
     get:
       summary: Get an dinosaur by id
       security:

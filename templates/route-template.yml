@@ -10,14 +10,14 @@ objects:
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
-    name: ocm-ex-service
+    name: trex
     labels:
-      app: ocm-ex-service
+      app: trex
   spec:
-    host: ocm-ex-service.apps-crc.testing
+    host: trex.apps-crc.testing
     to:
       kind: Service
-      name: ocm-ex-service
+      name: trex
     tls:
       termination: reencrypt
       insecureEdgeTerminationPolicy: Redirect

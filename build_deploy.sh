@@ -52,5 +52,5 @@ podman login -u "${QUAY_USER}" -p "${QUAY_TOKEN}" quay.io
 make \
   version="${VERSION}" \
   external_image_registry="quay.io" \
-  image_repository="app-sre/ocm-example-service" \
+  image_repository="stolostron/rh-trex" \
   push

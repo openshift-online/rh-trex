@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: OCM Example Service API
-  description: OCM Example Service API
+  title: RH TREX API
+  description: RH TREX API
   version: 0.0.1
 servers:
   - url: http://localhost:8000
@@ -11,7 +11,7 @@ servers:
   - url: https://api.stage.openshift.com
     description: Staging server
 paths:
-  /api/ocm-example-service/v1/{{.KindLowerPlural}}:
+  /api/rhtrex/v1/{{.KindLowerPlural}}:
     get:
       summary: Returns a list of {{.KindLowerPlural}}
       security:
@@ -95,7 +95,7 @@ paths:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
-  /api/ocm-example-service/v1/{{.KindLowerPlural}}/{id}:
+  /api/rhtrex/v1/{{.KindLowerPlural}}/{id}:
     get:
       summary: Get an {{.KindLowerSingular}} by id
       security:

@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This file contains the API metadata types used by the ocm-example-service.
+// This file contains the API metadata types used by the rh-trex.
 
 package api
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // CollectionMetadata represents a collection.

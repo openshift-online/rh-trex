@@ -6,7 +6,7 @@ import (
 	gorillahandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/server/logging"
+	"github.com/openshift-online/rh-trex/cmd/trex/server/logging"
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/auth"
 	"github.com/openshift-online/rh-trex/pkg/db"
@@ -46,25 +46,25 @@ func (s *apiServer) routes() *mux.Router {
 	// Request logging middleware logs pertinent information about the request and response
 	mainRouter.Use(logging.RequestLoggingMiddleware)
 
-	//  /api/ocm-example-service
-	apiRouter := mainRouter.PathPrefix("/api/ocm-example-service").Subrouter()
+	//  /api/rhtrex
+	apiRouter := mainRouter.PathPrefix("/api/rhtrex").Subrouter()
 	apiRouter.HandleFunc("", api.SendAPI).Methods(http.MethodGet)
 
-	//  /api/ocm-example-service/v1
+	//  /api/rhtrex/v1
 	apiV1Router := apiRouter.PathPrefix("/v1").Subrouter()
 	apiV1Router.HandleFunc("", api.SendAPIV1).Methods(http.MethodGet)
 	apiV1Router.HandleFunc("/", api.SendAPIV1).Methods(http.MethodGet)
 
-	//  /api/ocm-example-service/v1/openapi
+	//  /api/rhtrex/v1/openapi
 	apiV1Router.HandleFunc("/openapi", handlers.NewOpenAPIHandler(openAPIDefinitions).Get).Methods(http.MethodGet)
 	registerApiMiddleware(apiV1Router)
 
-	//  /api/ocm-example-service/v1/errors
+	//  /api/rhtrex/v1/errors
 	apiV1ErrorsRouter := apiV1Router.PathPrefix("/errors").Subrouter()
 	apiV1ErrorsRouter.HandleFunc("", errorsHandler.List).Methods(http.MethodGet)
 	apiV1ErrorsRouter.HandleFunc("/{id}", errorsHandler.Get).Methods(http.MethodGet)
 
-	//  /api/ocm-example-service/v1/dinosaurs
+	//  /api/rhtrex/v1/dinosaurs
 	apiV1DinosaursRouter := apiV1Router.PathPrefix("/dinosaurs").Subrouter()
 	apiV1DinosaursRouter.HandleFunc("", dinosaurHandler.List).Methods(http.MethodGet)
 	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Get).Methods(http.MethodGet)

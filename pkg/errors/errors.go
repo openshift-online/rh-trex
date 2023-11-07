@@ -13,12 +13,12 @@ import (
 const (
 	// Prefix used for error code strings
 	// Example:
-	//   ERROR_CODE_PREFIX = "OCM-EXAMPLE"
-	//   results in: OCM-EXAMPLE-1
-	ERROR_CODE_PREFIX = "OCM-EXAMPLE"
+	//   ERROR_CODE_PREFIX = "RH_TREX"
+	//   results in: RH-TREX-1
+	ERROR_CODE_PREFIX = "RH-TREX"
 
 	// HREF for API errors
-	ERROR_HREF = "/api/ocm-example-service/v1/errors/"
+	ERROR_HREF = "/api/rhtrex/v1/errors/"
 
 	// InvalidToken occurs when a token is invalid (generally, not found in the database)
 	ErrorInvalidToken ServiceErrorCode = 1

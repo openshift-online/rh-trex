@@ -16,7 +16,7 @@ import (
 	sdk "github.com/openshift-online/ocm-sdk-go"
 	"github.com/openshift-online/ocm-sdk-go/authentication"
 
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/environments"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 	"github.com/openshift-online/rh-trex/data/generated/openapi"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 )
@@ -67,10 +67,10 @@ func NewAPIServer() Server {
 			KeysFile(env().Config.Server.JwkCertFile).
 			KeysURL(env().Config.Server.JwkCertURL).
 			ACLFile(env().Config.Server.ACLFile).
-			Public("^/api/ocm-example-service/?$").
-			Public("^/api/ocm-example-service/v1/?$").
-			Public("^/api/ocm-example-service/v1/openapi/?$").
-			Public("^/api/ocm-example-service/v1/errors(/.*)?$").
+			Public("^/api/rhtrex/?$").
+			Public("^/api/rhtrex/v1/?$").
+			Public("^/api/rhtrex/v1/openapi/?$").
+			Public("^/api/rhtrex/v1/errors(/.*)?$").
 			Next(mainHandler).
 			Build()
 		check(err, "Unable to create authentication handler")

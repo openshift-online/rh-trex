@@ -1,7 +1,7 @@
 /*
-OCM Example Service API
+RH TREX API
 
-OCM Example Service API
+RH TREX API
 
 API version: 0.0.1
 */

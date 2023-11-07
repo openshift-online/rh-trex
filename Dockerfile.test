@@ -1,14 +1,14 @@
 FROM quay.io/app-sre/postgres:buster
 
 ENV POSTGRES_PASSWORD foobar-bizz-buzz
-ENV POSTGRES_USER ocm_example_service
-ENV POSTGRES_DB ocmexample
+ENV POSTGRES_USER trex
+ENV POSTGRES_DB rhtrex
 
 ENV GORM_DIALECT postgres
 ENV GORM_HOST 127.0.0.1
 ENV GORM_PORT 5432
-ENV GORM_NAME ocmexample
-ENV GORM_USERNAME ocm_example_service
+ENV GORM_NAME rhtrex
+ENV GORM_USERNAME trex
 ENV GORM_PASSWORD foobar-bizz-buzz
 ENV GORM_SSLMODE disable
 ENV GORM_DEBUG false
@@ -28,12 +28,12 @@ ENV PATH="/ocm/bin:/usr/local/go/bin:${PATH}"
 ENV GOPATH="/ocm"
 ENV CGO_ENABLED=0
 
-RUN mkdir -p /ocm/src/gitlab.cee.redhat.com/service/sdb-ocm-example-service
-COPY . /ocm/src/gitlab.cee.redhat.com/service/sdb-ocm-example-service
+RUN mkdir -p /ocm/src/gitlab.cee.redhat.com/service/rh-trex
+COPY . /ocm/src/gitlab.cee.redhat.com/service/rh-trex
 
 # Docker built / owned  as 'root' but the 'postgres' user runs the image
 RUN chown -R postgres:postgres /ocm /usr/local/go
-WORKDIR /ocm/src/gitlab.cee.redhat.com/service/sdb-ocm-example-service
+WORKDIR /ocm/src/gitlab.cee.redhat.com/service/rh-trex
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 

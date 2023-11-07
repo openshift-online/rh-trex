@@ -24,8 +24,8 @@ import (
 
 	amv1 "github.com/openshift-online/ocm-sdk-go/accountsmgmt/v1"
 
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/environments"
-	"github.com/openshift-online/rh-trex/cmd/ocm-example-service/server"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments"
+	"github.com/openshift-online/rh-trex/cmd/trex/server"
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
 	"github.com/openshift-online/rh-trex/pkg/config"
@@ -221,7 +221,7 @@ func (helper *Helper) RestURL(path string) string {
 	if helper.AppConfig.Server.EnableHTTPS {
 		protocol = "https"
 	}
-	return fmt.Sprintf("%s://%s/api/ocm-example-service/v1%s", protocol, helper.AppConfig.Server.BindAddress, path)
+	return fmt.Sprintf("%s://%s/api/rhtrex/v1%s", protocol, helper.AppConfig.Server.BindAddress, path)
 }
 
 func (helper *Helper) MetricsURL(path string) string {

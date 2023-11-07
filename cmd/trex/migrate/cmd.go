@@ -18,8 +18,8 @@ var dbConfig = config.NewDatabaseConfig()
 func NewMigrateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "migrate",
-		Short: "Run OCM Example service data migrations",
-		Long:  "Run OCM Example service data migrations",
+		Short: "Run RH-TREX service data migrations",
+		Long:  "Run RH-TREX service data migrations",
 		Run:   runMigrate,
 	}
 

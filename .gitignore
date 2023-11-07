@@ -30,7 +30,7 @@
 /coverage
 
 # Ignore built binaries
-/ocm-example-service
+/trex
 
 # Ignore generated templates
 /templates/*-template.json
