@@ -54,7 +54,7 @@ spec:
             value: $(params.EXPECTED_OUTPUT)
           script: |
             # Install Deps
-            dnf -y install jq
+            dnf -y install jq git
 
             # Set Vars
             TARGET_COMPONENT_NAME="rh-trex"
