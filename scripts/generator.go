@@ -11,6 +11,18 @@ import (
 	"time"
 )
 
+/*
+
+scripts/generator.go
+
+This script generates basic CRUD functionality for a new Kind.
+
+It's rude and crude, but it generates working code.
+
+TODO: all of it can be better
+
+*/
+
 var (
 	kind string = "Asteroid"
 )

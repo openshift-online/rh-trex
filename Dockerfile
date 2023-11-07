@@ -17,5 +17,5 @@ ENTRYPOINT ["/usr/local/bin/trex", "serve"]
 LABEL name="trex" \
       vendor="Red Hat" \
       version="0.0.1" \
-      summary="RH TREX API" \
-      description="RH TREX API"
+      summary="rh-trex API" \
+      description="rh-trex API"
