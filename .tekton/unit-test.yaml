@@ -65,6 +65,9 @@ spec:
             unit_test_json_output=${PWD}/test_output.json
 
             # Clone Repo and checkout at snapshot commit
+            echo "REPO_URL: $REPO_URL"
+            echo "TARGET_COMPONENT_NAME: $TARGET_COMPONENT_NAME"
+            echo "REP_COMMIT: $REP_COMMIT"
             git clone $REPO_URL $TARGET_COMPONENT_NAME
             cd $TARGET_COMPONENT_NAME
             git checkout $REP_COMMIT
