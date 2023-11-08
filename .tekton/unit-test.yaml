@@ -16,6 +16,9 @@ spec:
       name: EXPECTED_OUTPUT
       default: ""
       type: string
+  workspaces:
+  - name: cluster-credentials
+    optional: true
   tasks:
     - name: unit-test
       description: Set up DB, run unit tests, and read results
@@ -26,6 +29,9 @@ spec:
           value: $(params.NAMESPACE)
         - name: EXPECTED_OUTPUT
           value: $(params.EXPECTED_OUTPUT)
+      workspaces:
+        - name: cluster-credentials
+          optional: true
       taskSpec:
         params:
         - name: SNAPSHOT
@@ -34,6 +40,9 @@ spec:
         results:
         - name: TEST_OUTPUT
           description: Test output
+        workspaces:
+        - name: cluster-credentials
+          workspace: cluster-credentials
         steps:
         - image: registry.redhat.io/openshift4/ose-cli:latest
           env:
@@ -45,7 +54,7 @@ spec:
             value: $(params.EXPECTED_OUTPUT)
           script: |
             # Install Deps
-            dnf -y install jq git make golang podman
+            dnf -y install jq git make golang
 
             go install gotest.tools/gotestsum@latest  
 
