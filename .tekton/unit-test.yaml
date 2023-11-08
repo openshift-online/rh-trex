@@ -69,12 +69,29 @@ spec:
             cd $TARGET_COMPONENT_NAME
             git checkout $REP_COMMIT
 
-            # Set up DB and run unit tests with JSON output
-            make db/setup
-            echo "Sleeping for 60 seconds to allow DB to come up."
-            sleep 60
-            make test-unit-json
+            # Run unit tests with JSON output
+            OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+              ./pkg/... \
+              ./cmd/...
 
             # Read, process, and write output
             TEST_OUTPUT=$(cat $unit_test_json_output | jq 'select(.Action == "fail")')
             echo -n "${TEST_OUTPUT}" | tee $(results.TEST_OUTPUT.path)
+        sidecars:
+          - image: docker.io/library/postgres:14.2
+            name: database-test
+            env:
+            - name: PGDATA
+              value: /work/data
+            - name: POSTGRES_DB
+              value: ocmexample
+            - name: POSTGRES_PASSWORD
+              value: foobar-bizz-buzz
+            - name: POSTGRES_USER
+              value: ocm_example_service
+            volumeMounts:
+              - mountPath: /work
+                name: data
+        volumes:
+          - name: data
+            emptyDir: {}
