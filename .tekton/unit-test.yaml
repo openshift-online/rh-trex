@@ -69,6 +69,10 @@ spec:
             cd $TARGET_COMPONENT_NAME
             git checkout $REP_COMMIT
 
+            # Wait for the DB sidecar to be ready
+            echo "[INFO] Waiting for database to be ready for connection"
+              timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
+
             # Run unit tests with JSON output
             OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
               ./pkg/... \
