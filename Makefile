@@ -181,11 +181,12 @@ test: install
 #
 # Examples:
 #   make test-unit-json TESTFLAGS="-run TestSomething"
-test-unit-json: install
+ci-test-unit: install
+	@echo $(db_password) > ${PWD}/secrets/db.password
 	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
 		./pkg/... \
 		./cmd/...
-.PHONY: test-unit-json
+.PHONY: ci-test-unit
 
 # Runs the integration tests.
 #

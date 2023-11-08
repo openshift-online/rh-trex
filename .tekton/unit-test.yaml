@@ -74,9 +74,7 @@ spec:
               timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
 
             # Run unit tests with JSON output
-            OCM_ENV=testing ${HOME}/go/bin/gotestsum --jsonfile-timing-events=${unit_test_json_output} --format short-verbose -- -p 1 -v ${TESTFLAGS} \
-              ./pkg/... \
-              ./cmd/...
+            make ci-test-unit
 
             # Read, process, and write output
             TEST_OUTPUT=$(cat $unit_test_json_output | jq 'select(.Action == "fail")')
