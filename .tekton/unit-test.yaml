@@ -54,7 +54,7 @@ spec:
             value: $(params.EXPECTED_OUTPUT)
           script: |
             # Install Deps
-            dnf -y install jq git make golang
+            dnf -y install jq git make golang podman
 
             go install gotest.tools/gotestsum@latest  
 
