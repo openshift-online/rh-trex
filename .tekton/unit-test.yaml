@@ -68,7 +68,7 @@ spec:
             echo "REPO_URL: $REPO_URL"
             echo "TARGET_COMPONENT_NAME: $TARGET_COMPONENT_NAME"
             echo "REP_COMMIT: $REP_COMMIT"
-            ehco "SNAPSHOT: $(echo $SNAPSHOT | jq)"
+            echo "SNAPSHOT: $(echo $SNAPSHOT | jq)"
 
             # Clone Repo and checkout at snapshot commit
             git clone $REPO_URL $TARGET_COMPONENT_NAME
