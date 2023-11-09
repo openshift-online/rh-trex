@@ -64,10 +64,13 @@ spec:
             REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.revision')
             unit_test_json_output=${PWD}/test_output.json
 
-            # Clone Repo and checkout at snapshot commit
+            # Log Vars for Tracibility
             echo "REPO_URL: $REPO_URL"
             echo "TARGET_COMPONENT_NAME: $TARGET_COMPONENT_NAME"
             echo "REP_COMMIT: $REP_COMMIT"
+            ehco "SNAPSHOT: $(echo $SNAPSHOT | jq)"
+
+            # Clone Repo and checkout at snapshot commit
             git clone $REPO_URL $TARGET_COMPONENT_NAME
             cd $TARGET_COMPONENT_NAME
             git checkout $REP_COMMIT
