@@ -58,8 +58,9 @@ spec:
 
             # Runtime Env Config
             export GOPATH=$HOME/.go
+            export PATH="$PATH:$GOPATH/bin"
             go install gotest.tools/gotestsum@latest  
-            cp $HOME/.go/bin/gotestsum /root/go/bin/gotestsum
+            ls $GOPATH/bin
 
             # Set Vars
             TARGET_COMPONENT_NAME="rh-trex"
