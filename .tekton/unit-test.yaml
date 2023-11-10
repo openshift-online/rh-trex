@@ -58,7 +58,7 @@ spec:
 
             # Runtime Env Config
             export GOPATH=$HOME/.go
-            export PATH="$PATH:/usr/local/go/bin:${HOME}/go/bin"
+            export PATH="$PATH:/usr/local/go/bin:${HOME}/go/bin:${GOPATH}/bin"
             go install gotest.tools/gotestsum@latest  
             which gotestsum
 
