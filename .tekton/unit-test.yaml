@@ -60,7 +60,9 @@ spec:
 
             # Set Vars
             TARGET_COMPONENT_NAME="rh-trex"
-            REPO_URL=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.url')
+            # REPO_URL=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.url')
+            # Temporary workaround - hardcode to make more progress
+            REPO_URL="https://github.com/gurnben/rh-trex"
             REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.revision')
             unit_test_json_output=${PWD}/test_output.json
 
