@@ -57,7 +57,7 @@ spec:
             dnf -y install jq git make golang podman
 
             # Runtime Env Config
-            GOPATH=$HOME/.go
+            export GOPATH=$HOME/.go
             go install gotest.tools/gotestsum@latest  
 
             # Set Vars
