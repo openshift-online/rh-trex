@@ -67,7 +67,8 @@ spec:
             # Temporary workaround - hardcode to make more progress
             REPO_URL="https://github.com/gurnben/rh-trex"
             REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.revision')
-            unit_test_json_output=${PWD}/test_output.json
+            unit_test_json_output=${PWD}/unit_test_output.json
+            integration_test_json_output=${PWD}/integration_output.json
 
             # Log Vars for Tracibility
             echo "REPO_URL: $REPO_URL"
@@ -89,6 +90,7 @@ spec:
 
             # Read, process, and write output
             TEST_OUTPUT=$(cat $unit_test_json_output | jq 'select(.Action == "fail")')
+            TEST_OUTPUT="$TEST_OUTPUT\n$(cat $integration_test_json_output | jq 'select(.Action == "fail")')"
             echo -n "${TEST_OUTPUT}" | tee $(results.TEST_OUTPUT.path)
         sidecars:
           - image: docker.io/library/postgres:14.2

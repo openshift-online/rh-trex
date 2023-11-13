@@ -58,6 +58,7 @@ jwks_url:=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-con
 
 # Test output files
 unit_test_json_output ?= ${PWD}/unit-test-results.json
+integration_test_json_output ?= ${PWD}/integration-test-results.json
 
 # Prints a list of useful targets.
 help:
@@ -198,7 +199,24 @@ ci-test-unit: install
 #   make test-integration TESTFLAGS="-run TestAccounts"     acts as TestAccounts* and run TestAccountsGet, TestAccountsPost, etc.
 #   make test-integration TESTFLAGS="-run TestAccountsGet"  runs TestAccountsGet
 #   make test-integration TESTFLAGS="-short"                skips long-run tests
+ci-test-integration: install
+	@echo $(db_password) > ${PWD}/secrets/db.password
+	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(integration_test_json_output) --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
+			./test/integration
+.PHONY: ci-test-integration
+
+# Runs the integration tests.
+#
+# Args:
+#   TESTFLAGS: Flags to pass to `go test`. The `-v` argument is always passed.
+#
+# Example:
+#   make test-integration
+#   make test-integration TESTFLAGS="-run TestAccounts"     acts as TestAccounts* and run TestAccountsGet, TestAccountsPost, etc.
+#   make test-integration TESTFLAGS="-run TestAccountsGet"  runs TestAccountsGet
+#   make test-integration TESTFLAGS="-short"                skips long-run tests
 test-integration: install
+	@echo $(db_password) > ${PWD}/secrets/db.password
 	OCM_ENV=testing gotestsum --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
 			./test/integration
 .PHONY: test-integration
