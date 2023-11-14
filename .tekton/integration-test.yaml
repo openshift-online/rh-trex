@@ -16,9 +16,6 @@ spec:
       name: EXPECTED_OUTPUT
       default: ""
       type: string
-  workspaces:
-  - name: cluster-credentials
-    optional: true
   tasks:
     - name: integration-test
       description: Set up DB, run integration tests, and read results
@@ -29,9 +26,6 @@ spec:
           value: $(params.NAMESPACE)
         - name: EXPECTED_OUTPUT
           value: $(params.EXPECTED_OUTPUT)
-      workspaces:
-        - name: cluster-credentials
-          optional: true
       taskSpec:
         params:
         - name: SNAPSHOT
@@ -40,9 +34,6 @@ spec:
         results:
         - name: TEST_OUTPUT
           description: Test output
-        workspaces:
-        - name: cluster-credentials
-          workspace: cluster-credentials
         steps:
         - image: registry.redhat.io/openshift4/ose-cli:latest
           env:
@@ -93,7 +84,7 @@ spec:
             SUCCESSES="$(cat $test_output_file | jq 'select(.Action == "pass")' | jq --slurp 'length')"
             # Hard-code warnings
             WARNINGS=0
-            RESULT="$(if [[ $FAILURES > 0 ]] then echo "SUCCESS"; else echo "FAILURE"; fi)"
+            RESULT="$(if [[ $FAILURES > 0 ]]; then echo "SUCCESS"; else echo "FAILURE"; fi)"
             TIMESTAMP="$(date --rfc-3339=seconds)"
             TEST_OUTPUT=$(jq --null-input \
               --arg failures "$FAILURES" \
