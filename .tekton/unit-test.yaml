@@ -67,7 +67,7 @@ spec:
             # Temporary workaround - hardcode to make more progress
             REPO_URL="https://github.com/gurnben/rh-trex"
             REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.revision')
-            unit_test_json_output=${PWD}/test_output.json
+            test_output_file=${PWD}/test_output.json
 
             # Log Vars for Tracibility
             echo "REPO_URL: $REPO_URL"
@@ -85,11 +85,25 @@ spec:
               timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
 
             # Run unit tests with JSON output
-            make ci-test-unit
+            make ci-test-unit unit_test_json_output="$test_output_file"
 
-            # Read, process, and write output
-            TEST_OUTPUT=$(cat $unit_test_json_output | jq 'select(.Action == "fail")')
-            echo -n "${TEST_OUTPUT}" | tee $(results.TEST_OUTPUT.path)
+            # Read, process, and write output in accepted format
+            # Formatting docs: https://redhat-appstudio.github.io/book/ADR/0030-tekton-results-naming-convention.html#test_output-schema-validation
+            FAILURES="$(cat $test_output_file | jq 'select(.Action == "fail")' | jq --slurp 'length')"
+            SUCCESSES="$(cat $test_output_file | jq 'select(.Action == "pass")' | jq --slurp 'length')"
+            # Hard-code warnings
+            WARNINGS=0
+            RESULT="$(if [[ $FAILURES > 0 ]] then echo "SUCCESS"; else echo "FAILURE"; fi)"
+            TIMESTAMP="$(date --rfc-3339=seconds)"
+            TEST_OUTPUT=$(jq --null-input \
+              --arg failures "$FAILURES" \
+              --arg successes "$SUCCESSES" \
+              --arg warnings "$WARNINGS" \
+              --arg result "$RESULT" \
+              --arg timestamp "$TIMESTAMP" \
+              '{"result": $result, "successes": $successes, "failures": $failures, "warnings": $warnings, "timestamp": $timestamp}' \
+            )
+            echo -n "$TEST_OUTPUT" | tee $(results.TEST_OUTPUT.path)
         sidecars:
           - image: docker.io/library/postgres:14.2
             name: database-test
