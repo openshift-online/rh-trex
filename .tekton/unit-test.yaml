@@ -80,8 +80,8 @@ spec:
 
             # Read, process, and write output in accepted format
             # Formatting docs: https://redhat-appstudio.github.io/book/ADR/0030-tekton-results-naming-convention.html#test_output-schema-validation
-            FAILURES=$(cat $test_output_file | jq 'select(.Action == "fail")' | jq --slurp 'length')
-            SUCCESSES=$(cat $test_output_file | jq 'select(.Action == "pass")' | jq --slurp 'length')
+            FAILURES=$(cat $test_output_file | jq 'select(.Action == "fail")' | jq -r --slurp 'length')
+            SUCCESSES=$(cat $test_output_file | jq 'select(.Action == "pass")' | jq -r --slurp 'length')
             # Hard-code warnings
             WARNINGS=0
             RESULT="$(if [[ $FAILURES == 0 ]]; then echo "SUCCESS"; else echo "FAILURE"; fi)"
