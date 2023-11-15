@@ -86,13 +86,13 @@ spec:
             WARNINGS=0
             RESULT="$(if [[ $FAILURES == 0 ]]; then echo "SUCCESS"; else echo "FAILURE"; fi)"
             TIMESTAMP="$(date --rfc-3339=seconds)"
-            TEST_OUTPUT=$(jq --null-input \
+            TEST_OUTPUT=$(jq -r --null-input \
               --arg failures $FAILURES \
               --arg successes $SUCCESSES \
               --arg warnings $WARNINGS \
               --arg result "$RESULT" \
               --arg timestamp "$TIMESTAMP" \
-              '{"result": $result, "successes": $successes, "failures": $failures, "warnings": $warnings, "timestamp": $timestamp}' \
+              '{"result": $result, "successes": $successes|tonumber, "failures": $failures|tonumber, "warnings": $warnings|tonumber, "timestamp": $timestamp}' \
             )
             echo -n "$TEST_OUTPUT" | tee $(results.TEST_OUTPUT.path)
         sidecars:
