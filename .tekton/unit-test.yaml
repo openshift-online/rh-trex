@@ -85,7 +85,9 @@ spec:
             # Hard-code warnings
             WARNINGS=0
             RESULT="$(if [[ $FAILURES == 0 ]]; then echo "SUCCESS"; else echo "FAILURE"; fi)"
-            TIMESTAMP="$(date --rfc-3339=seconds)"
+            # TODO: Switch to rfc-3339 when RHTAP changes the schema
+            # TIMESTAMP="$(date --rfc-3339=seconds)"
+            TIMESTAMP="$(date +%s)"
             TEST_OUTPUT=$(jq -r --null-input \
               --arg failures $FAILURES \
               --arg successes $SUCCESSES \
