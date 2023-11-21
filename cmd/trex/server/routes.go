@@ -25,15 +25,21 @@ func (s *apiServer) routes() *mux.Router {
 	dinosaurHandler := handlers.NewDinosaurHandler(services.Dinosaurs(), services.Generic())
 	errorsHandler := handlers.NewErrorsHandler()
 
-	authMiddleware, err := auth.NewAuthMiddleware()
+	var authMiddleware auth.JWTMiddleware
+	authMiddleware = &auth.AuthMiddlewareMock{}
+	if env().Config.Server.EnableJWT {
+		var err error
+		authMiddleware, err = auth.NewAuthMiddleware()
+		check(err, "Unable to create auth middleware")
+	}
 	if authMiddleware == nil {
 		check(err, "Unable to create auth middleware: missing middleware")
 	}
 
 	authzMiddleware := auth.NewAuthzMiddlewareMock()
-	if env().Config.Server.EnableJWT {
+	if env().Config.Server.EnableAuthz {
 		// TODO: authzMiddleware, err = auth.NewAuthzMiddleware()
-		check(err, "Unable to create auth middleware")
+		check(err, "Unable to create authz middleware")
 	}
 
 	// mainRouter is top level "/"
