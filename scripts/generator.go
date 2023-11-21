@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/spf13/pflag"
@@ -24,7 +25,13 @@ TODO: all of it can be better
 */
 
 var (
-	kind string = "Asteroid"
+	kind                        string = "Asteroid"
+	openapiEndpointStart        string = "# NEW ENDPOINT START"
+	openapiEndpointEnd          string = "# NEW ENDPOINT END"
+	openApiSchemaStart          string = "# NEW SCHEMA START"
+	openApiSchemaEnd            string = "# NEW SCHEMA END"
+	openApiEndpointMatchingLine string = "  # AUTO-ADD NEW PATHS"
+	openApiSchemaMatchingLine   string = "    # AUTO-ADD NEW SCHEMAS"
 )
 
 func init() {
@@ -40,12 +47,14 @@ func main() {
 	pflag.Parse()
 
 	templates := []string{
-		"api",
-		"dao",
-		"services",
-		"mock",
-		"migration",
-		"test",
+		//"api",
+		//"dao",
+		//"services",
+		//"mock",
+		//"migration",
+		//"test",
+		//"handlers",
+		"openapi-kind",
 	}
 
 	for _, nm := range templates {
@@ -55,6 +64,8 @@ func main() {
 			panic(err)
 			return
 		}
+
+		//fmt.Println(string(contents))
 
 		kindTmpl, err := template.New(nm).Parse(string(contents))
 		if err != nil {
@@ -78,6 +89,8 @@ func main() {
 			outPath = fmt.Sprintf("pkg/db/migrations/%s_add_%s.go", k.ID, k.KindLowerPlural)
 		} else if strings.Contains(nm, "test") {
 			outPath = fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural)
+		} else if strings.Contains(nm, "openapi") {
+			outPath = fmt.Sprintf("openapi/%s_openapi.yaml", k.KindLowerPlural)
 		} else {
 			outPath = fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular)
 		}
@@ -86,12 +99,17 @@ func main() {
 		defer f.Close()
 
 		w := bufio.NewWriter(f)
+		//fmt.Println(outPath)
 		err = kindTmpl.Execute(w, k)
 		if err != nil {
 			panic(err)
 		}
 		w.Flush()
 		f.Sync()
+
+		if strings.Contains(nm, "openapi") {
+			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/%s_openapi.yaml", k.KindLowerPlural))
+		}
 	}
 }
 
@@ -108,4 +126,63 @@ type myWriter struct {
 	KindLowerPlural   string
 	KindLowerSingular string
 	ID                string
+}
+
+func modifyOpenapi(mainPath string, kindPath string) {
+	endpointStrings := readBetweenLines(kindPath, openapiEndpointStart, openapiEndpointEnd)
+	fmt.Printf("%v", endpointStrings)
+	for _, line := range endpointStrings {
+		fmt.Println("line is...", line)
+		writeAfterLine(mainPath, openApiEndpointMatchingLine, line)
+	}
+	//fmt.Println("------------------------------------")
+	//schemaStrings := readBetweenLines(kindPath, openApiSchemaStart, openApiSchemaEnd)
+	//fmt.Printf("%v", schemaStrings)
+
+}
+
+func readBetweenLines(path string, startLine string, endLine string) []string {
+	readFile, err := os.Open(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+	readFlag := false
+	var totalMatches []string
+	var matchedString strings.Builder
+	for fileScanner.Scan() {
+		trimmed := strings.TrimSpace(fileScanner.Text())
+		//fmt.Println("Reading line...", fileScanner.Text())
+		if trimmed == startLine {
+			readFlag = true
+			//fmt.Println("ReadFlag is now true after reading line", trimmed)
+		} else if trimmed == endLine {
+			readFlag = false
+			//fmt.Println("ReadFlag is now false after reading line", trimmed)
+			totalMatches = append(totalMatches, matchedString.String())
+			matchedString.Reset()
+		} else if readFlag {
+			//fmt.Println("Adding line", fileScanner.Text())
+			matchedString.WriteString(fileScanner.Text() + "\n")
+		}
+	}
+	readFile.Close()
+	return totalMatches
+}
+
+func writeAfterLine(path string, matchingLine string, lineToWrite string) {
+	input, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(lineToWrite + "\n" + matchingLine))
+	_ = strings.Replace(string(input), matchingLine, lineToWrite+"\n"+matchingLine, -1)
+	//fmt.Println(outputStr)
+	output := bytes.Replace(input, []byte(matchingLine), []byte(lineToWrite+"\n"+matchingLine), -1)
+	//fmt.Println(string(output))
+	if err = os.WriteFile(path, output, 0666); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }

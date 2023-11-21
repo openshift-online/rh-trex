@@ -187,6 +187,10 @@ paths:
                 $ref: '#/components/schemas/Error'
     parameters:
     - $ref: '#/components/parameters/id'
+  # NEW ENDPOINT START
+  /api/rh-trex/v1/subscriptions:
+    # NEW ENDPOINT END
+    $ref: '/subscriptions_openapi.yaml#/paths/~1api~1rh-trex~1v1~1subscriptions'
 components:
   securitySchemes:
     Bearer:
@@ -267,6 +271,24 @@ components:
       properties:
         species:
           type: string
+    subscription:
+      # NEW SCHEMA END
+      $ref: 'subscriptions_openapi.yaml#/components/schemas/subscription'
+    # NEW SCHEMA START
+    subscriptionList:
+      # NEW SCHEMA END
+      allOf:
+        - $ref: 'openapi.yaml#/components/schemas/List'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/subscription'
+    # NEW SCHEMA START
+    subscriptionPatchRequest:
+      # NEW SCHEMA END
+      type: object
   parameters:
     id:
       name: id

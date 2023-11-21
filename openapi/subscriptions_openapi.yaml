@@ -1,0 +1,207 @@
+paths:
+  # NEW ENDPOINT START
+  /api/rh-trex/v1/subscriptions:
+  # NEW ENDPOINT END
+    get:
+      summary: Returns a list of subscriptions
+      security:
+        - Bearer: []
+      responses:
+        '200':
+          description: A JSON array of subscription objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriptionList'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '500':
+          description: Unexpected error occurred
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/orderBy'
+        - $ref: '#/components/parameters/fields'
+    post:
+      summary: Create a new subscription
+      security:
+        - Bearer: []
+      requestBody:
+        description: subscription data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscription'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscription'
+        '400':
+          description: Validation errors occurred
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '409':
+          description: subscription already exists
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '500':
+          description: An unexpected error occurred creating the subscription
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+  # NEW ENDPOINT START
+  /api/rh-trex/v1/subscriptions/{id}:
+  # NEW ENDPOINT END
+    get:
+      summary: Get an subscription by id
+      security:
+        - Bearer: []
+      responses:
+        '200':
+          description: subscription found by id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscription'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '404':
+          description: No subscription with specified id exists
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '500':
+          description: Unexpected error occurred
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+    patch:
+      summary: Update an subscription
+      security:
+        - Bearer: []
+      requestBody:
+        description: Updated subscription data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscriptionPatchRequest'
+      responses:
+        '200':
+          description: subscription updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscription'
+        '400':
+          description: Validation errors occurred
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '401':
+          description: Auth token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '403':
+          description: Unauthorized to perform operation
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '404':
+          description: No subscription with specified id exists
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '409':
+          description: subscription already exists
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+        '500':
+          description: Unexpected error updating subscription
+          content:
+            application/json:
+              schema:
+                $ref: 'openapi.yaml#/components/schemas/Error'
+    parameters:
+      - $ref: '#/components/parameters/id'
+components:
+  schemas:
+    # NEW SCHEMA START
+    subscription:
+    # NEW SCHEMA END
+      allOf:
+        - $ref: 'openapi.yaml#/components/schemas/ObjectReference'
+        - type: object
+          properties:
+            foo:
+              type: string
+    # NEW SCHEMA START
+    subscriptionList:
+    # NEW SCHEMA END
+      allOf:
+        - $ref: 'openapi.yaml#/components/schemas/List'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/subscription'
+    # NEW SCHEMA START
+    subscriptionPatchRequest:
+    # NEW SCHEMA END
+      type: object
