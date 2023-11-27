@@ -14,35 +14,36 @@ import (
 	"encoding/json"
 )
 
-// checks if the ObjectReference type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ObjectReference{}
+// checks if the Subscription type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &Subscription{}
 
-// ObjectReference struct for ObjectReference
-type ObjectReference struct {
+// Subscription struct for Subscription
+type Subscription struct {
 	Id   *string `json:"id,omitempty"`
 	Kind *string `json:"kind,omitempty"`
 	Href *string `json:"href,omitempty"`
+	Foo  *string `json:"foo,omitempty"`
 }
 
-// NewObjectReference instantiates a new ObjectReference object
+// NewSubscription instantiates a new Subscription object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewObjectReference() *ObjectReference {
-	this := ObjectReference{}
+func NewSubscription() *Subscription {
+	this := Subscription{}
 	return &this
 }
 
-// NewObjectReferenceWithDefaults instantiates a new ObjectReference object
+// NewSubscriptionWithDefaults instantiates a new Subscription object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewObjectReferenceWithDefaults() *ObjectReference {
-	this := ObjectReference{}
+func NewSubscriptionWithDefaults() *Subscription {
+	this := Subscription{}
 	return &this
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
-func (o *ObjectReference) GetId() string {
+func (o *Subscription) GetId() string {
 	if o == nil || IsNil(o.Id) {
 		var ret string
 		return ret
@@ -52,7 +53,7 @@ func (o *ObjectReference) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ObjectReference) GetIdOk() (*string, bool) {
+func (o *Subscription) GetIdOk() (*string, bool) {
 	if o == nil || IsNil(o.Id) {
 		return nil, false
 	}
@@ -60,7 +61,7 @@ func (o *ObjectReference) GetIdOk() (*string, bool) {
 }
 
 // HasId returns a boolean if a field has been set.
-func (o *ObjectReference) HasId() bool {
+func (o *Subscription) HasId() bool {
 	if o != nil && !IsNil(o.Id) {
 		return true
 	}
@@ -69,12 +70,12 @@ func (o *ObjectReference) HasId() bool {
 }
 
 // SetId gets a reference to the given string and assigns it to the Id field.
-func (o *ObjectReference) SetId(v string) {
+func (o *Subscription) SetId(v string) {
 	o.Id = &v
 }
 
 // GetKind returns the Kind field value if set, zero value otherwise.
-func (o *ObjectReference) GetKind() string {
+func (o *Subscription) GetKind() string {
 	if o == nil || IsNil(o.Kind) {
 		var ret string
 		return ret
@@ -84,7 +85,7 @@ func (o *ObjectReference) GetKind() string {
 
 // GetKindOk returns a tuple with the Kind field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ObjectReference) GetKindOk() (*string, bool) {
+func (o *Subscription) GetKindOk() (*string, bool) {
 	if o == nil || IsNil(o.Kind) {
 		return nil, false
 	}
@@ -92,7 +93,7 @@ func (o *ObjectReference) GetKindOk() (*string, bool) {
 }
 
 // HasKind returns a boolean if a field has been set.
-func (o *ObjectReference) HasKind() bool {
+func (o *Subscription) HasKind() bool {
 	if o != nil && !IsNil(o.Kind) {
 		return true
 	}
@@ -101,12 +102,12 @@ func (o *ObjectReference) HasKind() bool {
 }
 
 // SetKind gets a reference to the given string and assigns it to the Kind field.
-func (o *ObjectReference) SetKind(v string) {
+func (o *Subscription) SetKind(v string) {
 	o.Kind = &v
 }
 
 // GetHref returns the Href field value if set, zero value otherwise.
-func (o *ObjectReference) GetHref() string {
+func (o *Subscription) GetHref() string {
 	if o == nil || IsNil(o.Href) {
 		var ret string
 		return ret
@@ -116,7 +117,7 @@ func (o *ObjectReference) GetHref() string {
 
 // GetHrefOk returns a tuple with the Href field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ObjectReference) GetHrefOk() (*string, bool) {
+func (o *Subscription) GetHrefOk() (*string, bool) {
 	if o == nil || IsNil(o.Href) {
 		return nil, false
 	}
@@ -124,7 +125,7 @@ func (o *ObjectReference) GetHrefOk() (*string, bool) {
 }
 
 // HasHref returns a boolean if a field has been set.
-func (o *ObjectReference) HasHref() bool {
+func (o *Subscription) HasHref() bool {
 	if o != nil && !IsNil(o.Href) {
 		return true
 	}
@@ -133,11 +134,43 @@ func (o *ObjectReference) HasHref() bool {
 }
 
 // SetHref gets a reference to the given string and assigns it to the Href field.
-func (o *ObjectReference) SetHref(v string) {
+func (o *Subscription) SetHref(v string) {
 	o.Href = &v
 }
 
-func (o ObjectReference) MarshalJSON() ([]byte, error) {
+// GetFoo returns the Foo field value if set, zero value otherwise.
+func (o *Subscription) GetFoo() string {
+	if o == nil || IsNil(o.Foo) {
+		var ret string
+		return ret
+	}
+	return *o.Foo
+}
+
+// GetFooOk returns a tuple with the Foo field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Subscription) GetFooOk() (*string, bool) {
+	if o == nil || IsNil(o.Foo) {
+		return nil, false
+	}
+	return o.Foo, true
+}
+
+// HasFoo returns a boolean if a field has been set.
+func (o *Subscription) HasFoo() bool {
+	if o != nil && !IsNil(o.Foo) {
+		return true
+	}
+
+	return false
+}
+
+// SetFoo gets a reference to the given string and assigns it to the Foo field.
+func (o *Subscription) SetFoo(v string) {
+	o.Foo = &v
+}
+
+func (o Subscription) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -145,7 +178,7 @@ func (o ObjectReference) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ObjectReference) ToMap() (map[string]interface{}, error) {
+func (o Subscription) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
@@ -156,41 +189,44 @@ func (o ObjectReference) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Href) {
 		toSerialize["href"] = o.Href
 	}
+	if !IsNil(o.Foo) {
+		toSerialize["foo"] = o.Foo
+	}
 	return toSerialize, nil
 }
 
-type NullableObjectReference struct {
-	value *ObjectReference
+type NullableSubscription struct {
+	value *Subscription
 	isSet bool
 }
 
-func (v NullableObjectReference) Get() *ObjectReference {
+func (v NullableSubscription) Get() *Subscription {
 	return v.value
 }
 
-func (v *NullableObjectReference) Set(val *ObjectReference) {
+func (v *NullableSubscription) Set(val *Subscription) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableObjectReference) IsSet() bool {
+func (v NullableSubscription) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableObjectReference) Unset() {
+func (v *NullableSubscription) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableObjectReference(val *ObjectReference) *NullableObjectReference {
-	return &NullableObjectReference{value: val, isSet: true}
+func NewNullableSubscription(val *Subscription) *NullableSubscription {
+	return &NullableSubscription{value: val, isSet: true}
 }
 
-func (v NullableObjectReference) MarshalJSON() ([]byte, error) {
+func (v NullableSubscription) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableObjectReference) UnmarshalJSON(src []byte) error {
+func (v *NullableSubscription) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

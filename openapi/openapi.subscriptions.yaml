@@ -1,18 +1,18 @@
 paths:
   # NEW ENDPOINT START
-  /api/rh-trex/v1/{{.KindLowerPlural}}:
+  /api/rh-trex/v1/subscriptions:
   # NEW ENDPOINT END
     get:
-      summary: Returns a list of {{.KindLowerPlural}}
+      summary: Returns a list of subscriptions
       security:
         - Bearer: []
       responses:
         '200':
-          description: A JSON array of {{.KindLowerSingular}} objects
+          description: A JSON array of subscription objects
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}List'
+                $ref: '#/components/schemas/SubscriptionList'
         '401':
           description: Auth token is invalid
           content:
@@ -38,23 +38,23 @@ paths:
         - $ref: '#/components/parameters/orderBy'
         - $ref: '#/components/parameters/fields'
     post:
-      summary: Create a new {{.KindLowerSingular}}
+      summary: Create a new subscription
       security:
         - Bearer: []
       requestBody:
-        description: {{.Kind}} data
+        description: Subscription data
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/{{.Kind}}'
+              $ref: '#/components/schemas/Subscription'
       responses:
         '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Subscription'
         '400':
           description: Validation errors occurred
           content:
@@ -74,31 +74,31 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '409':
-          description: {{.Kind}} already exists
+          description: Subscription already exists
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '500':
-          description: An unexpected error occurred creating the {{.KindLowerSingular}}
+          description: An unexpected error occurred creating the subscription
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
   # NEW ENDPOINT START
-  /api/rh-trex/v1/{{.KindLowerPlural}}/{id}:
+  /api/rh-trex/v1/subscriptions/{id}:
   # NEW ENDPOINT END
     get:
-      summary: Get an {{.KindLowerSingular}} by id
+      summary: Get an subscription by id
       security:
         - Bearer: []
       responses:
         '200':
-          description: {{.Kind}} found by id
+          description: Subscription found by id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Subscription'
         '401':
           description: Auth token is invalid
           content:
@@ -112,7 +112,7 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '404':
-          description: No {{.KindLowerSingular}} with specified id exists
+          description: No subscription with specified id exists
           content:
             application/json:
               schema:
@@ -124,23 +124,23 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
     patch:
-      summary: Update an {{.KindLowerSingular}}
+      summary: Update an subscription
       security:
         - Bearer: []
       requestBody:
-        description: Updated {{.KindLowerSingular}} data
+        description: Updated subscription data
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/{{.Kind}}PatchRequest'
+              $ref: '#/components/schemas/SubscriptionPatchRequest'
       responses:
         '200':
-          description: {{.Kind}} updated successfully
+          description: Subscription updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Subscription'
         '400':
           description: Validation errors occurred
           content:
@@ -160,19 +160,19 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '404':
-          description: No {{.KindLowerSingular}} with specified id exists
+          description: No subscription with specified id exists
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '409':
-          description: {{.Kind}} already exists
+          description: Subscription already exists
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '500':
-          description: Unexpected error updating {{.KindLowerSingular}}
+          description: Unexpected error updating subscription
           content:
             application/json:
               schema:
@@ -182,7 +182,7 @@ paths:
 components:
   schemas:
     # NEW SCHEMA START
-    {{.Kind}}:
+    Subscription:
     # NEW SCHEMA END
       allOf:
         - $ref: 'openapi.yaml#/components/schemas/ObjectReference'
@@ -191,7 +191,7 @@ components:
             foo:
               type: string
     # NEW SCHEMA START
-    {{.Kind}}List:
+    SubscriptionList:
     # NEW SCHEMA END
       allOf:
         - $ref: 'openapi.yaml#/components/schemas/List'
@@ -200,11 +200,14 @@ components:
             items:
               type: array
               items:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Subscription'
     # NEW SCHEMA START
-    {{.Kind}}PatchRequest:
+    SubscriptionPatchRequest:
     # NEW SCHEMA END
       type: object
+      properties:
+        foo:
+          type: string
   parameters:
       id:
         name: id

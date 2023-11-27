@@ -33,3 +33,13 @@ func NewEventServiceLocator(env *Env) EventServiceLocator {
 		return services.NewEventService(dao.NewEventDao(&env.Database.SessionFactory))
 	}
 }
+
+type SubscriptionServiceLocator func() services.SubscriptionService
+
+func NewSubscriptionServiceLocator(env *Env) SubscriptionServiceLocator {
+	return func() services.SubscriptionService {
+		return services.NewSubscriptionService(
+			dao.NewSubscriptionDao(&env.Database.SessionFactory),
+		)
+	}
+}

@@ -29,3 +29,25 @@ func (helper *Helper) NewDinosaurList(namePrefix string, count int) (dinosaurs [
 	}
 	return dinosaurs
 }
+
+func (helper *Helper) NewSubscription(id string) *api.Subscription {
+	subService := helper.Env().Services.Subscriptions()
+
+	subscription := &api.Subscription{
+		Meta: api.Meta{ID: id},
+	}
+
+	sub, err := subService.Create(context.Background(), subscription)
+	if err != nil {
+		helper.T.Errorf("error creating dinosaur: %q", err)
+	}
+
+	return sub
+}
+
+func (helper *Helper) NewSubscriptionList(id string, count int) (subscriptions []*api.Subscription) {
+	for i := 1; i <= count; i++ {
+		subscriptions = append(subscriptions, helper.NewSubscription(id))
+	}
+	return subscriptions
+}

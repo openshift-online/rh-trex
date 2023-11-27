@@ -18,6 +18,11 @@ docs/ErrorList.md
 docs/ErrorListAllOf.md
 docs/List.md
 docs/ObjectReference.md
+docs/Subscription.md
+docs/SubscriptionAllOf.md
+docs/SubscriptionList.md
+docs/SubscriptionListAllOf.md
+docs/SubscriptionPatchRequest.md
 git_push.sh
 go.mod
 go.sum
@@ -32,6 +37,11 @@ model_error_list.go
 model_error_list_all_of.go
 model_list.go
 model_object_reference.go
+model_subscription.go
+model_subscription_all_of.go
+model_subscription_list.go
+model_subscription_list_all_of.go
+model_subscription_patch_request.go
 response.go
 test/api_default_test.go
 utils.go

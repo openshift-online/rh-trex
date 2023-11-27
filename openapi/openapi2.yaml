@@ -263,7 +263,7 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Dinosaur'
-      DinosaurPatchRequest:
+    DinosaurPatchRequest:
       type: object
       properties:
         species:

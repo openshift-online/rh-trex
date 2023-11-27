@@ -132,6 +132,7 @@ func (e *Env) LoadServices() {
 	e.Services.Generic = NewGenericServiceLocator(e)
 	e.Services.Dinosaurs = NewDinosaurServiceLocator(e)
 	e.Services.Events = NewEventServiceLocator(e)
+	e.Services.Subscriptions = NewSubscriptionServiceLocator(e)
 }
 
 func (e *Env) LoadClients() error {

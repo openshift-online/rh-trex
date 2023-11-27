@@ -47,13 +47,13 @@ func main() {
 	pflag.Parse()
 
 	templates := []string{
-		//"api",
-		//"dao",
-		//"services",
-		//"mock",
-		//"migration",
-		//"test",
-		//"handlers",
+		"api",
+		"dao",
+		"services",
+		"mock",
+		"migration",
+		"test",
+		"handlers",
 		"openapi-kind",
 	}
 
@@ -64,8 +64,6 @@ func main() {
 			panic(err)
 			return
 		}
-
-		//fmt.Println(string(contents))
 
 		kindTmpl, err := template.New(nm).Parse(string(contents))
 		if err != nil {
@@ -90,7 +88,7 @@ func main() {
 		} else if strings.Contains(nm, "test") {
 			outPath = fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural)
 		} else if strings.Contains(nm, "openapi") {
-			outPath = fmt.Sprintf("openapi/%s_openapi.yaml", k.KindLowerPlural)
+			outPath = fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural)
 		} else {
 			outPath = fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular)
 		}
@@ -99,7 +97,6 @@ func main() {
 		defer f.Close()
 
 		w := bufio.NewWriter(f)
-		//fmt.Println(outPath)
 		err = kindTmpl.Execute(w, k)
 		if err != nil {
 			panic(err)
@@ -108,7 +105,7 @@ func main() {
 		f.Sync()
 
 		if strings.Contains(nm, "openapi") {
-			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/%s_openapi.yaml", k.KindLowerPlural))
+			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
 		}
 	}
 }
@@ -130,15 +127,23 @@ type myWriter struct {
 
 func modifyOpenapi(mainPath string, kindPath string) {
 	endpointStrings := readBetweenLines(kindPath, openapiEndpointStart, openapiEndpointEnd)
-	fmt.Printf("%v", endpointStrings)
+	kindFileName := strings.Split(kindPath, "/")[1]
 	for _, line := range endpointStrings {
-		fmt.Println("line is...", line)
-		writeAfterLine(mainPath, openApiEndpointMatchingLine, line)
+		endpointStr := strings.TrimSpace(line)
+		endpointStr = strings.Replace(endpointStr, "/", "~1", -1)
+		endpointStr = strings.Replace(endpointStr, ":", "", -1)
+		refPath := fmt.Sprintf(`    $ref: '%s#/paths/%s'`, kindFileName, endpointStr)
+		pathsLine := fmt.Sprintf("%s%s", line, refPath)
+		writeAfterLine(mainPath, openApiEndpointMatchingLine, pathsLine)
 	}
-	//fmt.Println("------------------------------------")
-	//schemaStrings := readBetweenLines(kindPath, openApiSchemaStart, openApiSchemaEnd)
-	//fmt.Printf("%v", schemaStrings)
-
+	schemaStrings := readBetweenLines(kindPath, openApiSchemaStart, openApiSchemaEnd)
+	for _, line := range schemaStrings {
+		schemaStr := strings.TrimSpace(line)
+		schemaStr = strings.Replace(schemaStr, ":", "", -1)
+		refPath := fmt.Sprintf(`      $ref: '%s#/components/schemas/%s'`, kindFileName, schemaStr)
+		pathsLine := fmt.Sprintf("%s%s", line, refPath)
+		writeAfterLine(mainPath, openApiSchemaMatchingLine, pathsLine)
+	}
 }
 
 func readBetweenLines(path string, startLine string, endLine string) []string {
@@ -153,17 +158,13 @@ func readBetweenLines(path string, startLine string, endLine string) []string {
 	var matchedString strings.Builder
 	for fileScanner.Scan() {
 		trimmed := strings.TrimSpace(fileScanner.Text())
-		//fmt.Println("Reading line...", fileScanner.Text())
 		if trimmed == startLine {
 			readFlag = true
-			//fmt.Println("ReadFlag is now true after reading line", trimmed)
 		} else if trimmed == endLine {
 			readFlag = false
-			//fmt.Println("ReadFlag is now false after reading line", trimmed)
 			totalMatches = append(totalMatches, matchedString.String())
 			matchedString.Reset()
 		} else if readFlag {
-			//fmt.Println("Adding line", fileScanner.Text())
 			matchedString.WriteString(fileScanner.Text() + "\n")
 		}
 	}
@@ -176,11 +177,8 @@ func writeAfterLine(path string, matchingLine string, lineToWrite string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(lineToWrite + "\n" + matchingLine))
 	_ = strings.Replace(string(input), matchingLine, lineToWrite+"\n"+matchingLine, -1)
-	//fmt.Println(outputStr)
 	output := bytes.Replace(input, []byte(matchingLine), []byte(lineToWrite+"\n"+matchingLine), -1)
-	//fmt.Println(string(output))
 	if err = os.WriteFile(path, output, 0666); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
