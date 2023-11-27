@@ -23,6 +23,7 @@ func (s *apiServer) routes() *mux.Router {
 	}
 
 	dinosaurHandler := handlers.NewDinosaurHandler(services.Dinosaurs(), services.Generic())
+	subscriptionHandler := handlers.NewSubscriptionHandler(services.Subscriptions(), services.Generic())
 	errorsHandler := handlers.NewErrorsHandler()
 
 	authMiddleware, err := auth.NewAuthMiddleware()
@@ -73,7 +74,17 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Delete).Methods(http.MethodDelete)
 	apiV1DinosaursRouter.Use(authMiddleware.AuthenticateAccountJWT)
 
-	apiV1DinosaursRouter.Use(authzMiddleware.AuthorizeApi)
+	//  /api/rh-trex/v1/subscriptions
+	// Add manually
+	apiV1SubscriptionsRouter := apiV1Router.PathPrefix("/subscriptions").Subrouter()
+	apiV1SubscriptionsRouter.HandleFunc("", subscriptionHandler.List).Methods(http.MethodGet)
+	apiV1SubscriptionsRouter.HandleFunc("/{id}", subscriptionHandler.Get).Methods(http.MethodGet)
+	apiV1SubscriptionsRouter.HandleFunc("", subscriptionHandler.Create).Methods(http.MethodPost)
+	apiV1SubscriptionsRouter.HandleFunc("/{id}", subscriptionHandler.Patch).Methods(http.MethodPatch)
+	apiV1SubscriptionsRouter.HandleFunc("/{id}", subscriptionHandler.Delete).Methods(http.MethodDelete)
+	apiV1SubscriptionsRouter.Use(authMiddleware.AuthenticateAccountJWT)
+
+	apiV1SubscriptionsRouter.Use(authzMiddleware.AuthorizeApi)
 
 	return mainRouter
 }
