@@ -216,5 +216,18 @@ EOF
 
 ### Make a new Kind
 
-1. Add to openapi.yaml
-2. Generate the new structs/clients (`make generate`)
+Generator scripts can be used to auto generate a new Kind. Run the following command to generate a new kind:
+```shell
+go run ./scripts/generator.go --kind KindName
+```
+
+Following manual changes are required to run the application successfully:
+- `pkg/api/presenters/kind.go` : Add case statement for the kind
+- `pkg/api/presenters/path.go` : Add case statement for the kind
+- `pkg/api/presenters/` : Add presenters file (if missing)
+- `cmd/trex/environments/service_types.go` : Add new service locator for the kind
+- `cmd/trex/environments/types.go` : Add service locator and use `cmd/trex/environments/framework.go` to instantiate
+- `cmd/trex/server/routes.go` : Add service routes (if missing)
+- Add validation methods in handler if required
+- `pkg/db/migrations/migration_structs.go` : Add migration name
+- `test/factories.go` : Add helper functions
