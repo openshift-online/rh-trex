@@ -231,3 +231,5 @@ Following manual changes are required to run the application successfully:
 - Add validation methods in handler if required
 - `pkg/db/migrations/migration_structs.go` : Add migration name
 - `test/factories.go` : Add helper functions
+
+Here's a reference MR for the same : https://github.com/openshift-online/rh-trex/pull/25
