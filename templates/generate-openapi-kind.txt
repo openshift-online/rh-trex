@@ -205,6 +205,9 @@ components:
     {{.Kind}}PatchRequest:
     # NEW SCHEMA END
       type: object
+      properties:
+        foo:
+            type: string
   parameters:
       id:
         name: id
