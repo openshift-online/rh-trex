@@ -1,7 +1,7 @@
 TRex
 ---
 
- **TRex** is RH **T**AP's **R**est **Ex**ample
+**TRex** is RH **T**AP's **R**est **Ex**ample
 
 ![Trexxy](rhtap-trex_sm.png)
 
@@ -22,7 +22,7 @@ Some of the features included are:
 When looking through the code, anything talking about dinosaurs is business logic, which you
 will replace with your business logic. The rest is infrastructure that you will probably want to preserve without change.
 
-It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a 
+It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a
 framework with an upgrade path.
 
 
@@ -216,18 +216,5 @@ EOF
 
 ### Make a new Kind
 
-Generator scripts can be used to auto generate a new Kind. Run the following command to generate a new kind:
-```shell
-go run ./scripts/generator.go --kind KindName
-```
-
-Following manual changes are required to run the application successfully:
-- `pkg/api/presenters/kind.go` : Add case statement for the kind
-- `pkg/api/presenters/path.go` : Add case statement for the kind
-- `pkg/api/presenters/` : Add presenters file (if missing)
-- `cmd/trex/environments/service_types.go` : Add new service locator for the kind
-- `cmd/trex/environments/types.go` : Add service locator and use `cmd/trex/environments/framework.go` to instantiate
-- `cmd/trex/server/routes.go` : Add service routes (if missing)
-- Add validation methods in handler if required
-- `pkg/db/migrations/migration_structs.go` : Add migration name
-- `test/factories.go` : Add helper functions
+1. Add to openapi.yaml
+2. Generate the new structs/clients (`make generate`)
