@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/spf13/pflag"
 	"os"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/spf13/pflag"
 )
 
 /*
@@ -53,7 +54,6 @@ func main() {
 		contents, err := os.ReadFile(path)
 		if err != nil {
 			panic(err)
-			return
 		}
 
 		kindTmpl, err := template.New(nm).Parse(string(contents))
@@ -83,6 +83,9 @@ func main() {
 		}
 
 		f, err := os.Create(outPath)
+		if err != nil {
+			panic(err)
+		}
 		defer f.Close()
 
 		w := bufio.NewWriter(f)
