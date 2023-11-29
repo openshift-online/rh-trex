@@ -1,7 +1,7 @@
 TRex
 ---
 
- **TRex** is RH **T**AP's **R**est **Ex**ample
+**TRex** is RH **T**AP's **R**est **Ex**ample
 
 ![Trexxy](rhtap-trex_sm.png)
 
@@ -22,7 +22,7 @@ Some of the features included are:
 When looking through the code, anything talking about dinosaurs is business logic, which you
 will replace with your business logic. The rest is infrastructure that you will probably want to preserve without change.
 
-It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a 
+It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a
 framework with an upgrade path.
 
 

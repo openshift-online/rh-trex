@@ -43,9 +43,10 @@ type Handlers struct {
 }
 
 type Services struct {
-	Dinosaurs DinosaurServiceLocator
-	Generic   GenericServiceLocator
-	Events    EventServiceLocator
+	Dinosaurs     DinosaurServiceLocator
+	Generic       GenericServiceLocator
+	Events        EventServiceLocator
+	Subscriptions SubscriptionServiceLocator
 }
 
 type Clients struct {

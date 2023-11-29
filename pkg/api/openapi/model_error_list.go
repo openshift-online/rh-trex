@@ -1,7 +1,7 @@
 /*
-rh-trex API
+rh-trex Service API
 
-rh-trex API
+rh-trex Service API
 
 API version: 0.0.1
 */
