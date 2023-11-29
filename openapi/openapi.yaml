@@ -187,6 +187,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     parameters:
     - $ref: '#/components/parameters/id'
+  # AUTO-ADD NEW PATHS
 components:
   securitySchemes:
     Bearer:
@@ -267,6 +268,7 @@ components:
       properties:
         species:
           type: string
+    # AUTO-ADD NEW SCHEMAS
   parameters:
     id:
       name: id
