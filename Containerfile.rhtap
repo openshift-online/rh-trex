@@ -32,6 +32,6 @@ LABEL name="trex" \
       description="RH TREX API" \
       io.k8s.description="RH TREX API" \
       io.k8s.display-name="RH-TREX" \
-      io.openshift.tags="rh-trex"
+      io.openshift.tags="trex"
 
 #20231114-133700
