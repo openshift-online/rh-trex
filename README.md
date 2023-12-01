@@ -42,11 +42,11 @@ $ make binary
 $ make db/setup
 $ make db/login
         
-    root@f076ddf94520:/# psql -h localhost -U trex rhtrex
+    root@f076ddf94520:/# psql -h localhost -U trex rh-trex
     psql (14.4 (Debian 14.4-1.pgdg110+1))
     Type "help" for help.
     
-    rhtrex=# \dt
+    rh-trex=# \dt
     Did not find any relations.
 
 ```
@@ -63,11 +63,11 @@ The initial migration will create the base data model as well as providing a way
 # Verify they ran in the database
 $ make db/login
 
-root@f076ddf94520:/# psql -h localhost -U trex rhtrex
+root@f076ddf94520:/# psql -h localhost -U trex rh-trex
 psql (14.4 (Debian 14.4-1.pgdg110+1))
 Type "help" for help.
 
-rhtrex=# \dt
+rh-trex=# \dt
                  List of relations
  Schema |    Name    | Type  |        Owner        
 --------+------------+-------+---------------------
@@ -100,7 +100,7 @@ To verify that the server is working use the curl command:
 
 ```shell
 
-curl http://localhost:8000/api/rhtrex/v1/dinosaurs | jq
+curl http://localhost:8000/api/rh-trex/v1/dinosaurs | jq
 
 ```
 
@@ -110,7 +110,7 @@ That should return a 401 response like this, because it needs authentication:
 {
   "kind": "Error",
   "id": "401",
-  "href": "/api/rhtrex/errors/401",
+  "href": "/api/rh-trex/errors/401",
   "code": "API-401",
   "reason": "Request doesn't contain the 'Authorization' header or the 'cs_jwt' cookie"
 }
@@ -130,7 +130,7 @@ ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
 This will be empty if no Dinosaur is ever created
 
 ```
-ocm get /api/rhtrex/v1/dinosaurs
+ocm get /api/rh-trex/v1/dinosaurs
 {
   "items": [],
   "kind": "DinosaurList",
@@ -144,7 +144,7 @@ ocm get /api/rhtrex/v1/dinosaurs
 
 ```shell
 
-ocm post /api/rhtrex/v1/dinosaurs << EOF
+ocm post /api/rh-trex/v1/dinosaurs << EOF
 {
     "species": "foo"
 }
@@ -155,12 +155,12 @@ EOF
 #### Get your Dinosaur
 
 ```shell
-ocm get /api/rhtrex/v1/dinosaurs
+ocm get /api/rh-trex/v1/dinosaurs
 {
   "items": [
     {
       "created_at":"2023-10-26T08:15:54.509653Z",
-      "href":"/api/rhtrex/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
+      "href":"/api/rh-trex/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
       "id":"2XIENcJIi9t2eBblhWVCtWLdbDZ",
       "kind":"Dinosaur",
       "species":"foo",
@@ -205,7 +205,7 @@ $ make deploy
 
 $ ocm login --token=${OCM_ACCESS_TOKEN} --url=https://trex.apps-crc.testing --insecure
 
-$ ocm post /api/rhtrex/v1/dinosaurs << EOF
+$ ocm post /api/rh-trex/v1/dinosaurs << EOF
 {
     "species": "foo"
 }
@@ -216,5 +216,20 @@ EOF
 
 ### Make a new Kind
 
-1. Add to openapi.yaml
-2. Generate the new structs/clients (`make generate`)
+Generator scripts can be used to auto generate a new Kind. Run the following command to generate a new kind:
+```shell
+go run ./scripts/generator.go --kind KindName
+```
+
+Following manual changes are required to run the application successfully:
+- `pkg/api/presenters/kind.go` : Add case statement for the kind
+- `pkg/api/presenters/path.go` : Add case statement for the kind
+- `pkg/api/presenters/` : Add presenters file (if missing)
+- `cmd/trex/environments/service_types.go` : Add new service locator for the kind
+- `cmd/trex/environments/types.go` : Add service locator and use `cmd/trex/environments/framework.go` to instantiate
+- `cmd/trex/server/routes.go` : Add service routes (if missing)
+- Add validation methods in handler if required
+- `pkg/db/migrations/migration_structs.go` : Add migration name
+- `test/factories.go` : Add helper functions
+
+Here's a reference MR for the same : https://github.com/openshift-online/rh-trex/pull/25

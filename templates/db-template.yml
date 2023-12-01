@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Template
 metadata:
   annotations:
-    description: PostgreSQL database service for use with the RH TREX
+    description: PostgreSQL database service for use with the rh-trex
     iconClass: icon-postgresql
     openshift.io/display-name: Example Service PostgreSQL Database
     tags: database,postgresql

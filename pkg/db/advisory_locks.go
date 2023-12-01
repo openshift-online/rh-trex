@@ -20,6 +20,7 @@ type (
 const (
 	Migrations LockType = "migrations"
 	Dinosaurs  LockType = "dinosaurs"
+	Events     LockType = "events"
 )
 
 // LockFactory provides the blocking/unblocking locks based on PostgreSQL advisory lock.
@@ -27,7 +28,9 @@ type LockFactory interface {
 	// NewAdvisoryLock constructs a new AdvisoryLock that is a blocking PostgreSQL advisory lock
 	// defined by (id, lockType) and returns a UUID as this AdvisoryLock owner id.
 	NewAdvisoryLock(ctx context.Context, id string, lockType LockType) (string, error)
-
+	// NewNonBlockingLock constructs a new nonblocking AdvisoryLock defined by (id, lockType),
+	// returns a UUID and a boolean on whether the lock is acquired.
+	NewNonBlockingLock(ctx context.Context, id string, lockType LockType) (string, bool, error)
 	// Unlock unlocks one AdvisoryLock by its owner id.
 	Unlock(ctx context.Context, uuid string)
 }
@@ -48,19 +51,10 @@ func NewAdvisoryLockFactory(connection SessionFactory) *AdvisoryLockFactory {
 func (f *AdvisoryLockFactory) NewAdvisoryLock(ctx context.Context, id string, lockType LockType) (string, error) {
 	log := logger.NewOCMLogger(ctx)
 
-	// lockOwnerID will be different for every service function that attempts to start a lock.
-	// only the initial call in the stack must unlock.
-	// Unlock() will compare UUIDs and ensure only the top level call succeeds.
-	lockOwnerID := uuid.New().String()
-
-	lock, err := newAdvisoryLock(ctx, f.connection)
+	lock, err := f.newLock(ctx, id, lockType)
 	if err != nil {
 		return "", err
 	}
-
-	lock.uuid = &lockOwnerID
-	lock.id = &id
-	lock.lockType = &lockType
 
 	// obtain the advisory lock (blocking)
 	if err := lock.lock(); err != nil {
@@ -70,7 +64,44 @@ func (f *AdvisoryLockFactory) NewAdvisoryLock(ctx context.Context, id string, lo
 	}
 
 	f.locks[fmt.Sprintf("%s-%s", id, lockType)] = lock
-	return lockOwnerID, nil
+	return *lock.uuid, nil
+}
+
+func (f *AdvisoryLockFactory) NewNonBlockingLock(ctx context.Context, id string, lockType LockType) (string, bool, error) {
+	log := logger.NewOCMLogger(ctx)
+
+	lock, err := f.newLock(ctx, id, lockType)
+	if err != nil {
+		return "", false, err
+	}
+
+	// obtain the advisory lock (unblocking)
+	acquired, err := lock.nonBlockingLock()
+	if err != nil {
+		UpdateAdvisoryLockCountMetric(lockType, "lock error")
+		log.Error(fmt.Sprintf("Error obtaining the non blocking advisory lock for id %s", id))
+		return "", false, err
+	}
+
+	f.locks[fmt.Sprintf("%s-%s", id, lockType)] = lock
+	return *lock.uuid, acquired, nil
+}
+
+func (f *AdvisoryLockFactory) newLock(ctx context.Context, id string, lockType LockType) (*AdvisoryLock, error) {
+	// lockOwnerID will be different for every service function that attempts to start a lock.
+	// only the initial call in the stack must unlock.
+	// Unlock() will compare UUIDs and ensure only the top level call succeeds.
+	lockOwnerID := uuid.New().String()
+	lock, err := newAdvisoryLock(ctx, f.connection)
+	if err != nil {
+		return nil, err
+	}
+
+	lock.uuid = &lockOwnerID
+	lock.id = &id
+	lock.lockType = &lockType
+
+	return lock, nil
 }
 
 // Unlock searches current locks and unlocks the one matching its owner id.
@@ -176,6 +207,32 @@ func (l *AdvisoryLock) lock() error {
 		return err
 	}
 	return nil
+}
+
+func (l *AdvisoryLock) nonBlockingLock() (bool, error) {
+	if l.g2 == nil {
+		return false, errors.New("AdvisoryLock: transaction is missing")
+	}
+	if l.id == nil {
+		return false, errors.New("AdvisoryLock: id is missing")
+	}
+	if l.lockType == nil {
+		return false, errors.New("AdvisoryLock: lockType is missing")
+	}
+
+	idAsInt := hash(*l.id)
+	typeAsInt := hash(string(*l.lockType))
+	var acquired bool
+	var result string
+	err := l.g2.Raw("select pg_try_advisory_xact_lock(?, ?)", idAsInt, typeAsInt).Scan(&result).Error
+	if err != nil {
+		return false, err
+	}
+	if result == "true" {
+		acquired = true
+	}
+
+	return acquired, nil
 }
 
 func (l *AdvisoryLock) unlock() error {

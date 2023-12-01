@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/db"
 	"github.com/openshift-online/rh-trex/pkg/logger"
 	"github.com/openshift-online/rh-trex/pkg/services"
 )
@@ -39,12 +40,14 @@ type ControllerConfig struct {
 
 type KindControllerManager struct {
 	controllers map[string]map[api.EventType][]ControllerHandlerFunc
+	lockFactory db.LockFactory
 	events      services.EventService
 }
 
-func NewKindControllerManager(events services.EventService) *KindControllerManager {
+func NewKindControllerManager(lockFactory db.LockFactory, events services.EventService) *KindControllerManager {
 	return &KindControllerManager{
 		controllers: map[string]map[api.EventType][]ControllerHandlerFunc{},
+		lockFactory: lockFactory,
 		events:      events,
 	}
 }
@@ -72,16 +75,25 @@ func (km *KindControllerManager) add(source string, ev api.EventType, fns []Cont
 func (km *KindControllerManager) Handle(id string) {
 
 	ctx := context.Background()
+	logger := logger.NewOCMLogger(ctx)
 
-	// TODO: lock the Event with a fail-fast advisory lock context.
+	// lock the Event with a fail-fast advisory lock context.
 	// this allows concurrent processing of many events by one or many controller managers.
 	// allow the lock to be released by the handler goroutine and allow this function to continue.
 	// subsequent events will be locked by their own distinct IDs.
+	lockOwnerID, acquired, err := km.lockFactory.NewNonBlockingLock(ctx, id, db.Events)
+	defer km.lockFactory.Unlock(ctx, lockOwnerID)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error obtaining the event lock: %v", err))
+		return
+	}
+	if !acquired {
+		logger.Infof("Event %s is processed by another worker, continue to process the next", id)
+		return
+	}
 	threadContext := context.WithValue(ctx, "event", id)
-
-	// for now ... single threaded execution. need locks.
+	
 	km.handle(threadContext, id)
-
 }
 
 func (km *KindControllerManager) handle(ctx context.Context, id string) {

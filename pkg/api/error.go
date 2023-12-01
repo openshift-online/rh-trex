@@ -25,8 +25,8 @@ func SendNotFound(w http.ResponseWriter, r *http.Request) {
 	body := Error{
 		Type:   ErrorType,
 		ID:     id,
-		HREF:   "/api/rhtrex/v1/errors/" + id,
-		Code:   "RH-TREX-" + id,
+		HREF:   "/api/rh-trex/v1/errors/" + id,
+		Code:   "rh-trex-" + id,
 		Reason: reason,
 	}
 	data, err := json.Marshal(body)
@@ -96,8 +96,8 @@ func init() {
 	panicError := Error{
 		Type: ErrorType,
 		ID:   panicID,
-		HREF: "/api/rhtrex/v1/" + panicID,
-		Code: "RH-TREX-" + panicID,
+		HREF: "/api/rh-trex/v1/" + panicID,
+		Code: "rh-trex-" + panicID,
 		Reason: "An unexpected error happened, please check the log of the service " +
 			"for details",
 	}
