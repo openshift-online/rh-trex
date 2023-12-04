@@ -106,7 +106,7 @@ spec:
             - name: POSTGRES_PASSWORD
               value: foobar-bizz-buzz
             - name: POSTGRES_USER
-              value: ocm_example_service
+              value: trex
             volumeMounts:
               - mountPath: /work
                 name: data
