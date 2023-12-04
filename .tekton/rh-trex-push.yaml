@@ -20,7 +20,7 @@ spec:
   - name: dockerfile
     value: Containerfile.rhtap
   - name: git-url
-    value: '{{repo_url}}'
+    value: '{{source_url}}'
   - name: output-image
     value: quay.io/redhat-user-workloads/rh-trex-tenant/rh-trex/rh-trex:{{revision}}
   - name: path-context

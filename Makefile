@@ -56,6 +56,10 @@ glog_v:=10
 # Location of the JSON web key set used to verify tokens:
 jwks_url:=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
 
+# Test output files
+unit_test_json_output ?= ${PWD}/unit-test-results.json
+integration_test_json_output ?= ${PWD}/integration-test-results.json
+
 # Prints a list of useful targets.
 help:
 	@echo ""
@@ -171,6 +175,36 @@ test: install
 		./cmd/...
 .PHONY: test
 
+# Runs the unit tests with json output
+#
+# Args:
+#   TESTFLAGS: Flags to pass to `go test`. The `-v` argument is always passed.
+#
+# Examples:
+#   make test-unit-json TESTFLAGS="-run TestSomething"
+ci-test-unit: install
+	@echo $(db_password) > ${PWD}/secrets/db.password
+	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+		./pkg/... \
+		./cmd/...
+.PHONY: ci-test-unit
+
+# Runs the integration tests.
+#
+# Args:
+#   TESTFLAGS: Flags to pass to `go test`. The `-v` argument is always passed.
+#
+# Example:
+#   make test-integration
+#   make test-integration TESTFLAGS="-run TestAccounts"     acts as TestAccounts* and run TestAccountsGet, TestAccountsPost, etc.
+#   make test-integration TESTFLAGS="-run TestAccountsGet"  runs TestAccountsGet
+#   make test-integration TESTFLAGS="-short"                skips long-run tests
+ci-test-integration: install
+	@echo $(db_password) > ${PWD}/secrets/db.password
+	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(integration_test_json_output) --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
+			./test/integration
+.PHONY: ci-test-integration
+
 # Runs the integration tests.
 #
 # Args:
@@ -182,6 +216,7 @@ test: install
 #   make test-integration TESTFLAGS="-run TestAccountsGet"  runs TestAccountsGet
 #   make test-integration TESTFLAGS="-short"                skips long-run tests
 test-integration: install
+	@echo $(db_password) > ${PWD}/secrets/db.password
 	OCM_ENV=testing gotestsum --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
 			./test/integration
 .PHONY: test-integration

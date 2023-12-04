@@ -22,7 +22,7 @@ import (
 // DefaultApiService DefaultApi service
 type DefaultApiService service
 
-type ApiApiRHTrexV1DinosaursGetRequest struct {
+type ApiApiRhTrexV1DinosaursGetRequest struct {
 	ctx        context.Context
 	ApiService *DefaultApiService
 	page       *int32
@@ -33,47 +33,47 @@ type ApiApiRHTrexV1DinosaursGetRequest struct {
 }
 
 // Page number of record list when record list exceeds specified page size
-func (r ApiApiRHTrexV1DinosaursGetRequest) Page(page int32) ApiApiRHTrexV1DinosaursGetRequest {
+func (r ApiApiRhTrexV1DinosaursGetRequest) Page(page int32) ApiApiRhTrexV1DinosaursGetRequest {
 	r.page = &page
 	return r
 }
 
 // Maximum number of records to return
-func (r ApiApiRHTrexV1DinosaursGetRequest) Size(size int32) ApiApiRHTrexV1DinosaursGetRequest {
+func (r ApiApiRhTrexV1DinosaursGetRequest) Size(size int32) ApiApiRhTrexV1DinosaursGetRequest {
 	r.size = &size
 	return r
 }
 
 // Specifies the search criteria. The syntax of this parameter is similar to the syntax of the _where_ clause of an SQL statement, using the names of the json attributes / column names of the account.  For example, in order to retrieve all the accounts with a username starting with &#x60;my&#x60;:  &#x60;&#x60;&#x60;sql username like &#39;my%&#39; &#x60;&#x60;&#x60;  The search criteria can also be applied on related resource. For example, in order to retrieve all the subscriptions labeled by &#x60;foo&#x3D;bar&#x60;,  &#x60;&#x60;&#x60;sql subscription_labels.key &#x3D; &#39;foo&#39; and subscription_labels.value &#x3D; &#39;bar&#39; &#x60;&#x60;&#x60;  If the parameter isn&#39;t provided, or if the value is empty, then all the accounts that the user has permission to see will be returned.
-func (r ApiApiRHTrexV1DinosaursGetRequest) Search(search string) ApiApiRHTrexV1DinosaursGetRequest {
+func (r ApiApiRhTrexV1DinosaursGetRequest) Search(search string) ApiApiRhTrexV1DinosaursGetRequest {
 	r.search = &search
 	return r
 }
 
 // Specifies the order by criteria. The syntax of this parameter is similar to the syntax of the _order by_ clause of an SQL statement, but using the names of the json attributes / column of the account. For example, in order to retrieve all accounts ordered by username:  &#x60;&#x60;&#x60;sql username asc &#x60;&#x60;&#x60;  Or in order to retrieve all accounts ordered by username _and_ first name:  &#x60;&#x60;&#x60;sql username asc, firstName asc &#x60;&#x60;&#x60;  If the parameter isn&#39;t provided, or if the value is empty, then no explicit ordering will be applied.
-func (r ApiApiRHTrexV1DinosaursGetRequest) OrderBy(orderBy string) ApiApiRHTrexV1DinosaursGetRequest {
+func (r ApiApiRhTrexV1DinosaursGetRequest) OrderBy(orderBy string) ApiApiRhTrexV1DinosaursGetRequest {
 	r.orderBy = &orderBy
 	return r
 }
 
 // Supplies a comma-separated list of fields to be returned. Fields of sub-structures and of arrays use &lt;structure&gt;.&lt;field&gt; notation. &lt;stucture&gt;.* means all field of a structure Example: For each Subscription to get id, href, plan(id and kind) and labels (all fields)  &#x60;&#x60;&#x60; ocm get subscriptions --parameter fields&#x3D;id,href,plan.id,plan.kind,labels.* --parameter fetchLabels&#x3D;true &#x60;&#x60;&#x60;
-func (r ApiApiRHTrexV1DinosaursGetRequest) Fields(fields string) ApiApiRHTrexV1DinosaursGetRequest {
+func (r ApiApiRhTrexV1DinosaursGetRequest) Fields(fields string) ApiApiRhTrexV1DinosaursGetRequest {
 	r.fields = &fields
 	return r
 }
 
-func (r ApiApiRHTrexV1DinosaursGetRequest) Execute() (*DinosaurList, *http.Response, error) {
-	return r.ApiService.ApiRHTrexV1DinosaursGetExecute(r)
+func (r ApiApiRhTrexV1DinosaursGetRequest) Execute() (*DinosaurList, *http.Response, error) {
+	return r.ApiService.ApiRhTrexV1DinosaursGetExecute(r)
 }
 
 /*
-ApiRHTrexV1DinosaursGet Returns a list of dinosaurs
+ApiRhTrexV1DinosaursGet Returns a list of dinosaurs
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiApiRHTrexV1DinosaursGetRequest
+	@return ApiApiRhTrexV1DinosaursGetRequest
 */
-func (a *DefaultApiService) ApiRHTrexV1DinosaursGet(ctx context.Context) ApiApiRHTrexV1DinosaursGetRequest {
-	return ApiApiRHTrexV1DinosaursGetRequest{
+func (a *DefaultApiService) ApiRhTrexV1DinosaursGet(ctx context.Context) ApiApiRhTrexV1DinosaursGetRequest {
+	return ApiApiRhTrexV1DinosaursGetRequest{
 		ApiService: a,
 		ctx:        ctx,
 	}
@@ -82,7 +82,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursGet(ctx context.Context) ApiApiR
 // Execute executes the request
 //
 //	@return DinosaurList
-func (a *DefaultApiService) ApiRHTrexV1DinosaursGetExecute(r ApiApiRHTrexV1DinosaursGetRequest) (*DinosaurList, *http.Response, error) {
+func (a *DefaultApiService) ApiRhTrexV1DinosaursGetExecute(r ApiApiRhTrexV1DinosaursGetRequest) (*DinosaurList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -90,7 +90,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursGetExecute(r ApiApiRHTrexV1Dinos
 		localVarReturnValue *DinosaurList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRHTrexV1DinosaursGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRhTrexV1DinosaursGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -202,25 +202,25 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursGetExecute(r ApiApiRHTrexV1Dinos
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiApiRHTrexV1DinosaursIdGetRequest struct {
+type ApiApiRhTrexV1DinosaursIdGetRequest struct {
 	ctx        context.Context
 	ApiService *DefaultApiService
 	id         string
 }
 
-func (r ApiApiRHTrexV1DinosaursIdGetRequest) Execute() (*Dinosaur, *http.Response, error) {
-	return r.ApiService.ApiRHTrexV1DinosaursIdGetExecute(r)
+func (r ApiApiRhTrexV1DinosaursIdGetRequest) Execute() (*Dinosaur, *http.Response, error) {
+	return r.ApiService.ApiRhTrexV1DinosaursIdGetExecute(r)
 }
 
 /*
-ApiRHTrexV1DinosaursIdGet Get an dinosaur by id
+ApiRhTrexV1DinosaursIdGet Get an dinosaur by id
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param id The id of record
-	@return ApiApiRHTrexV1DinosaursIdGetRequest
+	@return ApiApiRhTrexV1DinosaursIdGetRequest
 */
-func (a *DefaultApiService) ApiRHTrexV1DinosaursIdGet(ctx context.Context, id string) ApiApiRHTrexV1DinosaursIdGetRequest {
-	return ApiApiRHTrexV1DinosaursIdGetRequest{
+func (a *DefaultApiService) ApiRhTrexV1DinosaursIdGet(ctx context.Context, id string) ApiApiRhTrexV1DinosaursIdGetRequest {
+	return ApiApiRhTrexV1DinosaursIdGetRequest{
 		ApiService: a,
 		ctx:        ctx,
 		id:         id,
@@ -230,7 +230,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdGet(ctx context.Context, id st
 // Execute executes the request
 //
 //	@return Dinosaur
-func (a *DefaultApiService) ApiRHTrexV1DinosaursIdGetExecute(r ApiApiRHTrexV1DinosaursIdGetRequest) (*Dinosaur, *http.Response, error) {
+func (a *DefaultApiService) ApiRhTrexV1DinosaursIdGetExecute(r ApiApiRhTrexV1DinosaursIdGetRequest) (*Dinosaur, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -238,7 +238,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdGetExecute(r ApiApiRHTrexV1Din
 		localVarReturnValue *Dinosaur
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRHTrexV1DinosaursIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRhTrexV1DinosaursIdGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -347,7 +347,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdGetExecute(r ApiApiRHTrexV1Din
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiApiRHTrexV1DinosaursIdPatchRequest struct {
+type ApiApiRhTrexV1DinosaursIdPatchRequest struct {
 	ctx                  context.Context
 	ApiService           *DefaultApiService
 	id                   string
@@ -355,24 +355,24 @@ type ApiApiRHTrexV1DinosaursIdPatchRequest struct {
 }
 
 // Updated dinosaur data
-func (r ApiApiRHTrexV1DinosaursIdPatchRequest) DinosaurPatchRequest(dinosaurPatchRequest DinosaurPatchRequest) ApiApiRHTrexV1DinosaursIdPatchRequest {
+func (r ApiApiRhTrexV1DinosaursIdPatchRequest) DinosaurPatchRequest(dinosaurPatchRequest DinosaurPatchRequest) ApiApiRhTrexV1DinosaursIdPatchRequest {
 	r.dinosaurPatchRequest = &dinosaurPatchRequest
 	return r
 }
 
-func (r ApiApiRHTrexV1DinosaursIdPatchRequest) Execute() (*Dinosaur, *http.Response, error) {
-	return r.ApiService.ApiRHTrexV1DinosaursIdPatchExecute(r)
+func (r ApiApiRhTrexV1DinosaursIdPatchRequest) Execute() (*Dinosaur, *http.Response, error) {
+	return r.ApiService.ApiRhTrexV1DinosaursIdPatchExecute(r)
 }
 
 /*
-ApiRHTrexV1DinosaursIdPatch Update an dinosaur
+ApiRhTrexV1DinosaursIdPatch Update an dinosaur
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param id The id of record
-	@return ApiApiRHTrexV1DinosaursIdPatchRequest
+	@return ApiApiRhTrexV1DinosaursIdPatchRequest
 */
-func (a *DefaultApiService) ApiRHTrexV1DinosaursIdPatch(ctx context.Context, id string) ApiApiRHTrexV1DinosaursIdPatchRequest {
-	return ApiApiRHTrexV1DinosaursIdPatchRequest{
+func (a *DefaultApiService) ApiRhTrexV1DinosaursIdPatch(ctx context.Context, id string) ApiApiRhTrexV1DinosaursIdPatchRequest {
+	return ApiApiRhTrexV1DinosaursIdPatchRequest{
 		ApiService: a,
 		ctx:        ctx,
 		id:         id,
@@ -382,7 +382,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdPatch(ctx context.Context, id 
 // Execute executes the request
 //
 //	@return Dinosaur
-func (a *DefaultApiService) ApiRHTrexV1DinosaursIdPatchExecute(r ApiApiRHTrexV1DinosaursIdPatchRequest) (*Dinosaur, *http.Response, error) {
+func (a *DefaultApiService) ApiRhTrexV1DinosaursIdPatchExecute(r ApiApiRhTrexV1DinosaursIdPatchRequest) (*Dinosaur, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPatch
 		localVarPostBody    interface{}
@@ -390,7 +390,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdPatchExecute(r ApiApiRHTrexV1D
 		localVarReturnValue *Dinosaur
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRHTrexV1DinosaursIdPatch")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRhTrexV1DinosaursIdPatch")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -526,30 +526,30 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursIdPatchExecute(r ApiApiRHTrexV1D
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiApiRHTrexV1DinosaursPostRequest struct {
+type ApiApiRhTrexV1DinosaursPostRequest struct {
 	ctx        context.Context
 	ApiService *DefaultApiService
 	dinosaur   *Dinosaur
 }
 
 // Dinosaur data
-func (r ApiApiRHTrexV1DinosaursPostRequest) Dinosaur(dinosaur Dinosaur) ApiApiRHTrexV1DinosaursPostRequest {
+func (r ApiApiRhTrexV1DinosaursPostRequest) Dinosaur(dinosaur Dinosaur) ApiApiRhTrexV1DinosaursPostRequest {
 	r.dinosaur = &dinosaur
 	return r
 }
 
-func (r ApiApiRHTrexV1DinosaursPostRequest) Execute() (*Dinosaur, *http.Response, error) {
-	return r.ApiService.ApiRHTrexV1DinosaursPostExecute(r)
+func (r ApiApiRhTrexV1DinosaursPostRequest) Execute() (*Dinosaur, *http.Response, error) {
+	return r.ApiService.ApiRhTrexV1DinosaursPostExecute(r)
 }
 
 /*
-ApiRHTrexV1DinosaursPost Create a new dinosaur
+ApiRhTrexV1DinosaursPost Create a new dinosaur
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiApiRHTrexV1DinosaursPostRequest
+	@return ApiApiRhTrexV1DinosaursPostRequest
 */
-func (a *DefaultApiService) ApiRHTrexV1DinosaursPost(ctx context.Context) ApiApiRHTrexV1DinosaursPostRequest {
-	return ApiApiRHTrexV1DinosaursPostRequest{
+func (a *DefaultApiService) ApiRhTrexV1DinosaursPost(ctx context.Context) ApiApiRhTrexV1DinosaursPostRequest {
+	return ApiApiRhTrexV1DinosaursPostRequest{
 		ApiService: a,
 		ctx:        ctx,
 	}
@@ -558,7 +558,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursPost(ctx context.Context) ApiApi
 // Execute executes the request
 //
 //	@return Dinosaur
-func (a *DefaultApiService) ApiRHTrexV1DinosaursPostExecute(r ApiApiRHTrexV1DinosaursPostRequest) (*Dinosaur, *http.Response, error) {
+func (a *DefaultApiService) ApiRhTrexV1DinosaursPostExecute(r ApiApiRhTrexV1DinosaursPostRequest) (*Dinosaur, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPost
 		localVarPostBody    interface{}
@@ -566,7 +566,7 @@ func (a *DefaultApiService) ApiRHTrexV1DinosaursPostExecute(r ApiApiRHTrexV1Dino
 		localVarReturnValue *Dinosaur
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRHTrexV1DinosaursPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "DefaultApiService.ApiRhTrexV1DinosaursPost")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
