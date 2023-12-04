@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  description: RH-TREX Service API
-  title: RH-TREX Service API
+  description: RH TREX API
+  title: RH TREX API
   version: 0.0.1
 servers:
 - description: current domain
