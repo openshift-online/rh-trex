@@ -41,7 +41,7 @@ internal_image_registry:=image-registry.openshift-image-registry.svc:5000
 image_repository:=$(namespace)/rh-trex
 
 # Database connection details
-db_name:=trex
+db_name:=rhtrex
 db_host=trex-db.$(namespace)
 db_port=5432
 db_user:=trex
