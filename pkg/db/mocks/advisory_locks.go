@@ -29,6 +29,17 @@ func (f *MockAdvisoryLockFactory) NewAdvisoryLock(ctx context.Context, id string
 	return lockOwnerID, nil
 }
 
+func (f *MockAdvisoryLockFactory) NewNonBlockingLock(ctx context.Context, id string, lockType db.LockType) (string, bool, error) {
+	lockOwnerID := uuid.New().String()
+	key := fmt.Sprintf("%s-%s", id, lockType)
+	if _, ok := f.locks[key]; ok {
+		return lockOwnerID, true, nil
+	}
+
+	f.locks[key] = lockOwnerID
+	return lockOwnerID, true, nil
+}
+
 func (f *MockAdvisoryLockFactory) Unlock(ctx context.Context, uuid string) {
 	for k, v := range f.locks {
 		if v == uuid {

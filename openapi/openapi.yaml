@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: RH-TREX Service API
-  description: RH-TREX Service API
+  title: rh-trex Service API
+  description: rh-trex Service API
   version: 0.0.1
 servers:
   - url: http://localhost:8000
@@ -11,7 +11,7 @@ servers:
   - url: https://api.stage.openshift.com
     description: Staging server
 paths:
-  /api/rhtrex/v1/dinosaurs:
+  /api/rh-trex/v1/dinosaurs:
     get:
       summary: Returns a list of dinosaurs
       security:
@@ -95,7 +95,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /api/rhtrex/v1/dinosaurs/{id}:
+  /api/rh-trex/v1/dinosaurs/{id}:
     get:
       summary: Get an dinosaur by id
       security:
@@ -187,6 +187,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     parameters:
     - $ref: '#/components/parameters/id'
+  # AUTO-ADD NEW PATHS
 components:
   securitySchemes:
     Bearer:
@@ -267,6 +268,7 @@ components:
       properties:
         species:
           type: string
+    # AUTO-ADD NEW SCHEMAS
   parameters:
     id:
       name: id

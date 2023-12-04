@@ -37,7 +37,7 @@ func Test{{.Kind}}Get(t *testing.T) {
 
 	Expect(*{{.KindLowerSingular}}.Id).To(Equal(dino.ID), "found object does not match test object")
 	Expect(*{{.KindLowerSingular}}.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rhtrex/v1/{{.KindLowerPlural}}/%s", dino.ID)))
+	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", dino.ID)))
 	Expect(*{{.KindLowerSingular}}.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*{{.KindLowerSingular}}.UpdatedAt).To(BeTemporally("~", dino.UpdatedAt))
 }
@@ -59,7 +59,7 @@ func Test{{.Kind}}Post(t *testing.T) {
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	Expect(*{{.KindLowerSingular}}.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
 	Expect(*{{.KindLowerSingular}}.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rhtrex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}.Id)))
+	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}.Id)))
 
 	// 400 bad request. posting junk json is one way to trigger 400.
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
@@ -89,7 +89,7 @@ func Test{{.Kind}}Patch(t *testing.T) {
 	Expect(*{{.KindLowerSingular}}.Id).To(Equal(dino.ID))
 	Expect(*{{.KindLowerSingular}}.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*{{.KindLowerSingular}}.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rhtrex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}.Id)))
+	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}.Id)))
 
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
 	// 500 server error. posting junk json is one way to trigger 500.

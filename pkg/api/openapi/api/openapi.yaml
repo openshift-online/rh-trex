@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  description: RH TREX API
-  title: RH TREX API
+  description: rh-trex API
+  title: rh-trex API
   version: 0.0.1
 servers:
 - description: current domain
@@ -11,7 +11,7 @@ servers:
 - description: Staging server
   url: https://api.stage.openshift.com
 paths:
-  /api/rhtrex/v1/dinosaurs:
+  /api/rh-trex/v1/dinosaurs:
     get:
       parameters:
       - description: Page number of record list when record list exceeds specified
@@ -169,7 +169,7 @@ paths:
       security:
       - Bearer: []
       summary: Create a new dinosaur
-  /api/rhtrex/v1/dinosaurs/{id}:
+  /api/rh-trex/v1/dinosaurs/{id}:
     get:
       parameters:
       - description: The id of record

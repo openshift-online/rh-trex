@@ -238,7 +238,7 @@ run: install
 # Run Swagger and host the api docs
 run/docs:
 	@echo "Please open http://localhost/"
-	docker run -d -p 80:8080 -e SWAGGER_JSON=/trex.yaml -v $(PWD)/openapi/rhtrex.yaml:/trex.yaml swaggerapi/swagger-ui
+	docker run -d -p 80:8080 -e SWAGGER_JSON=/trex.yaml -v $(PWD)/openapi/rh-trex.yaml:/trex.yaml swaggerapi/swagger-ui
 .PHONY: run/docs
 
 # Delete temporary files
@@ -343,16 +343,16 @@ undeploy: \
 .PHONY: db/setup
 db/setup:
 	@echo $(db_password) > $(db_password_file)
-	$(container_tool) run --name psql-example -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
+	$(container_tool) run --name psql-rhtrex -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
 
 .PHONY: db/login
 db/login:
-	$(container_tool) exec -it psql-example bash -c "psql -h localhost -U $(db_user) $(db_name)"
+	$(container_tool) exec -it psql-rhtrex bash -c "psql -h localhost -U $(db_user) $(db_name)"
 
 .PHONY: db/teardown
 db/teardown:
-	$(container_tool) stop psql-example
-	$(container_tool) rm psql-example
+	$(container_tool) stop psql-rhtrex
+	$(container_tool) rm psql-rhtrex
 
 crc/login:
 	@echo "Logging into CRC"

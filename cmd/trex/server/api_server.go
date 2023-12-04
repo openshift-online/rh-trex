@@ -67,10 +67,10 @@ func NewAPIServer() Server {
 			KeysFile(env().Config.Server.JwkCertFile).
 			KeysURL(env().Config.Server.JwkCertURL).
 			ACLFile(env().Config.Server.ACLFile).
-			Public("^/api/rhtrex/?$").
-			Public("^/api/rhtrex/v1/?$").
-			Public("^/api/rhtrex/v1/openapi/?$").
-			Public("^/api/rhtrex/v1/errors(/.*)?$").
+			Public("^/api/rh-trex/?$").
+			Public("^/api/rh-trex/v1/?$").
+			Public("^/api/rh-trex/v1/openapi/?$").
+			Public("^/api/rh-trex/v1/errors(/.*)?$").
 			Next(mainHandler).
 			Build()
 		check(err, "Unable to create authentication handler")

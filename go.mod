@@ -6,7 +6,6 @@ require (
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/auth0/go-jwt-middleware v0.0.0-20190805220309-36081240882b
 	github.com/bxcodec/faker/v3 v3.2.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/go-healthcheck v0.1.0
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/ghodss/yaml v1.0.0
@@ -37,6 +36,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect

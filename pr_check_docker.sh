@@ -4,7 +4,7 @@
 export GORM_DIALECT="postgres"
 export GORM_HOST="localhost"
 export GORM_PORT="5432"
-export GORM_NAME="rhtrex"
+export GORM_NAME="rh-trex"
 export GORM_USERNAME="trex"
 export GORM_PASSWORD="foobar-bizz-buzz"
 export GORM_SSLMODE="disable"

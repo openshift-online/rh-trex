@@ -66,7 +66,7 @@ func (c *ApplicationConfig) ReadFiles() []string {
 
 // Read the contents of file into integer value
 func readFileValueInt(file string, val *int) error {
-	fileContents, err := readFile(file)
+	fileContents, err := ReadFile(file)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func readFileValueInt(file string, val *int) error {
 
 // Read the contents of file into string value
 func readFileValueString(file string, val *string) error {
-	fileContents, err := readFile(file)
+	fileContents, err := ReadFile(file)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func readFileValueString(file string, val *string) error {
 
 // Read the contents of file into boolean value
 func readFileValueBool(file string, val *bool) error {
-	fileContents, err := readFile(file)
+	fileContents, err := ReadFile(file)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func readFileValueBool(file string, val *bool) error {
 	return err
 }
 
-func readFile(file string) (string, error) {
+func ReadFile(file string) (string, error) {
 	// If the value is in quotes, unquote it
 	unquotedFile, err := strconv.Unquote(file)
 	if err != nil {

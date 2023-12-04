@@ -43,7 +43,7 @@ func TestDinosaurGet(t *testing.T) {
 	Expect(*dinosaur.Id).To(Equal(dino.ID), "found object does not match test object")
 	Expect(*dinosaur.Species).To(Equal(dino.Species), "species mismatch")
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
-	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rhtrex/v1/dinosaurs/%s", dino.ID)))
+	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", dino.ID)))
 	Expect(*dinosaur.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*dinosaur.UpdatedAt).To(BeTemporally("~", dino.UpdatedAt))
 }
@@ -66,7 +66,7 @@ func TestDinosaurPost(t *testing.T) {
 	Expect(*dinosaur.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
 	Expect(*dinosaur.Species).To(Equal(*dino.Species), "species mismatch")
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
-	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rhtrex/v1/dinosaurs/%s", *dinosaur.Id)))
+	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", *dinosaur.Id)))
 
 	// 400 bad request. posting junk json is one way to trigger 400.
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
@@ -99,7 +99,7 @@ func TestDinosaurPatch(t *testing.T) {
 	Expect(*dinosaur.Species).To(Equal(species), "species mismatch")
 	Expect(*dinosaur.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
-	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rhtrex/v1/dinosaurs/%s", *dinosaur.Id)))
+	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", *dinosaur.Id)))
 
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
 	// 500 server error. posting junk json is one way to trigger 500.
@@ -266,6 +266,7 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 		}
 	}
 
-	// the dinosaur patch request is not protected by the advisory lock, so there should be at least one update
-	Expect(updatedCount >= 1).To(BeTrue())
+	// the dinosaur patch request is not protected by the advisory lock, so there will likely be more then one update captured
+	t.Logf("Updated Count: %v\n", updatedCount)
+	Expect(updatedCount > 1).To(BeTrue())
 }
