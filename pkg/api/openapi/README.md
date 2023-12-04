@@ -77,10 +77,10 @@ All URIs are relative to *http://localhost:8000*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**ApiRHTrexV1DinosaursGet**](docs/DefaultApi.md#apirhtrexv1dinosaursget) | **Get** /api/rhtrex/v1/dinosaurs | Returns a list of dinosaurs
-*DefaultApi* | [**ApiRHTrexV1DinosaursIdGet**](docs/DefaultApi.md#apirhtrexv1dinosaursidget) | **Get** /api/rhtrex/v1/dinosaurs/{id} | Get an dinosaur by id
-*DefaultApi* | [**ApiRHTrexV1DinosaursIdPatch**](docs/DefaultApi.md#apirhtrexv1dinosaursidpatch) | **Patch** /api/rhtrex/v1/dinosaurs/{id} | Update an dinosaur
-*DefaultApi* | [**ApiRHTrexV1DinosaursPost**](docs/DefaultApi.md#apirhtrexv1dinosaurspost) | **Post** /api/rhtrex/v1/dinosaurs | Create a new dinosaur
+*DefaultApi* | [**ApiRhTrexV1DinosaursGet**](docs/DefaultApi.md#apirhtrexv1dinosaursget) | **Get** /api/rhtrex/v1/dinosaurs | Returns a list of dinosaurs
+*DefaultApi* | [**ApiRhTrexV1DinosaursIdGet**](docs/DefaultApi.md#apirhtrexv1dinosaursidget) | **Get** /api/rhtrex/v1/dinosaurs/{id} | Get an dinosaur by id
+*DefaultApi* | [**ApiRhTrexV1DinosaursIdPatch**](docs/DefaultApi.md#apirhtrexv1dinosaursidpatch) | **Patch** /api/rhtrex/v1/dinosaurs/{id} | Update an dinosaur
+*DefaultApi* | [**ApiRhTrexV1DinosaursPost**](docs/DefaultApi.md#apirhtrexv1dinosaurspost) | **Post** /api/rhtrex/v1/dinosaurs | Create a new dinosaur
 
 
 ## Documentation For Models
