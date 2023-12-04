@@ -4,16 +4,16 @@ All URIs are relative to *http://localhost:8000*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**ApiRHTrexV1DinosaursGet**](DefaultApi.md#ApiRHTrexV1DinosaursGet) | **Get** /api/rhtrex/v1/dinosaurs | Returns a list of dinosaurs
-[**ApiRHTrexV1DinosaursIdGet**](DefaultApi.md#ApiRHTrexV1DinosaursIdGet) | **Get** /api/rhtrex/v1/dinosaurs/{id} | Get an dinosaur by id
-[**ApiRHTrexV1DinosaursIdPatch**](DefaultApi.md#ApiRHTrexV1DinosaursIdPatch) | **Patch** /api/rhtrex/v1/dinosaurs/{id} | Update an dinosaur
-[**ApiRHTrexV1DinosaursPost**](DefaultApi.md#ApiRHTrexV1DinosaursPost) | **Post** /api/rhtrex/v1/dinosaurs | Create a new dinosaur
+[**ApiRhtrexV1DinosaursGet**](DefaultApi.md#ApiRhtrexV1DinosaursGet) | **Get** /api/rhtrex/v1/dinosaurs | Returns a list of dinosaurs
+[**ApiRhtrexV1DinosaursIdGet**](DefaultApi.md#ApiRhtrexV1DinosaursIdGet) | **Get** /api/rhtrex/v1/dinosaurs/{id} | Get an dinosaur by id
+[**ApiRhtrexV1DinosaursIdPatch**](DefaultApi.md#ApiRhtrexV1DinosaursIdPatch) | **Patch** /api/rhtrex/v1/dinosaurs/{id} | Update an dinosaur
+[**ApiRhtrexV1DinosaursPost**](DefaultApi.md#ApiRhtrexV1DinosaursPost) | **Post** /api/rhtrex/v1/dinosaurs | Create a new dinosaur
 
 
 
-## ApiRHTrexV1DinosaursGet
+## ApiRhtrexV1DinosaursGet
 
-> DinosaurList ApiRHTrexV1DinosaursGet(ctx).Page(page).Size(size).Search(search).OrderBy(orderBy).Fields(fields).Execute()
+> DinosaurList ApiRhtrexV1DinosaursGet(ctx).Page(page).Size(size).Search(search).OrderBy(orderBy).Fields(fields).Execute()
 
 Returns a list of dinosaurs
 
@@ -38,13 +38,13 @@ func main() {
 
     configuration := openapiclient.NewConfiguration()
     apiClient := openapiclient.NewAPIClient(configuration)
-    resp, r, err := apiClient.DefaultApi.ApiRHTrexV1DinosaursGet(context.Background()).Page(page).Size(size).Search(search).OrderBy(orderBy).Fields(fields).Execute()
+    resp, r, err := apiClient.DefaultApi.ApiRhtrexV1DinosaursGet(context.Background()).Page(page).Size(size).Search(search).OrderBy(orderBy).Fields(fields).Execute()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRHTrexV1DinosaursGet``: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRhtrexV1DinosaursGet``: %v\n", err)
         fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
     }
-    // response from `ApiRHTrexV1DinosaursGet`: DinosaurList
-    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRHTrexV1DinosaursGet`: %v\n", resp)
+    // response from `ApiRhtrexV1DinosaursGet`: DinosaurList
+    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRhtrexV1DinosaursGet`: %v\n", resp)
 }
 ```
 
@@ -54,7 +54,7 @@ func main() {
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiApiRHTrexV1DinosaursGetRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiApiRhtrexV1DinosaursGetRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -83,9 +83,9 @@ Name | Type | Description  | Notes
 [[Back to README]](../README.md)
 
 
-## ApiRHTrexV1DinosaursIdGet
+## ApiRhtrexV1DinosaursIdGet
 
-> Dinosaur ApiRHTrexV1DinosaursIdGet(ctx, id).Execute()
+> Dinosaur ApiRhtrexV1DinosaursIdGet(ctx, id).Execute()
 
 Get an dinosaur by id
 
@@ -106,13 +106,13 @@ func main() {
 
     configuration := openapiclient.NewConfiguration()
     apiClient := openapiclient.NewAPIClient(configuration)
-    resp, r, err := apiClient.DefaultApi.ApiRHTrexV1DinosaursIdGet(context.Background(), id).Execute()
+    resp, r, err := apiClient.DefaultApi.ApiRhtrexV1DinosaursIdGet(context.Background(), id).Execute()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRHTrexV1DinosaursIdGet``: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRhtrexV1DinosaursIdGet``: %v\n", err)
         fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
     }
-    // response from `ApiRHTrexV1DinosaursIdGet`: Dinosaur
-    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRHTrexV1DinosaursIdGet`: %v\n", resp)
+    // response from `ApiRhtrexV1DinosaursIdGet`: Dinosaur
+    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRhtrexV1DinosaursIdGet`: %v\n", resp)
 }
 ```
 
@@ -126,7 +126,7 @@ Name | Type | Description  | Notes
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiApiRHTrexV1DinosaursIdGetRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiApiRhtrexV1DinosaursIdGetRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -151,9 +151,9 @@ Name | Type | Description  | Notes
 [[Back to README]](../README.md)
 
 
-## ApiRHTrexV1DinosaursIdPatch
+## ApiRhtrexV1DinosaursIdPatch
 
-> Dinosaur ApiRHTrexV1DinosaursIdPatch(ctx, id).DinosaurPatchRequest(dinosaurPatchRequest).Execute()
+> Dinosaur ApiRhtrexV1DinosaursIdPatch(ctx, id).DinosaurPatchRequest(dinosaurPatchRequest).Execute()
 
 Update an dinosaur
 
@@ -175,13 +175,13 @@ func main() {
 
     configuration := openapiclient.NewConfiguration()
     apiClient := openapiclient.NewAPIClient(configuration)
-    resp, r, err := apiClient.DefaultApi.ApiRHTrexV1DinosaursIdPatch(context.Background(), id).DinosaurPatchRequest(dinosaurPatchRequest).Execute()
+    resp, r, err := apiClient.DefaultApi.ApiRhtrexV1DinosaursIdPatch(context.Background(), id).DinosaurPatchRequest(dinosaurPatchRequest).Execute()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRHTrexV1DinosaursIdPatch``: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRhtrexV1DinosaursIdPatch``: %v\n", err)
         fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
     }
-    // response from `ApiRHTrexV1DinosaursIdPatch`: Dinosaur
-    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRHTrexV1DinosaursIdPatch`: %v\n", resp)
+    // response from `ApiRhtrexV1DinosaursIdPatch`: Dinosaur
+    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRhtrexV1DinosaursIdPatch`: %v\n", resp)
 }
 ```
 
@@ -195,7 +195,7 @@ Name | Type | Description  | Notes
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiApiRHTrexV1DinosaursIdPatchRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiApiRhtrexV1DinosaursIdPatchRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -221,9 +221,9 @@ Name | Type | Description  | Notes
 [[Back to README]](../README.md)
 
 
-## ApiRHTrexV1DinosaursPost
+## ApiRhtrexV1DinosaursPost
 
-> Dinosaur ApiRHTrexV1DinosaursPost(ctx).Dinosaur(dinosaur).Execute()
+> Dinosaur ApiRhtrexV1DinosaursPost(ctx).Dinosaur(dinosaur).Execute()
 
 Create a new dinosaur
 
@@ -244,13 +244,13 @@ func main() {
 
     configuration := openapiclient.NewConfiguration()
     apiClient := openapiclient.NewAPIClient(configuration)
-    resp, r, err := apiClient.DefaultApi.ApiRHTrexV1DinosaursPost(context.Background()).Dinosaur(dinosaur).Execute()
+    resp, r, err := apiClient.DefaultApi.ApiRhtrexV1DinosaursPost(context.Background()).Dinosaur(dinosaur).Execute()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRHTrexV1DinosaursPost``: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ApiRhtrexV1DinosaursPost``: %v\n", err)
         fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
     }
-    // response from `ApiRHTrexV1DinosaursPost`: Dinosaur
-    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRHTrexV1DinosaursPost`: %v\n", resp)
+    // response from `ApiRhtrexV1DinosaursPost`: Dinosaur
+    fmt.Fprintf(os.Stdout, "Response from `DefaultApi.ApiRhtrexV1DinosaursPost`: %v\n", resp)
 }
 ```
 
@@ -260,7 +260,7 @@ func main() {
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiApiRHTrexV1DinosaursPostRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiApiRhtrexV1DinosaursPostRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
