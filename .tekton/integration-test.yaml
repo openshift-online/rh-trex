@@ -102,7 +102,7 @@ spec:
             - name: PGDATA
               value: /work/data
             - name: POSTGRES_DB
-              value: ocmexample
+              value: rhtrex
             - name: POSTGRES_PASSWORD
               value: foobar-bizz-buzz
             - name: POSTGRES_USER
