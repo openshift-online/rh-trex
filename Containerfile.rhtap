@@ -34,4 +34,4 @@ LABEL name="trex" \
       io.k8s.display-name="RH-TREX" \
       io.openshift.tags="trex"
 
-#20231114-133700
+#20231204
