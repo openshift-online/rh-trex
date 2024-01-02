@@ -22,7 +22,7 @@ Some of the features included are:
 When looking through the code, anything talking about dinosaurs is business logic, which you
 will replace with your business logic. The rest is infrastructure that you will probably want to preserve without change.
 
-It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a 
+It's up to you to port future improvements to this project to your own fork. A goal of this project is to become a
 framework with an upgrade path.
 
 
@@ -34,18 +34,18 @@ framework with an upgrade path.
 
 # 1. build the project
 
-$ go install gotest.tools/gotestsum@latest  
+$ go install gotest.tools/gotestsum@latest
 $ make binary
 
-# 2. run a postgres database locally in docker 
+# 2. run a postgres database locally in docker
 
 $ make db/setup
 $ make db/login
-        
+
     root@f076ddf94520:/# psql -h localhost -U trex rh-trex
     psql (14.4 (Debian 14.4-1.pgdg110+1))
     Type "help" for help.
-    
+
     rh-trex=# \dt
     Did not find any relations.
 
@@ -69,7 +69,7 @@ Type "help" for help.
 
 rh-trex=# \dt
                  List of relations
- Schema |    Name    | Type  |        Owner        
+ Schema |    Name    | Type  |        Owner
 --------+------------+-------+---------------------
  public | dinosaurs  | table | trex
  public | events     | table | trex
@@ -126,8 +126,10 @@ ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
 
 ```
 
-#### Get a new Dinosaur
-This will be empty if no Dinosaur is ever created
+#### Confirm login worked by getting all the Dinosaurs
+This will be empty if no Dinosaurs exist yet.
+
+Note that we do not use 'curl' here but instead use 'ocm' which passes the user credentials to the API.
 
 ```
 ocm get /api/rh-trex/v1/dinosaurs
