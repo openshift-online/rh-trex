@@ -1,0 +1,44 @@
+schemaVersion: 2.2.0
+metadata:
+  name: trex
+  attributes:
+    alpha.dockerimage-port: 8000
+  version: 1.0.0
+  provider: Red Hat  
+components:
+  - name: container-build
+    image:
+      imageName: trex
+      dockerfile:
+        uri:  Containerfile.rhtap
+        buildContext:  .
+        rootRequired: false 
+  - name: kubernetes-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuLimit: '100m'
+      deployment/cpuRequest: 10m
+      deployment/memoryLimit: 100Mi
+      deployment/memoryRequest: 50Mi
+      deployment/container-port: 8000
+    kubernetes:
+      uri: deploy.yaml
+      endpoints:
+      - name: frontend-port
+        targetPort: 8000
+        path: /
+commands:
+  - id: build-image
+    apply:
+      component: container-build
+  - id: deployk8s
+    apply:
+      component: kubernetes-deploy
+  - id: deploy
+    composite:
+      commands:
+        - build-image
+        - deployk8s
+      group:
+        kind: deploy
+        isDefault: true
