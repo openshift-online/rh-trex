@@ -1,0 +1,191 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: integration-test-app
+spec:
+  description: >-
+    Expects a Snapshot of a simple application with endpoint containing the expected output to be deployed on an environment. 
+    A secret containing the kubeconfig for the environment needs to be mounted via the cluster-credentials workspace binding.
+    The route to the single component is expected to have the same name as the component (default appstudio behavior).
+  params:
+    - description: 'Snapshot of the application'
+      name: SNAPSHOT
+      default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
+      type: string
+    - description: 'Namespace where the application is running'
+      name: NAMESPACE
+      default: "default"
+      type: string
+    - description: 'Application endpoint port'
+      name: PORT
+      default: ""
+      type: string
+  tasks:  
+    - name: extract-metadata
+      params:
+        - name: SNAPSHOT
+          value: $(params.SNAPSHOT)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+        - name: PORT
+          value: $(params.PORT)
+      workspaces:
+        - name: cluster-credentials
+          workspace: cluster-credentials      
+      taskSpec:
+        params:
+          - name: SNAPSHOT
+            description: Expected output of the application endpoint
+          - default: 'default'
+            name: NAMESPACE
+            description: Namespace of the application under test
+          - default: ""
+            name: PORT
+            description: Application endpoint Port
+        results:
+          - name: APP_URL
+            description: APP URL
+          - name: test_name
+            description: Test name            
+          - name: TEST_OUTPUT
+            description: Test output             
+        workspaces:
+          - name: cluster-credentials
+            optional: true                
+        steps:
+        - image: quay.io/redhat-appstudio/hacbs-test:latest
+          env:
+            - name: SNAPSHOT
+              value: $(params.SNAPSHOT)
+            - name: NAMESPACE
+              value: $(params.NAMESPACE)
+            - name: PORT
+              value: $(params.PORT)        
+          script: |
+            #!/usr/bin/env bash
+            export KUBECONFIG=$(workspaces.cluster-credentials.path)/kubeconfig
+
+            # Get the route for the application endpoint
+            COMPONENT_NAME=$(echo -n ${SNAPSHOT} | jq -r .components[0].name)
+            # The --insecure-skip-tls-verify option is added for local testing
+            # when the clusters only have self-signed certificates.
+            # This option should not be used in production.
+            ROUTE_NAME=$(oc get routes -l app.kubernetes.io/name="${COMPONENT_NAME}" -o name --insecure-skip-tls-verify)
+            HOST=$(oc get "${ROUTE_NAME}" -o jsonpath={.spec.host} -n "${NAMESPACE}" --insecure-skip-tls-verify)
+            echo "Found target host ${HOST} for app ${APPLICATION_NAME}"
+            
+            # Check the application endpoint
+            ENDPOINT_OUTPUT=$(curl -k http://${HOST}:${PORT})
+            echo -e "The endpoint outputs the following:\n ${ENDPOINT_OUTPUT}"
+            echo -e "Snapshot output:\n ${SNAPSHOT}"
+
+            echo ${HOST} > /tekton/home/endpoint_url            
+            echo -n ${HOST} | tee $(results.APP_URL.path)
+            echo '$(params.SNAPSHOT)'|jq -r .components[].name |  tr -d '\n\t' | tee $(results.test_name.path)            
+    - name: perf-benchmark
+      params:
+        - name: url
+          value: $(tasks.extract-metadata.results.APP_URL)
+        - name: test_name
+          value: $(tasks.extract-metadata.results.test_name)         
+      taskSpec:
+        params:
+          - name: url
+          - name: test_name         
+        steps:
+        - image: docker.io/jordi/ab
+          name: run-perf
+          command: ["ab","-g","/workspace/output.tsv","http://$(params.url)/"]
+        - image: quay.io/yogananth_subramanian/curl-yq-jq
+          name: transform-output
+          script: |
+            echo "Transform result to json format"
+            cat /workspace/output.tsv
+            yq  -oj /workspace/output.tsv|jq .[]|jq --arg foo bar '. + {"$schema": "uri:nodejs1:0.1"}'|tee /workspace/test_result.json
+            echo -n   $((`cat /workspace/test_result.json |jq .seconds`*1000))|tee /workspace/stime            
+        - image: quay.io/yogananth_subramanian/horreum
+          name: upload-results
+          env:
+            - name: HORREUM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_password
+            - name: HORREUM_URI
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_uri
+            - name: HORREUM_USER
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_user
+          script: |
+            echo "Upload results to Horreum"
+            cat /workspace/test_result.json
+            test_name=$(params.test_name)
+            tname=`run test list|grep $test_name|cut -f1 -d ' '`
+            echo $tname
+            set -x
+            if [ -z  $tname ] ;then echo "$test_name test not found in Horreum";exit 1;fi
+            echo $tmp_time
+            stime=`cat /workspace/stime`
+            etime=$(($stime+300000))
+            run run new --test=$test_name --access=PUBLIC --owner=dev-team --start=$stime --stop=$etime -f /workspace/test_result.json
+        - image: quay.io/yogananth_subramanian/curl-yq-jq
+          name: check-regression
+          env:
+            - name: HORREUM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_password
+            - name: HORREUM_URI
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_uri
+            - name: HORREUM_USER
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_user
+            - name: KEYCLOAK_URI 
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: keycloak_uri
+          script: |
+            set -xv
+            echo "Check for regression!"
+            TOKEN=$(curl -s  -k  ${KEYCLOAK_URI}/realms/horreum/protocol/openid-connect/token   -d "username=$HORREUM_USER"  -d "password=$HORREUM_PASSWORD" -d 'grant_type=password' -d 'client_id=horreum-ui' | jq -r .access_token) 
+            changes=`curl ${HORREUM_URI}/api/alerting/changes?var=42 -k -s  -X GET  -H 'Authorization: Bearer '${TOKEN}|jq  '.| length'`
+            if [ -z  $changes ] || [ $changes -gt 0  ] ;then echo "Regression check failed";exit 1;fi
+      runAfter:
+        - extract-metadata           
+  finally:
+    - name: cleanup  
+      params:
+        - name: aggregateTasksStatus
+          value: "$(tasks.status)"	
+      taskSpec:
+        results:
+          - name: TEST_OUTPUT
+        params:
+          - name: aggregateTasksStatus
+        steps:
+        - image: quay.io/yogananth_subramanian/curl-yq-jq  
+          name: step1
+          script: |
+            RESULT="SUCCESS"
+            if [ $(params.aggregateTasksStatus) == "Failed" ]
+            then
+              RESULT="FAILURE"
+            fi
+            TEST_OUTPUT=$(jq -rc --arg date $(date +%s) --arg RESULT "${RESULT}" --null-input \
+            '{result: $RESULT, timestamp: $date, failures: 0, successes: 0, warnings: 0}')
+            echo -n "${TEST_OUTPUT}" | tee $(results.TEST_OUTPUT.path)
+  workspaces:
+    - name: cluster-credentials
+      optional: true
