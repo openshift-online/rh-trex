@@ -6,9 +6,10 @@ RUN \
     && \
     microdnf clean all
 
+RUN mkdir /usr/local/bin/rh-trex
 COPY \
-    rh-trex \
-    /usr/local/bin/
+    * \
+    /usr/local/bin/rh-trex
 
 EXPOSE 8000
 
