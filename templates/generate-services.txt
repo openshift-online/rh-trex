@@ -18,9 +18,10 @@ type {{.Kind}}Service interface {
 	FindByIDs(ctx context.Context, ids []string) (api.{{.Kind}}List, *errors.ServiceError)
 }
 
-func New{{.Kind}}Service({{.KindLowerSingular}}Dao dao.{{.Kind}}Dao) {{.Kind}}Service {
+func New{{.Kind}}Service({{.KindLowerSingular}}Dao dao.{{.Kind}}Dao, events EventService) {{.Kind}}Service {
 	return &sql{{.Kind}}Service{
 		{{.KindLowerSingular}}Dao: {{.KindLowerSingular}}Dao,
+		events:      events,
 	}
 }
 
@@ -28,6 +29,7 @@ var _ {{.Kind}}Service = &sql{{.Kind}}Service{}
 
 type sql{{.Kind}}Service struct {
 	{{.KindLowerSingular}}Dao dao.{{.Kind}}Dao
+	events      EventService
 }
 
 func (s *sql{{.Kind}}Service) Get(ctx context.Context, id string) (*api.{{.Kind}}, *errors.ServiceError) {
@@ -43,6 +45,16 @@ func (s *sql{{.Kind}}Service) Create(ctx context.Context, {{.KindLowerSingular}}
 	if err != nil {
 		return nil, handleCreateError("{{.Kind}}", err)
 	}
+
+	_, evErr := s.events.Create(ctx, &api.Event{
+		Source:    "{{.KindPlural}}",
+		SourceID:  {{.KindLowerSingular}}.ID,
+		EventType: api.CreateEventType,
+	})
+	if evErr != nil {
+		return nil, handleCreateError("{{.Kind}}", evErr)
+	}
+
 	return {{.KindLowerSingular}}, nil
 }
 
@@ -51,6 +63,16 @@ func (s *sql{{.Kind}}Service) Replace(ctx context.Context, {{.KindLowerSingular}
 	if err != nil {
 		return nil, handleUpdateError("{{.Kind}}", err)
 	}
+
+	_, evErr := s.events.Create(ctx, &api.Event{
+		Source:    "{{.KindPlural}}",
+		SourceID:  {{.KindLowerSingular}}.ID,
+		EventType: api.UpdateEventType,
+	})
+	if evErr != nil {
+		return nil, handleUpdateError("{{.Kind}}", evErr)
+	}
+
 	return {{.KindLowerSingular}}, nil
 }
 
@@ -58,6 +80,16 @@ func (s *sql{{.Kind}}Service) Delete(ctx context.Context, id string) *errors.Ser
 	if err := s.{{.KindLowerSingular}}Dao.Delete(ctx, id); err != nil {
 		return handleDeleteError("{{.Kind}}", errors.GeneralError("Unable to delete {{.KindLowerSingular}}: %s", err))
 	}
+
+	_, evErr := s.events.Create(ctx, &api.Event{
+		Source:    "{{.KindPlural}}",
+		SourceID:  id,
+		EventType: api.DeleteEventType,
+	})
+	if evErr != nil {
+		return handleDeleteError("{{.Kind}}", evErr)
+	}
+
 	return nil
 }
 

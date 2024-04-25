@@ -49,13 +49,16 @@ func main() {
 
 	templates := []string{
 		"api",
+		"presenters",
 		"dao",
 		"services",
 		"mock",
 		"migration",
 		"test",
+		"test-factories",
 		"handlers",
 		"openapi-kind",
+		"servicelocator",
 	}
 
 	for _, nm := range templates {
@@ -72,6 +75,7 @@ func main() {
 
 		k := myWriter{
 			Kind:              kind,
+			KindPlural:        fmt.Sprintf("%ss", kind),
 			KindLowerPlural:   strings.ToLower(fmt.Sprintf("%ss", kind)),
 			KindLowerSingular: strings.ToLower(kind),
 		}
@@ -79,21 +83,26 @@ func main() {
 		now := time.Now()
 		k.ID = fmt.Sprintf("%d%s%s%s%s", now.Year(), datePad(int(now.Month())), datePad(now.Day()), datePad(now.Hour()), datePad(now.Minute()))
 
-		var outPath string
-
-		if strings.Contains(nm, "mock") {
-			outPath = fmt.Sprintf("pkg/dao/mocks/%s.go", k.KindLowerSingular)
-		} else if strings.Contains(nm, "migration") {
-			outPath = fmt.Sprintf("pkg/db/migrations/%s_add_%s.go", k.ID, k.KindLowerPlural)
-		} else if strings.Contains(nm, "test") {
-			outPath = fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural)
-		} else if strings.Contains(nm, "openapi") {
-			outPath = fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural)
-		} else {
-			outPath = fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular)
+		outputPaths := map[string]string{
+			"generate-api":            fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
+			"generate-presenters":     fmt.Sprintf("pkg/api/presenters/%s.go", k.KindLowerSingular),
+			"generate-dao":            fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
+			"generate-handlers":       fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
+			"generate-migration":      fmt.Sprintf("pkg/db/migrations/%s_add_%s.go", k.ID, k.KindLowerPlural),
+			"generate-mock":           fmt.Sprintf("pkg/dao/mocks/%s.go", k.KindLowerSingular),
+			"generate-openapi-kind":   fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural),
+			"generate-test-factories": fmt.Sprintf("test/factories/%s.go", k.KindLowerPlural),
+			"generate-test":           fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural),
+			"generate-services":       fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
+			"generate-servicelocator": fmt.Sprintf("cmd/ensemble/environments/locator_%s.go", k.KindLowerSingular),
 		}
 
-		f, err := os.Create(outPath)
+		outputPath, ok := outputPaths["generate-"+nm]
+		if !ok {
+			panic("expected to find outputPath for " + nm)
+		}
+
+		f, err := os.Create(outputPath)
 		if err != nil {
 			panic(err)
 		}
@@ -107,7 +116,7 @@ func main() {
 		w.Flush()
 		f.Sync()
 
-		if strings.Contains(nm, "openapi") {
+		if strings.EqualFold("generate-"+nm, "generate-openapi-kind") {
 			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
 		}
 	}
@@ -121,8 +130,8 @@ func datePad(d int) string {
 }
 
 type myWriter struct {
-	Kind string
-	//KindLower         string
+	Kind              string
+	KindPlural        string
 	KindLowerPlural   string
 	KindLowerSingular string
 	ID                string
