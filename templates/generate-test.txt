@@ -29,7 +29,8 @@ func Test{{.Kind}}Get(t *testing.T) {
 	Expect(err).To(HaveOccurred(), "Expected 404")
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
-	dino := h.New{{.Kind}}(h.NewID())
+	dino, err := h.Factories.New{{.Kind}}(h.NewID())
+    Expect(err).NotTo(HaveOccurred())
 
 	{{.KindLowerSingular}}, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sIdGet(ctx, dino.ID).Execute()
 	Expect(err).NotTo(HaveOccurred())
@@ -80,7 +81,8 @@ func Test{{.Kind}}Patch(t *testing.T) {
 
 	// POST responses per openapi spec: 201, 409, 500
 
-	dino := h.New{{.Kind}}("Brontosaurus")
+	dino, err := h.Factories.New{{.Kind}}(h.NewID())
+    Expect(err).NotTo(HaveOccurred())
 
 	// 200 OK
 	{{.KindLowerSingular}}, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sIdPatch(ctx, dino.ID).{{.Kind}}PatchRequest(openapi.{{.Kind}}PatchRequest{}).Execute()
@@ -109,7 +111,8 @@ func Test{{.Kind}}Paging(t *testing.T) {
 	ctx := h.NewAuthenticatedContext(account)
 
 	// Paging
-	_ = h.New{{.Kind}}List("Bronto", 20)
+	_, err := h.Factories.New{{.Kind}}List("Bronto", 20)
+    Expect(err).NotTo(HaveOccurred())
 
 	list, _, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sGet(ctx).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting {{.KindLowerSingular}} list: %v", err)
@@ -132,7 +135,7 @@ func Test{{.Kind}}ListSearch(t *testing.T) {
 	account := h.NewRandAccount()
 	ctx := h.NewAuthenticatedContext(account)
 
-	{{.KindLowerPlural}} := h.New{{.Kind}}List("bronto", 20)
+	{{.KindLowerPlural}}, _ := h.Factories.New{{.Kind}}List("bronto", 20)
 
 	search := fmt.Sprintf("id in ('%s')", {{.KindLowerPlural}}[0].ID)
 	list, _, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sGet(ctx).Search(search).Execute()

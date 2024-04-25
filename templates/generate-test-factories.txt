@@ -1,0 +1,31 @@
+package factories
+
+import (
+	"context"
+	"gitlab.cee.redhat.com/ocm/ensemble/cmd/ensemble/environments"
+	"gitlab.cee.redhat.com/ocm/ensemble/pkg/api"
+)
+
+func (f *Factories) New{{.Kind}}(id string) (*api.{{.Kind}}, error) {
+	{{.Kind}}Service := environments.Environment().Services.{{.KindPlural}}()
+
+	{{.Kind}} := &api.{{.Kind}}{
+		Meta:       api.Meta{ID: id},
+	}
+
+	sub, err := {{.Kind}}Service.Create(context.Background(), {{.Kind}})
+	if err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func (f *Factories) New{{.Kind}}List(name string, count int) ([]*api.{{.Kind}}, error) {
+	{{.KindPlural}} := []*api.{{.Kind}}{}
+	for i := 1; i <= count; i++ {
+		c, _ := f.New{{.Kind}}(f.NewID())
+		{{.KindPlural}} = append({{.KindPlural}}, c)
+	}
+	return {{.KindPlural}}, nil
+}
