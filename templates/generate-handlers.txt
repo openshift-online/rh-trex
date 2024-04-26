@@ -53,9 +53,7 @@ func (h {{.KindLowerSingular}}Handler) Patch(w http.ResponseWriter, r *http.Requ
 
 	cfg := &handlerConfig{
 		&patch,
-		[]validate{
-			validate{{.Kind}}Patch(&patch),
-		},
+		[]validate{},
 		func() (interface{}, *errors.ServiceError) {
 			ctx := r.Context()
 			id := mux.Vars(r)["id"]
