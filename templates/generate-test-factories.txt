@@ -2,7 +2,7 @@ package factories
 
 import (
 	"context"
-	"github.com/openshift-online/rh-trex/cmd/ensemble/environments"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 	"github.com/openshift-online/rh-trex/pkg/api"
 )
 
