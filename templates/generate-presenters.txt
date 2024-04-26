@@ -1,9 +1,9 @@
 package presenters
 
 import (
-	"gitlab.cee.redhat.com/ocm/ensemble/pkg/api"
-	"gitlab.cee.redhat.com/ocm/ensemble/pkg/api/openapi"
-	"gitlab.cee.redhat.com/ocm/ensemble/pkg/util"
+	"gitlab.cee.redhat.com/ocm/rh-trex/pkg/api"
+	"gitlab.cee.redhat.com/ocm/rh-trex/pkg/api/openapi"
+	"gitlab.cee.redhat.com/ocm/rh-trex/pkg/util"
 )
 
 func Convert{{.Kind}}({{.KindLowerSingular}} openapi.{{.Kind}}) *api.{{.Kind}} {

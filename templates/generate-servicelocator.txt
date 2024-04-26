@@ -1,8 +1,8 @@
 package environments
 
 import (
-	"gitlab.cee.redhat.com/ocm/ensemble/pkg/dao"
-	"gitlab.cee.redhat.com/ocm/ensemble/pkg/services"
+	"gitlab.cee.redhat.com/ocm/rh-trex/pkg/dao"
+	"gitlab.cee.redhat.com/ocm/rh-trex/pkg/services"
 )
 
 type {{.Kind}}ServiceLocator func() services.{{.Kind}}Service

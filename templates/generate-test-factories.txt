@@ -2,8 +2,8 @@ package factories
 
 import (
 	"context"
-	"gitlab.cee.redhat.com/ocm/ensemble/cmd/ensemble/environments"
-	"gitlab.cee.redhat.com/ocm/ensemble/pkg/api"
+	"gitlab.cee.redhat.com/ocm/rh-trex/cmd/rh-trex/environments"
+	"gitlab.cee.redhat.com/ocm/rh-trex/pkg/api"
 )
 
 func (f *Factories) New{{.Kind}}(id string) (*api.{{.Kind}}, error) {
