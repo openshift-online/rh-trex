@@ -29,18 +29,18 @@ func Test{{.Kind}}Get(t *testing.T) {
 	Expect(err).To(HaveOccurred(), "Expected 404")
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
-	dino, err := h.Factories.New{{.Kind}}(h.NewID())
+	{{.KindLowerSingular}}Model, err := h.Factories.New{{.Kind}}(h.NewID())
     Expect(err).NotTo(HaveOccurred())
 
-	{{.KindLowerSingular}}, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sIdGet(ctx, dino.ID).Execute()
+	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sIdGet(ctx, {{.KindLowerSingular}}Model.ID).Execute()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	Expect(*{{.KindLowerSingular}}.Id).To(Equal(dino.ID), "found object does not match test object")
-	Expect(*{{.KindLowerSingular}}.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", dino.ID)))
-	Expect(*{{.KindLowerSingular}}.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
-	Expect(*{{.KindLowerSingular}}.UpdatedAt).To(BeTemporally("~", dino.UpdatedAt))
+	Expect(*{{.KindLowerSingular}}Output.Id).To(Equal({{.KindLowerSingular}}Model.ID), "found object does not match test object")
+	Expect(*{{.KindLowerSingular}}Output.Kind).To(Equal("{{.Kind}}"))
+	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", {{.KindLowerSingular}}Model.ID)))
+	Expect(*{{.KindLowerSingular}}Output.CreatedAt).To(BeTemporally("~", {{.KindLowerSingular}}Model.CreatedAt))
+	Expect(*{{.KindLowerSingular}}Output.UpdatedAt).To(BeTemporally("~", {{.KindLowerSingular}}Model.UpdatedAt))
 }
 
 func Test{{.Kind}}Post(t *testing.T) {
@@ -50,17 +50,17 @@ func Test{{.Kind}}Post(t *testing.T) {
 	ctx := h.NewAuthenticatedContext(account)
 
 	// POST responses per openapi spec: 201, 409, 500
-	dino := openapi.{{.Kind}}{
+	{{.KindLowerSingular}}Input := openapi.{{.Kind}}{
 
 	}
 
 	// 201 Created
-	{{.KindLowerSingular}}, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sPost(ctx).{{.Kind}}(dino).Execute()
+	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sPost(ctx).{{.Kind}}({{.KindLowerSingular}}Input).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
-	Expect(*{{.KindLowerSingular}}.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
-	Expect(*{{.KindLowerSingular}}.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}.Id)))
+	Expect(*{{.KindLowerSingular}}Output.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
+	Expect(*{{.KindLowerSingular}}Output.Kind).To(Equal("{{.Kind}}"))
+	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}Output.Id)))
 
 	// 400 bad request. posting junk json is one way to trigger 400.
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
@@ -81,17 +81,17 @@ func Test{{.Kind}}Patch(t *testing.T) {
 
 	// POST responses per openapi spec: 201, 409, 500
 
-	dino, err := h.Factories.New{{.Kind}}(h.NewID())
+	{{.KindLowerSingular}}Model, err := h.Factories.New{{.Kind}}(h.NewID())
     Expect(err).NotTo(HaveOccurred())
 
 	// 200 OK
-	{{.KindLowerSingular}}, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sIdPatch(ctx, dino.ID).{{.Kind}}PatchRequest(openapi.{{.Kind}}PatchRequest{}).Execute()
+	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.ApiRhTrexV1{{.Kind}}sIdPatch(ctx, {{.KindLowerSingular}}Model.ID).{{.Kind}}PatchRequest(openapi.{{.Kind}}PatchRequest{}).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
-	Expect(*{{.KindLowerSingular}}.Id).To(Equal(dino.ID))
-	Expect(*{{.KindLowerSingular}}.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
-	Expect(*{{.KindLowerSingular}}.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}.Id)))
+	Expect(*{{.KindLowerSingular}}Output.Id).To(Equal({{.KindLowerSingular}}Model.ID))
+	Expect(*{{.KindLowerSingular}}Output.CreatedAt).To(BeTemporally("~", {{.KindLowerSingular}}Model.CreatedAt))
+	Expect(*{{.KindLowerSingular}}Output.Kind).To(Equal("{{.Kind}}"))
+	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}Output.Id)))
 
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
 	// 500 server error. posting junk json is one way to trigger 500.

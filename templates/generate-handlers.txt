@@ -35,12 +35,12 @@ func (h {{.KindLowerSingular}}Handler) Create(w http.ResponseWriter, r *http.Req
 		},
 		func() (interface{}, *errors.ServiceError) {
 			ctx := r.Context()
-			dino := presenters.Convert{{.Kind}}({{.KindLowerSingular}})
-			dino, err := h.{{.KindLowerSingular}}.Create(ctx, dino)
+			{{.KindLowerSingular}}Model := presenters.Convert{{.Kind}}({{.KindLowerSingular}})
+			{{.KindLowerSingular}}Model, err := h.{{.KindLowerSingular}}.Create(ctx, {{.KindLowerSingular}}Model)
 			if err != nil {
 				return nil, err
 			}
-			return presenters.Present{{.Kind}}(dino), nil
+			return presenters.Present{{.Kind}}({{.KindLowerSingular}}Model), nil
 		},
 		handleError,
 	}
@@ -64,11 +64,11 @@ func (h {{.KindLowerSingular}}Handler) Patch(w http.ResponseWriter, r *http.Requ
 
             //patch a field
 
-			dino, err := h.{{.KindLowerSingular}}.Replace(ctx, found)
+			{{.KindLowerSingular}}Model, err := h.{{.KindLowerSingular}}.Replace(ctx, found)
 			if err != nil {
 				return nil, err
 			}
-			return presenters.Present{{.Kind}}(dino), nil
+			return presenters.Present{{.Kind}}({{.KindLowerSingular}}Model), nil
 		},
 		handleError,
 	}
@@ -87,7 +87,7 @@ func (h {{.KindLowerSingular}}Handler) List(w http.ResponseWriter, r *http.Reque
 			if err != nil {
 				return nil, err
 			}
-			dinoList := openapi.{{.Kind}}List{
+			{{.KindLowerSingular}}List := openapi.{{.Kind}}List{
 				Kind:  "{{.Kind}}List",
 				Page:  int32(paging.Page),
 				Size:  int32(paging.Size),
@@ -95,18 +95,18 @@ func (h {{.KindLowerSingular}}Handler) List(w http.ResponseWriter, r *http.Reque
 				Items: []openapi.{{.Kind}}{},
 			}
 
-			for _, dino := range {{.KindLowerPlural}} {
-				converted := presenters.Present{{.Kind}}(&dino)
-				dinoList.Items = append(dinoList.Items, converted)
+			for _, {{.KindLowerSingular}} := range {{.KindLowerPlural}} {
+				converted := presenters.Present{{.Kind}}(&{{.KindLowerSingular}})
+				{{.KindLowerSingular}}List.Items = append({{.KindLowerSingular}}List.Items, converted)
 			}
 			if listArgs.Fields != nil {
-				filteredItems, err := presenters.SliceFilter(listArgs.Fields, dinoList.Items)
+				filteredItems, err := presenters.SliceFilter(listArgs.Fields, {{.KindLowerSingular}}List.Items)
 				if err != nil {
 					return nil, err
 				}
 				return filteredItems, nil
 			}
-			return dinoList, nil
+			return {{.KindLowerSingular}}List, nil
 		},
 	}
 
