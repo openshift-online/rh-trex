@@ -30,6 +30,7 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
 	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/db"
+	"github.com/openshift-online/rh-trex/test/factories"
 	"github.com/openshift-online/rh-trex/test/mocks"
 )
 
@@ -64,6 +65,7 @@ type Helper struct {
 	JWTCA             *rsa.PublicKey
 	T                 *testing.T
 	teardowns         []func() error
+	Factories         factories.Factories
 }
 
 func NewHelper(t *testing.T) *Helper {

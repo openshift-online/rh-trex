@@ -72,7 +72,8 @@ func TestControllerRacing(t *testing.T) {
 		}()
 	}
 
-	_ = h.NewDinosaurList("bronto", 50)
+	_, err := h.Factories.NewDinosaurList("bronto", 50)
+	Expect(err).NotTo(HaveOccurred())
 
 	// This is to check only two create events is processed. It waits for 5 seconds to ensure all events have been
 	// processed by the controllers.
