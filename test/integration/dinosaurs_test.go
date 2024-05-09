@@ -34,7 +34,8 @@ func TestDinosaurGet(t *testing.T) {
 	Expect(err).To(HaveOccurred(), "Expected 404")
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
-	dino := h.NewDinosaur(h.NewID())
+	dino, err := h.Factories.NewDinosaur(h.NewID())
+	Expect(err).NotTo(HaveOccurred())
 
 	dinosaur, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursIdGet(ctx, dino.ID).Execute()
 	Expect(err).NotTo(HaveOccurred())
@@ -88,7 +89,8 @@ func TestDinosaurPatch(t *testing.T) {
 
 	// POST responses per openapi spec: 201, 409, 500
 
-	dino := h.NewDinosaur("Brontosaurus")
+	dino, err := h.Factories.NewDinosaur("Brontosaurus")
+	Expect(err).NotTo(HaveOccurred())
 
 	// 200 OK
 	species := "Dodo"
@@ -146,7 +148,8 @@ func TestDinosaurPaging(t *testing.T) {
 	ctx := h.NewAuthenticatedContext(account)
 
 	// Paging
-	_ = h.NewDinosaurList("Bronto", 20)
+	_, err := h.Factories.NewDinosaurList("Bronto", 20)
+	Expect(err).NotTo(HaveOccurred())
 
 	list, _, err := client.DefaultApi.ApiRhTrexV1DinosaursGet(ctx).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
@@ -169,7 +172,8 @@ func TestDinosaurListSearch(t *testing.T) {
 	account := h.NewRandAccount()
 	ctx := h.NewAuthenticatedContext(account)
 
-	dinosaurs := h.NewDinosaurList("bronto", 20)
+	dinosaurs, err := h.Factories.NewDinosaurList("bronto", 20)
+	Expect(err).NotTo(HaveOccurred())
 
 	search := fmt.Sprintf("id in ('%s')", dinosaurs[0].ID)
 	list, _, err := client.DefaultApi.ApiRhTrexV1DinosaursGet(ctx).Search(search).Execute()
@@ -185,7 +189,8 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 	account := h.NewRandAccount()
 	ctx := h.NewAuthenticatedContext(account)
 
-	dino := h.NewDinosaur("Stegosaurus")
+	dino, err := h.Factories.NewDinosaur("Stegosaurus")
+	Expect(err).NotTo(HaveOccurred())
 
 	// starts 20 threads to update this dinosaur at the same time
 	threads := 20
@@ -248,7 +253,8 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	account := h.NewRandAccount()
 	ctx := h.NewAuthenticatedContext(account)
 
-	dino := h.NewDinosaur("Tyrannosaurus")
+	dino, err := h.Factories.NewDinosaur("Tyrannosaurus")
+	Expect(err).NotTo(HaveOccurred())
 
 	// starts 20 threads to update this dinosaur at the same time
 	threads := 20
