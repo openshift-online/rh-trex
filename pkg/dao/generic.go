@@ -10,6 +10,18 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
+type Where struct {
+	sql    string
+	values []any
+}
+
+func NewWhere(sql string, values []any) Where {
+	return Where{
+		sql:    sql,
+		values: values,
+	}
+}
+
 type GenericDao interface {
 	Fetch(offset int, limit int, resourceList interface{}) error
 
@@ -18,7 +30,7 @@ type GenericDao interface {
 	OrderBy(orderBy string)
 	Joins(sql string)
 	Group(sql string)
-	Where(sql string, values []interface{})
+	Where(where Where)
 	Count(model interface{}, total *int64)
 	Validate(resourceList interface{}) error
 
@@ -73,35 +85,21 @@ func (d *sqlGenericDao) Group(sql string) {
 	d.g2 = d.g2.Group(sql)
 }
 
-func (d *sqlGenericDao) Where(sql string, values []interface{}) {
-	d.g2 = d.g2.Where(sql, values...)
+func (d *sqlGenericDao) Where(where Where) {
+	d.g2 = d.g2.Where(where.sql, where.values...)
 }
 
 func (d *sqlGenericDao) Count(model interface{}, total *int64) {
+	// Creates new session which already clears all statement clauses
 	g2 := d.g2.Session(&gorm.Session{DryRun: false}).Model(model)
-	// There is no need in ORDER BY, GROUP BY and LIMIT in order to count records
-	order, oko := g2.Statement.Clauses["ORDER BY"]
-	if oko {
-		delete(g2.Statement.Clauses, "ORDER BY")
+	// Considers existing joins and search params from previous session
+	if len(d.g2.Statement.Joins) > 0 {
+		g2.Statement.Joins = d.g2.Statement.Joins
 	}
-	group, okg := g2.Statement.Clauses["GROUP BY"]
-	if okg {
-		delete(g2.Statement.Clauses, "GROUP BY")
-	}
-	limit, okl := g2.Statement.Clauses["LIMIT"]
-	if okl {
-		delete(g2.Statement.Clauses, "LIMIT")
+	if where, ok := d.g2.Statement.Clauses["WHERE"]; ok {
+		g2.Statement.Clauses["WHERE"] = where
 	}
 	g2.Count(total)
-	if oko {
-		g2.Statement.Clauses["ORDER BY"] = order
-	}
-	if okg {
-		g2.Statement.Clauses["GROUP BY"] = group
-	}
-	if okl {
-		g2.Statement.Clauses["LIMIT"] = limit
-	}
 }
 
 // Gorm finishers (Take, First, Last, etc.) are not idempotent
