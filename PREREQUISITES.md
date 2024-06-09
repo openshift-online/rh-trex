@@ -13,7 +13,7 @@ TRex requires the following tools to be pre-installed:
 
 `Go` is an open-source programming language that makes it easy to build simple, reliable, and efficient software.
 
-- **Purpose**: In our project, Go is required for building and running binaries required by TRex.
+- **Purpose**: In our project, Go is required for building and running the `trex` binary required by TRex.
 - **Installation**: Install Go from the [official Go website](https://golang.org/dl/).
 
 ## jq
