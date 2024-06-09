@@ -28,6 +28,9 @@ framework with an upgrade path.
 
 ## Run for the first time
 
+Before running TRex for the first time, ensure the prerequisites are installed. For more detailed information on each prerequisite, refer to the [prerequisites](./PREREQUISITES.md) document.
+
+
 ### Make a build and run postgres
 
 ```sh
