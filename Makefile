@@ -301,8 +301,10 @@ image: cmds
 	$(container_tool) build -t "$(external_image_registry)/$(image_repository):$(image_tag)" .
 
 .PHONY: push
-push: image
-	$(container_tool) push "$(external_image_registry)/$(image_repository):$(image_tag)"
+push:	\
+	image \
+	project
+	$(container_tool) push "$(external_image_registry)/$(image_repository):$(image_tag)" --tls-verify=false
 
 deploy-%: project %-template
 	$(oc) apply --filename="templates/$*-template.json" | egrep --color=auto 'configured|$$'
@@ -357,5 +359,5 @@ db/teardown:
 crc/login:
 	@echo "Logging into CRC"
 	@crc console --credentials -ojson | jq -r .clusterConfig.adminCredentials.password | oc login --username kubeadmin --insecure-skip-tls-verify=true https://api.crc.testing:6443
-	@oc whoami --show-token | $(container_tool) login --username kubeadmin --password-stdin "$(external_image_registry)"
+	@oc whoami --show-token | $(container_tool) login --username kubeadmin --password-stdin "$(external_image_registry)" --tls-verify=false
 .PHONY: crc/login
