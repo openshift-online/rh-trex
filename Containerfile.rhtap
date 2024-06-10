@@ -32,7 +32,7 @@ LABEL name="trex" \
       description="rh-trex API" \
       io.k8s.description="rh-trex API" \
       io.k8s.display-name="rh-trex" \
-      io.openshift.tags="trex"
+      io.openshift.tags="trex" \
       com.redhat.component="trex"
 
 #20231204
