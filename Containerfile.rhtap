@@ -35,4 +35,4 @@ LABEL name="trex" \
       io.openshift.tags="trex" \
       com.redhat.component="trex"
 
-#20231204
+#20240611
