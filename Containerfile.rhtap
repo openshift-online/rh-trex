@@ -1,4 +1,4 @@
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_1.20 AS builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_1.21 AS builder
 
 ENV SOURCE_DIR=/rh-trex
 WORKDIR $SOURCE_DIR
@@ -32,6 +32,7 @@ LABEL name="trex" \
       description="rh-trex API" \
       io.k8s.description="rh-trex API" \
       io.k8s.display-name="rh-trex" \
-      io.openshift.tags="trex"
+      io.openshift.tags="trex" \
+      com.redhat.component="trex"
 
-#20231204
+#20240611
