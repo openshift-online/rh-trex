@@ -24,6 +24,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type GenericTestDinosaur struct {
+	api.Meta
+	Species string
+	// This is to illustrate resource review in action
+	// It passes integration tests as it's mocked
+	// does not work for local envs pointing to integration AMS via proxy
+	OrganizationId string
+}
+
 var _ = Describe("populates search restriction", func() {
 	var ctx context.Context
 	var ctrl *gomock.Controller
@@ -56,19 +65,19 @@ var _ = Describe("populates search restriction", func() {
 		When("Auth allows all orgs", func() {
 			It("Allows all orgs", func() {
 				args := NewListArguments(url.Values{})
-				listCtx, model, serviceErr := newListContext(ctx, args, &[]api.Dinosaur{})
-				resourceModel := reflect.TypeOf(&api.Dinosaur{}).Elem()
+				listCtx, model, serviceErr := newListContext(ctx, args, &[]GenericTestDinosaur{})
+				resourceModel := reflect.TypeOf(&GenericTestDinosaur{}).Elem()
 				Expect(model).To(Equal(reflect.New(resourceModel).Interface()))
 				Expect(serviceErr).ToNot(HaveOccurred())
 				response, err := azv1.NewResourceReview().
 					AccountUsername(listCtx.username).
 					Action(auth.GetAction).
-					ResourceType(string(ocm.Dinosaur)).
+					ResourceType("GenericTestDinosaur").
 					OrganizationIDs("*").
 					Build()
 				Expect(err).ToNot(HaveOccurred())
 				authorizationMock.EXPECT().
-					ResourceReview(listCtx.ctx, listCtx.username, auth.GetAction, string(ocm.Dinosaur)).
+					ResourceReview(listCtx.ctx, listCtx.username, auth.GetAction, "GenericTestDinosaur").
 					Return(response, nil)
 				serviceErr = genericService.populateSearchRestriction(listCtx, model)
 				Expect(serviceErr).ToNot(HaveOccurred())
@@ -78,19 +87,19 @@ var _ = Describe("populates search restriction", func() {
 		When("Auth restricts orgs", func() {
 			It("Allows only returned orgs", func() {
 				args := NewListArguments(url.Values{})
-				listCtx, model, serviceErr := newListContext(ctx, args, &[]api.Dinosaur{})
-				resourceModel := reflect.TypeOf(&api.Dinosaur{}).Elem()
+				listCtx, model, serviceErr := newListContext(ctx, args, &[]GenericTestDinosaur{})
+				resourceModel := reflect.TypeOf(&GenericTestDinosaur{}).Elem()
 				Expect(model).To(Equal(reflect.New(resourceModel).Interface()))
 				Expect(serviceErr).ToNot(HaveOccurred())
 				response, err := azv1.NewResourceReview().
 					AccountUsername(listCtx.username).
 					Action(auth.GetAction).
-					ResourceType(string(ocm.Dinosaur)).
+					ResourceType("GenericTestDinosaur").
 					OrganizationIDs("123", "124").
 					Build()
 				Expect(err).ToNot(HaveOccurred())
 				authorizationMock.EXPECT().
-					ResourceReview(listCtx.ctx, listCtx.username, auth.GetAction, string(ocm.Dinosaur)).
+					ResourceReview(listCtx.ctx, listCtx.username, auth.GetAction, "GenericTestDinosaur").
 					Return(response, nil)
 				serviceErr = genericService.populateSearchRestriction(listCtx, model)
 				Expect(serviceErr).ToNot(HaveOccurred())
@@ -100,19 +109,19 @@ var _ = Describe("populates search restriction", func() {
 			It("Includes pre existing search", func() {
 				args := NewListArguments(url.Values{})
 				args.Search = "justification like '%test%'"
-				listCtx, model, serviceErr := newListContext(ctx, args, &[]api.Dinosaur{})
-				resourceModel := reflect.TypeOf(&api.Dinosaur{}).Elem()
+				listCtx, model, serviceErr := newListContext(ctx, args, &[]GenericTestDinosaur{})
+				resourceModel := reflect.TypeOf(&GenericTestDinosaur{}).Elem()
 				Expect(model).To(Equal(reflect.New(resourceModel).Interface()))
 				Expect(serviceErr).ToNot(HaveOccurred())
 				response, err := azv1.NewResourceReview().
 					AccountUsername(listCtx.username).
 					Action(auth.GetAction).
-					ResourceType(string(ocm.Dinosaur)).
+					ResourceType("GenericTestDinosaur").
 					OrganizationIDs("123", "124").
 					Build()
 				Expect(err).ToNot(HaveOccurred())
 				authorizationMock.EXPECT().
-					ResourceReview(listCtx.ctx, listCtx.username, auth.GetAction, string(ocm.Dinosaur)).
+					ResourceReview(listCtx.ctx, listCtx.username, auth.GetAction, "GenericTestDinosaur").
 					Return(response, nil)
 				serviceErr = genericService.populateSearchRestriction(listCtx, model)
 				Expect(serviceErr).ToNot(HaveOccurred())
