@@ -39,11 +39,18 @@ type sqlGenericService struct {
 }
 
 var (
-	SearchDisallowedFields = map[string]map[string]string{}
-	allFieldsAllowed       = map[string]string{}
+	searchDisallowedFields = map[string][]string{}
+	allFieldsAllowed       = []string{}
 	// Some mappings are not required as they match AMS resource 1:1
 	// Such as Organization
 	modelToAmsResource = map[string]string{}
+
+	// TODO: This should be more dynamic
+	// prefarably utilizing the openapi json via reflect
+	// and the column names from the model
+	openapiToModelFields = map[string]dao.TableMappingRelation{
+		api.DinosaurTypeName: dao.DinosaurApiToModel(),
+	}
 )
 
 // wrap all needed pieces for the LIST funciton
@@ -54,14 +61,19 @@ type listContext struct {
 	pagingMeta       *api.PagingMeta
 	ulog             *logger.OCMLogger
 	resourceList     interface{}
-	disallowedFields *map[string]string
+	disallowedFields []string
+	openapiToModel   map[string]string
 	resourceType     string
 	joins            map[string]dao.TableRelation
 	groupBy          []string
 	set              map[string]bool
 }
 
-func newListContext(ctx context.Context, args *ListArguments, resourceList interface{}) (*listContext, interface{}, *errors.ServiceError) {
+func newListContext(
+	ctx context.Context,
+	args *ListArguments,
+	resourceList interface{},
+) (*listContext, interface{}, *errors.ServiceError) {
 	username := auth.GetUsernameFromContext(ctx)
 	log := logger.NewOCMLogger(ctx)
 	resourceModel := reflect.TypeOf(resourceList).Elem().Elem()
@@ -69,10 +81,11 @@ func newListContext(ctx context.Context, args *ListArguments, resourceList inter
 	if resourceTypeStr == "" {
 		return nil, nil, errors.GeneralError("Could not determine resource type")
 	}
-	disallowedFields := SearchDisallowedFields[resourceTypeStr]
+	disallowedFields := searchDisallowedFields[resourceTypeStr]
 	if disallowedFields == nil {
 		disallowedFields = allFieldsAllowed
 	}
+	openapiToModel := openapiToModelFields[resourceTypeStr]
 	args.Search = strings.Trim(args.Search, " ")
 	return &listContext{
 		ctx:              ctx,
@@ -81,7 +94,8 @@ func newListContext(ctx context.Context, args *ListArguments, resourceList inter
 		pagingMeta:       &api.PagingMeta{Page: args.Page},
 		ulog:             &log,
 		resourceList:     resourceList,
-		disallowedFields: &disallowedFields,
+		disallowedFields: disallowedFields,
+		openapiToModel:   openapiToModel.Mapping,
 		resourceType:     resourceTypeStr,
 	}, reflect.New(resourceModel).Interface(), nil
 }
@@ -103,9 +117,19 @@ func (s *sqlGenericService) populateSearchRestriction(listCtx *listContext, mode
 		resourceName = string(name)
 	}
 	if resourceIncludesOrgId(model) {
-		resourceReview, err := s.ocmClient.Authorization.ResourceReview(ctx, listCtx.username, auth.GetAction, resourceName)
+		resourceReview, err := s.ocmClient.Authorization.ResourceReview(
+			ctx,
+			listCtx.username,
+			auth.GetAction,
+			resourceName,
+		)
 		if err != nil {
-			return errors.GeneralError("Failed to verify resource review for user '%s' on resource '%s': %v", listCtx.username, listCtx.resourceType, err)
+			return errors.GeneralError(
+				"Failed to verify resource review for user '%s' on resource '%s': %v",
+				listCtx.username,
+				listCtx.resourceType,
+				err,
+			)
 		}
 
 		// TODO setup a search builder
@@ -125,7 +149,11 @@ func (s *sqlGenericService) populateSearchRestriction(listCtx *listContext, mode
 }
 
 // resourceList must be a pointer to a slice of database resource objects
-func (s *sqlGenericService) List(ctx context.Context, args *ListArguments, resourceList interface{}) (*api.PagingMeta, *errors.ServiceError) {
+func (s *sqlGenericService) List(
+	ctx context.Context,
+	args *ListArguments,
+	resourceList interface{},
+) (*api.PagingMeta, *errors.ServiceError) {
 	listCtx, model, err := newListContext(ctx, args, resourceList)
 	if err != nil {
 		return nil, err
@@ -186,7 +214,8 @@ func (s *sqlGenericService) buildPreload(listCtx *listContext, d *dao.GenericDao
 
 func (s *sqlGenericService) buildOrderBy(listCtx *listContext, d *dao.GenericDao) (bool, *errors.ServiceError) {
 	if len(listCtx.args.OrderBy) != 0 {
-		orderByArgs, serviceErr := db.ArgsToOrderBy(listCtx.args.OrderBy, *listCtx.disallowedFields)
+		orderByArgs, serviceErr := db.ArgsToOrderBy(listCtx.args.OrderBy, listCtx.disallowedFields,
+			listCtx.openapiToModel, (*d).GetTableName())
 		if serviceErr != nil {
 			return false, serviceErr
 		}
@@ -197,7 +226,10 @@ func (s *sqlGenericService) buildOrderBy(listCtx *listContext, d *dao.GenericDao
 	return false, nil
 }
 
-func (s *sqlGenericService) buildSearchValues(listCtx *listContext, d *dao.GenericDao) (string, []any, *errors.ServiceError) {
+func (s *sqlGenericService) buildSearchValues(
+	listCtx *listContext,
+	d *dao.GenericDao,
+) (string, []any, *errors.ServiceError) {
 	if listCtx.args.Search == "" {
 		s.addJoins(listCtx, d)
 		return "", nil, nil
@@ -323,7 +355,11 @@ func zeroSlice(i interface{}, cap int64) *errors.ServiceError {
 // walk the TSL tree looking for fields like, e.g., creator.username, and then:
 // (1) look up the related table by its 1st part - creator
 // (2) replace it by table name - creator.username -> accounts.username
-func (s *sqlGenericService) treeWalkForRelatedTables(listCtx *listContext, tslTree tsl.Node, genericDao *dao.GenericDao) (tsl.Node, *errors.ServiceError) {
+func (s *sqlGenericService) treeWalkForRelatedTables(
+	listCtx *listContext,
+	tslTree tsl.Node,
+	genericDao *dao.GenericDao,
+) (tsl.Node, *errors.ServiceError) {
 	resourceTable := (*genericDao).GetTableName()
 	if listCtx.joins == nil {
 		listCtx.joins = map[string]dao.TableRelation{}
@@ -331,17 +367,21 @@ func (s *sqlGenericService) treeWalkForRelatedTables(listCtx *listContext, tslTr
 	walkFn := func(field string) (string, error) {
 		fieldParts := strings.Split(field, ".")
 		if len(fieldParts) > 1 && fieldParts[0] != resourceTable {
-			fieldName := fieldParts[0]
-			_, exists := listCtx.joins[fieldName]
+			nestedResource := fieldParts[0]
+			_, exists := listCtx.joins[nestedResource]
 			if !exists {
-				if relation, ok := (*genericDao).GetTableRelation(fieldName); ok {
-					listCtx.joins[fieldName] = relation
-				} else {
-					return field, fmt.Errorf("%s is not a related resource of %s", fieldName, listCtx.resourceType)
+				// Populates relation if join exists
+				if relation, ok := (*genericDao).GetTableRelation(nestedResource); ok {
+					listCtx.joins[nestedResource] = relation
+				} else if _, ok := listCtx.openapiToModel[field]; !ok {
+					// If also not exposed as a nested resource consider this is an error
+					return field, fmt.Errorf("%s is not a related resource of %s", strings.Join(fieldParts, "."), listCtx.resourceType)
 				}
 			}
-			//replace by table name
-			fieldParts[0] = listCtx.joins[fieldName].ForeignTableName
+			// replace by table name if coming from join
+			if value, ok := listCtx.joins[nestedResource]; ok {
+				fieldParts[0] = value.ForeignTableName
+			}
 			return strings.Join(fieldParts, "."), nil
 		}
 		return field, nil
@@ -356,7 +396,11 @@ func (s *sqlGenericService) treeWalkForRelatedTables(listCtx *listContext, tslTr
 }
 
 // prepend table name to these "free" identifiers since they could cause "ambiguous" errors
-func (s *sqlGenericService) treeWalkForAddingTableName(listCtx *listContext, tslTree tsl.Node, dao *dao.GenericDao) (tsl.Node, *errors.ServiceError) {
+func (s *sqlGenericService) treeWalkForAddingTableName(
+	listCtx *listContext,
+	tslTree tsl.Node,
+	dao *dao.GenericDao,
+) (tsl.Node, *errors.ServiceError) {
 	resourceTable := (*dao).GetTableName()
 
 	walkFn := func(field string) (string, error) {
@@ -378,9 +422,12 @@ func (s *sqlGenericService) treeWalkForAddingTableName(listCtx *listContext, tsl
 	return tslTree, nil
 }
 
-func (s *sqlGenericService) treeWalkForSqlizer(listCtx *listContext, tslTree tsl.Node) (tsl.Node, squirrel.Sqlizer, *errors.ServiceError) {
+func (s *sqlGenericService) treeWalkForSqlizer(
+	listCtx *listContext,
+	tslTree tsl.Node,
+) (tsl.Node, squirrel.Sqlizer, *errors.ServiceError) {
 	// Check field names in tree
-	tslTree, serviceErr := db.FieldNameWalk(tslTree, *listCtx.disallowedFields)
+	tslTree, serviceErr := db.FieldNameWalk(tslTree, listCtx.disallowedFields, listCtx.openapiToModel)
 	if serviceErr != nil {
 		return tslTree, nil, serviceErr
 	}

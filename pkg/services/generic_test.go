@@ -147,40 +147,57 @@ var _ = Describe("Sql Translation", func() {
 		genericDao = dao.NewGenericDao(&dbFactory)
 		genericService = sqlGenericService{genericDao: genericDao}
 	})
-	DescribeTable("Errors", func(
-		search string, errorMsg string) {
-		listCtx, model, serviceErr := newListContext(
-			context.Background(),
-			&ListArguments{Search: search},
-			&[]api.Dinosaur{},
-		)
-		Expect(serviceErr).ToNot(HaveOccurred())
-		d := genericDao.GetInstanceDao(context.Background(), model)
-		(*listCtx.disallowedFields)["id"] = "id"
-		_, serviceErr = genericService.buildSearch(listCtx, &d)
-		Expect(serviceErr).To(HaveOccurred())
-		Expect(serviceErr.Code).To(Equal(errors.ErrorBadRequest))
-		Expect(serviceErr.Error()).To(Equal(errorMsg))
-	},
+	DescribeTable(
+		"Errors",
+		func(
+			search string, errorMsg string) {
+			listCtx, model, serviceErr := newListContext(
+				context.Background(),
+				&ListArguments{Search: search},
+				&[]api.Dinosaur{},
+			)
+			Expect(serviceErr).ToNot(HaveOccurred())
+			d := genericDao.GetInstanceDao(context.Background(), model)
+			listCtx.disallowedFields = []string{"dinosaurs.id"}
+			_, serviceErr = genericService.buildSearch(listCtx, &d)
+			Expect(serviceErr).To(HaveOccurred())
+			Expect(serviceErr.Code).To(Equal(errors.ErrorBadRequest))
+			Expect(serviceErr.Error()).To(Equal(errorMsg))
+		},
 		Entry("Garbage", "garbage", "rh-trex-21: Failed to parse search query: garbage"),
-		Entry("Invalid field name", "id in ('123')", "rh-trex-21: dinosaurs.id is not a valid field name"))
+		Entry("Disallowed field name", "id in ('123')", "rh-trex-21: dinosaurs.id is a disallowed field name"),
+		Entry("Unknown field name", "bike = '123'", "rh-trex-21: dinosaurs.bike is not a valid field name"),
+		Entry(
+			"Unknown relation field",
+			"status.bike = '123'",
+			"rh-trex-21: status.bike is not a related resource of Dinosaur",
+		),
+	)
 
-	DescribeTable("Sql Parsing", func(
-		search string, sqlReal string, valuesReal types.GomegaMatcher) {
-		listCtx, _, serviceErr := newListContext(
-			context.Background(),
-			&ListArguments{Search: search},
-			&[]api.Dinosaur{},
-		)
-		Expect(serviceErr).ToNot(HaveOccurred())
-		tslTree, err := tsl.ParseTSL(search)
-		Expect(err).ToNot(HaveOccurred())
-		_, sqlizer, serviceErr := genericService.treeWalkForSqlizer(listCtx, tslTree)
-		Expect(serviceErr).ToNot(HaveOccurred())
-		sql, values, err := sqlizer.ToSql()
-		Expect(err).ToNot(HaveOccurred())
-		Expect(sql).To(Equal(sqlReal))
-		Expect(values).To(valuesReal)
-	},
-		Entry("Valid search", "username in ('ooo.openshift')", "username IN (?)", ConsistOf("ooo.openshift")))
+	DescribeTable(
+		"Sql Parsing",
+		func(
+			search string, sqlReal string, valuesReal types.GomegaMatcher) {
+			listCtx, _, serviceErr := newListContext(
+				context.Background(),
+				&ListArguments{Search: search},
+				&[]api.Dinosaur{},
+			)
+			Expect(serviceErr).ToNot(HaveOccurred())
+			tslTree, err := tsl.ParseTSL(search)
+			Expect(err).ToNot(HaveOccurred())
+			_, sqlizer, serviceErr := genericService.treeWalkForSqlizer(listCtx, tslTree)
+			Expect(serviceErr).ToNot(HaveOccurred())
+			sql, values, err := sqlizer.ToSql()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(sql).To(Equal(sqlReal))
+			Expect(values).To(valuesReal)
+		},
+		Entry(
+			"Valid search",
+			"dinosaurs.species like '%test%'",
+			"dinosaurs.species LIKE ?",
+			ConsistOf("%test%"),
+		),
+	)
 })
