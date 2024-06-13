@@ -209,6 +209,9 @@ func (f *Test) CheckConnection() error {
 }
 
 func (f *Test) Close() error {
+	if f.db == nil {
+		return nil
+	}
 	return f.db.Close()
 }
 

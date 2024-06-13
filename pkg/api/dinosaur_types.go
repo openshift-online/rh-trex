@@ -5,6 +5,10 @@ import "gorm.io/gorm"
 type Dinosaur struct {
 	Meta
 	Species string
+	// This is to illustrate resource review in action
+	// It passes integration tests as it's mocked
+	// does not work for local envs pointing to integration AMS via proxy
+	OrganizationId string
 }
 
 type DinosaurList []*Dinosaur

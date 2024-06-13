@@ -7,9 +7,11 @@ import (
 	azv1 "github.com/openshift-online/ocm-sdk-go/authorizations/v1"
 )
 
+//go:generate mockgen -source=authorization.go -package=ocm -destination=mock_authorization.go
 type OCMAuthorization interface {
 	SelfAccessReview(ctx context.Context, action, resourceType, organizationID, subscriptionID, clusterID string) (allowed bool, err error)
 	AccessReview(ctx context.Context, username, action, resourceType, organizationID, subscriptionID, clusterID string) (allowed bool, err error)
+	ResourceReview(ctx context.Context, username string, action string, resource string) (*azv1.ResourceReview, error)
 }
 
 type authorization service
@@ -74,4 +76,19 @@ func (a authorization) AccessReview(ctx context.Context, username, action, resou
 	}
 
 	return response.Allowed(), nil
+}
+
+func (a authorization) ResourceReview(ctx context.Context, username string, action string, resource string) (*azv1.ResourceReview, error) {
+	con := a.client.connection
+	resourceReviewClient := con.Authorizations().V1().ResourceReview()
+
+	request, err := azv1.NewResourceReviewRequest().AccountUsername(username).Action(action).ResourceType(resource).Build()
+	if err != nil {
+		return nil, err
+	}
+	response, err := resourceReviewClient.Post().Request(request).SendContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return response.Review(), nil
 }

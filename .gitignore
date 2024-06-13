@@ -37,6 +37,9 @@
 
 # Ignore editor config
 .vscode
+# for VS Code debug sessions
+**/__debug_bin*
+**/ginkgo.report
 
 # Ignore IntelliJ config
 .idea/

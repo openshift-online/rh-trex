@@ -15,6 +15,8 @@ import (
 	sqlFilter "github.com/yaacov/tree-search-language/pkg/walkers/sql"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/pkg/auth"
+	"github.com/openshift-online/rh-trex/pkg/client/ocm"
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
 	"github.com/openshift-online/rh-trex/pkg/errors"
@@ -22,22 +24,26 @@ import (
 )
 
 type GenericService interface {
-	List(ctx context.Context, username string, args *ListArguments, resourceList interface{}) (*api.PagingMeta, *errors.ServiceError)
+	List(ctx context.Context, args *ListArguments, resourceList interface{}) (*api.PagingMeta, *errors.ServiceError)
 }
 
-func NewGenericService(genericDao dao.GenericDao) GenericService {
-	return &sqlGenericService{genericDao: genericDao}
+func NewGenericService(genericDao dao.GenericDao, ocmClient *ocm.Client) GenericService {
+	return &sqlGenericService{genericDao: genericDao, ocmClient: ocmClient}
 }
 
 var _ GenericService = &sqlGenericService{}
 
 type sqlGenericService struct {
 	genericDao dao.GenericDao
+	ocmClient  *ocm.Client
 }
 
 var (
 	SearchDisallowedFields = map[string]map[string]string{}
 	allFieldsAllowed       = map[string]string{}
+	// Some mappings are not required as they match AMS resource 1:1
+	// Such as Organization
+	modelToAmsResource = map[string]string{}
 )
 
 // wrap all needed pieces for the LIST funciton
@@ -55,7 +61,8 @@ type listContext struct {
 	set              map[string]bool
 }
 
-func (s *sqlGenericService) newListContext(ctx context.Context, username string, args *ListArguments, resourceList interface{}) (*listContext, interface{}, *errors.ServiceError) {
+func newListContext(ctx context.Context, args *ListArguments, resourceList interface{}) (*listContext, interface{}, *errors.ServiceError) {
+	username := auth.GetUsernameFromContext(ctx)
 	log := logger.NewOCMLogger(ctx)
 	resourceModel := reflect.TypeOf(resourceList).Elem().Elem()
 	resourceTypeStr := resourceModel.Name()
@@ -79,10 +86,52 @@ func (s *sqlGenericService) newListContext(ctx context.Context, username string,
 	}, reflect.New(resourceModel).Interface(), nil
 }
 
+func resourceIncludesOrgId(model interface{}) bool {
+	resourceModel := reflect.TypeOf(model).Elem()
+	_, found := resourceModel.FieldByName("OrganizationId")
+	return found
+}
+
+func isAllowedToAllOrgs(allowedOrgs []string) bool {
+	return len(allowedOrgs) == 1 && allowedOrgs[0] == "*"
+}
+
+func (s *sqlGenericService) populateSearchRestriction(listCtx *listContext, model any) *errors.ServiceError {
+	ctx := listCtx.ctx
+	resourceName := listCtx.resourceType
+	if name, ok := modelToAmsResource[resourceName]; ok {
+		resourceName = string(name)
+	}
+	if resourceIncludesOrgId(model) {
+		resourceReview, err := s.ocmClient.Authorization.ResourceReview(ctx, listCtx.username, auth.GetAction, resourceName)
+		if err != nil {
+			return errors.GeneralError("Failed to verify resource review for user '%s' on resource '%s': %v", listCtx.username, listCtx.resourceType, err)
+		}
+
+		// TODO setup a search builder
+		allowedOrgs := resourceReview.OrganizationIDs()
+		// If user doesn't have access to all orgs include search for allowed only
+		if !isAllowedToAllOrgs(allowedOrgs) {
+			if listCtx.args.Search != "" {
+				listCtx.args.Search += " and "
+			}
+			for i := range allowedOrgs {
+				allowedOrgs[i] = fmt.Sprintf("'%s'", allowedOrgs[i])
+			}
+			listCtx.args.Search += fmt.Sprintf("organization_id in (%s)", strings.Join(allowedOrgs, ","))
+		}
+	}
+	return nil
+}
+
 // resourceList must be a pointer to a slice of database resource objects
-func (s *sqlGenericService) List(ctx context.Context, username string, args *ListArguments, resourceList interface{}) (*api.PagingMeta, *errors.ServiceError) {
-	listCtx, model, err := s.newListContext(ctx, username, args, resourceList)
+func (s *sqlGenericService) List(ctx context.Context, args *ListArguments, resourceList interface{}) (*api.PagingMeta, *errors.ServiceError) {
+	listCtx, model, err := newListContext(ctx, args, resourceList)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = s.populateSearchRestriction(listCtx, model); err != nil {
 		return nil, err
 	}
 
@@ -100,7 +149,7 @@ func (s *sqlGenericService) List(ctx context.Context, username string, args *Lis
 		// TODO: add any custom builder functions
 	}
 
-	d := s.genericDao.GetInstanceDao(ctx, model)
+	d := s.genericDao.GetInstanceDao(listCtx.ctx, model)
 
 	// run all the "builders". they cumulatively add constructs to gorm by the context.
 	// it stops when a builder function raises error or signals finished.
