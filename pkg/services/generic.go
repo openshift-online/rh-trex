@@ -52,7 +52,7 @@ type listContext struct {
 	resourceType     string
 	joins            map[string]dao.TableRelation
 	groupBy          []string
-	set              map[string]struct{}
+	set              map[string]bool
 }
 
 func (s *sqlGenericService) newListContext(ctx context.Context, username string, args *ListArguments, resourceList interface{}) (*listContext, interface{}, *errors.ServiceError) {
@@ -123,10 +123,10 @@ func (s *sqlGenericService) List(ctx context.Context, username string, args *Lis
 type listBuilder func(*listContext, *dao.GenericDao) (finished bool, err *errors.ServiceError)
 
 func (s *sqlGenericService) buildPreload(listCtx *listContext, d *dao.GenericDao) (bool, *errors.ServiceError) {
-	listCtx.set = make(map[string]struct{})
+	listCtx.set = make(map[string]bool)
 
 	for _, preload := range listCtx.args.Preloads {
-		listCtx.set[preload] = struct{}{}
+		listCtx.set[preload] = true
 	}
 	// preload each table only once; struct{} doesn't occupy any additional space
 	for _, preload := range listCtx.args.Preloads {
@@ -148,31 +148,31 @@ func (s *sqlGenericService) buildOrderBy(listCtx *listContext, d *dao.GenericDao
 	return false, nil
 }
 
-func (s *sqlGenericService) buildSearch(listCtx *listContext, d *dao.GenericDao) (bool, *errors.ServiceError) {
+func (s *sqlGenericService) buildSearchValues(listCtx *listContext, d *dao.GenericDao) (string, []any, *errors.ServiceError) {
 	if listCtx.args.Search == "" {
 		s.addJoins(listCtx, d)
-		return true, nil
+		return "", nil, nil
 	}
 
 	// create the TSL tree
 	tslTree, err := tsl.ParseTSL(listCtx.args.Search)
 	if err != nil {
-		return false, errors.BadRequest("Failed to parse search query: %s", listCtx.args.Search)
+		return "", nil, errors.BadRequest("Failed to parse search query: %s", listCtx.args.Search)
 	}
 	// find all related tables
 	tslTree, serviceErr := s.treeWalkForRelatedTables(listCtx, tslTree, d)
 	if serviceErr != nil {
-		return false, serviceErr
+		return "", nil, serviceErr
 	}
 	// prepend table names to prevent "ambiguous" errors
 	tslTree, serviceErr = s.treeWalkForAddingTableName(listCtx, tslTree, d)
 	if serviceErr != nil {
-		return false, serviceErr
+		return "", nil, serviceErr
 	}
 	// convert to sqlizer
 	_, sqlizer, serviceErr := s.treeWalkForSqlizer(listCtx, tslTree)
 	if serviceErr != nil {
-		return false, serviceErr
+		return "", nil, serviceErr
 	}
 
 	s.addJoins(listCtx, d)
@@ -180,9 +180,17 @@ func (s *sqlGenericService) buildSearch(listCtx *listContext, d *dao.GenericDao)
 	// parse the search string to SQL WHERE
 	sql, values, err := sqlizer.ToSql()
 	if err != nil {
-		return false, errors.GeneralError(err.Error())
+		return "", nil, errors.GeneralError(err.Error())
 	}
-	(*d).Where(sql, values)
+	return sql, values, nil
+}
+
+func (s *sqlGenericService) buildSearch(listCtx *listContext, d *dao.GenericDao) (bool, *errors.ServiceError) {
+	sql, values, err := s.buildSearchValues(listCtx, d)
+	if err != nil {
+		return false, err
+	}
+	(*d).Where(dao.NewWhere(sql, values))
 	return true, nil
 }
 
@@ -199,6 +207,7 @@ func (s *sqlGenericService) addJoins(listCtx *listContext, d *dao.GenericDao) {
 		(*d).Joins(sql)
 
 		listCtx.groupBy = append(listCtx.groupBy, r.ForeignTableName+".id")
+		listCtx.set[r.ForeignTableName] = true
 	}
 	if len(listCtx.joins) > 0 {
 		// Add base relation
@@ -265,16 +274,18 @@ func zeroSlice(i interface{}, cap int64) *errors.ServiceError {
 // walk the TSL tree looking for fields like, e.g., creator.username, and then:
 // (1) look up the related table by its 1st part - creator
 // (2) replace it by table name - creator.username -> accounts.username
-func (s *sqlGenericService) treeWalkForRelatedTables(listCtx *listContext, tslTree tsl.Node, dao *dao.GenericDao) (tsl.Node, *errors.ServiceError) {
-	resourceTable := (*dao).GetTableName()
-
+func (s *sqlGenericService) treeWalkForRelatedTables(listCtx *listContext, tslTree tsl.Node, genericDao *dao.GenericDao) (tsl.Node, *errors.ServiceError) {
+	resourceTable := (*genericDao).GetTableName()
+	if listCtx.joins == nil {
+		listCtx.joins = map[string]dao.TableRelation{}
+	}
 	walkFn := func(field string) (string, error) {
 		fieldParts := strings.Split(field, ".")
 		if len(fieldParts) > 1 && fieldParts[0] != resourceTable {
 			fieldName := fieldParts[0]
 			_, exists := listCtx.joins[fieldName]
 			if !exists {
-				if relation, ok := (*dao).GetTableRelation(fieldName); ok {
+				if relation, ok := (*genericDao).GetTableRelation(fieldName); ok {
 					listCtx.joins[fieldName] = relation
 				} else {
 					return field, fmt.Errorf("%s is not a related resource of %s", fieldName, listCtx.resourceType)

@@ -54,8 +54,8 @@ spec:
 
             # Set Vars
             TARGET_COMPONENT_NAME="rh-trex"
-            REPO_URL=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.url')
-            REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | select(.name == "rh-trex").source.git.revision')
+            REPO_URL=$(echo $SNAPSHOT | jq -r --arg name "$TARGET_COMPONENT_NAME" '.components[] | select(.name == $name) | .source.git.url')
+            REPO_COMMIT=$(echo $SNAPSHOT | jq -r --arg name "$TARGET_COMPONENT_NAME" '.components[] | select(.name == $name) | .source.git.revision')
             test_output_file=${PWD}/test_output.json
 
             # Log Vars for Tracibility

@@ -21,9 +21,9 @@ func New{{.Kind}}Dao() *{{.KindLowerSingular}}DaoMock {
 }
 
 func (d *{{.KindLowerSingular}}DaoMock) Get(ctx context.Context, id string) (*api.{{.Kind}}, error) {
-	for _, dino := range d.{{.KindLowerPlural}} {
-		if dino.ID == id {
-			return dino, nil
+	for _, {{.KindLowerSingular}} := range d.{{.KindLowerPlural}} {
+		if {{.KindLowerSingular}}.ID == id {
+			return {{.KindLowerSingular}}, nil
 		}
 	}
 	return nil, gorm.ErrRecordNotFound
