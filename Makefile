@@ -29,8 +29,9 @@ container_tool ?= podman
 # when it is accessed from outside the cluster and when it is accessed from
 # inside the cluster. We need the external name to push the image, and the
 # internal name to pull it.
-external_image_registry:=default-route-openshift-image-registry.apps-crc.testing
-internal_image_registry:=image-registry.openshift-image-registry.svc:5000
+external_apps_domain?=apps-crc.testing
+external_image_registry?=default-route-openshift-image-registry.$(external_apps_domain)
+internal_image_registry?=image-registry.openshift-image-registry.svc:5000
 
 # The name of the image repository needs to start with the name of an existing
 # namespace because when the image is pushed to the internal registry of a

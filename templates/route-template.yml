@@ -1,7 +1,7 @@
 ---
 apiVersion: v1
 kind: Template
-name: uhc-acct-mangr-routes
+name: trex-routes 
 metadata:
   name: route
 
@@ -14,7 +14,8 @@ objects:
     labels:
       app: trex
   spec:
-    host: trex.apps-crc.testing
+#    The cluster should assign a suitable host. If using CRC, it may be necessary to define one manually:
+#    host: trex.apps-crc.testing
     to:
       kind: Service
       name: trex
