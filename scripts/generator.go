@@ -94,7 +94,7 @@ func main() {
 			"generate-test-factories": fmt.Sprintf("test/factories/%s.go", k.KindLowerPlural),
 			"generate-test":           fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural),
 			"generate-services":       fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
-			"generate-servicelocator": fmt.Sprintf("cmd/trex/environments/locator_%s.go", k.KindLowerSingular),
+			"generate-servicelocator": fmt.Sprintf("cmd/%s/environments/locator_%s.go", k.KindLowerSingular, k.KindLowerSingular),
 		}
 
 		outputPath, ok := outputPaths["generate-"+nm]
