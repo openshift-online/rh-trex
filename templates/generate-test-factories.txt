@@ -2,8 +2,8 @@ package factories
 
 import (
 	"context"
-	"github.com/openshift-online/rh-trex/cmd/trex/environments"
-	"github.com/openshift-online/rh-trex/pkg/api"
+	"{{.Repo}}/{{.Project}}/cmd/trex/environments"
+	"{{.Repo}}/{{.Project}}/pkg/api"
 )
 
 func (f *Factories) New{{.Kind}}(id string) (*api.{{.Kind}}, error) {

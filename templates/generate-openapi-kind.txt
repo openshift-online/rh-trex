@@ -1,6 +1,6 @@
 paths:
   # NEW ENDPOINT START
-  /api/rh-trex/v1/{{.KindLowerPlural}}:
+  /api/{{.Project}}/v1/{{.KindLowerPlural}}:
   # NEW ENDPOINT END
     get:
       summary: Returns a list of {{.KindLowerPlural}}
@@ -86,7 +86,7 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
   # NEW ENDPOINT START
-  /api/rh-trex/v1/{{.KindLowerPlural}}/{id}:
+  /api/{{.Project}}/v1/{{.KindLowerPlural}}/{id}:
   # NEW ENDPOINT END
     get:
       summary: Get an {{.KindLowerSingular}} by id

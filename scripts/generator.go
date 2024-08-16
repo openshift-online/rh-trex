@@ -27,6 +27,8 @@ TODO: all of it can be better
 
 var (
 	kind                        string = "Asteroid"
+	repo                        string = "github.com/openshift-online"
+	project                     string = "rh-trex"
 	openapiEndpointStart        string = "# NEW ENDPOINT START"
 	openapiEndpointEnd          string = "# NEW ENDPOINT END"
 	openApiSchemaStart          string = "# NEW SCHEMA START"
@@ -41,6 +43,8 @@ func init() {
 	flags.AddGoFlagSet(flag.CommandLine)
 
 	flags.StringVar(&kind, "kind", kind, "the name of the kind.  e.g Account or User")
+	flags.StringVar(&repo, "repo", repo, "the name of the repo.  e.g github.com/yourproject")
+	flags.StringVar(&project, "project", project, "the name of the project.  e.g rh-trex")
 }
 
 func main() {
@@ -74,6 +78,8 @@ func main() {
 		}
 
 		k := myWriter{
+			Project:           project,
+			Repo:              repo,
 			Kind:              kind,
 			KindPlural:        fmt.Sprintf("%ss", kind),
 			KindLowerPlural:   strings.ToLower(fmt.Sprintf("%ss", kind)),
@@ -130,6 +136,8 @@ func datePad(d int) string {
 }
 
 type myWriter struct {
+	Repo              string
+	Project           string
 	Kind              string
 	KindPlural        string
 	KindLowerPlural   string

@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
-	"github.com/openshift-online/rh-trex/pkg/dao"
+	"{{.Repo}}/{{.Project}}/pkg/dao"
 
-	"github.com/openshift-online/rh-trex/pkg/api"
-	"github.com/openshift-online/rh-trex/pkg/errors"
+	"{{.Repo}}/{{.Project}}/pkg/api"
+	"{{.Repo}}/{{.Project}}/pkg/errors"
 )
 
 type {{.Kind}}Service interface {
