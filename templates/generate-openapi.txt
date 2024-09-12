@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: rh-trex API
-  description: rh-trex API
+  title: {{.Project}} API
+  description: {{.Project}} API
   version: 0.0.1
 servers:
   - url: http://localhost:8000
@@ -11,7 +11,7 @@ servers:
   - url: https://api.stage.openshift.com
     description: Staging server
 paths:
-  /api/rh-trex/v1/{{.KindLowerPlural}}:
+  /api/{{.Project}}/v1/{{.KindLowerPlural}}:
     get:
       summary: Returns a list of {{.KindLowerPlural}}
       security:
@@ -95,7 +95,7 @@ paths:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
-  /api/rh-trex/v1/{{.KindLowerPlural}}/{id}:
+  /api/{{.Project}}/v1/{{.KindLowerPlural}}/{id}:
     get:
       summary: Get an {{.KindLowerSingular}} by id
       security:

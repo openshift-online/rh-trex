@@ -10,8 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/resty.v1"
 
-	"github.com/openshift-online/rh-trex/pkg/api/openapi"
-	"github.com/openshift-online/rh-trex/test"
+	"{{.Repo}}/{{.Project}}/pkg/api/openapi"
+	"{{.Repo}}/{{.Project}}/test"
 )
 
 func Test{{.Kind}}Get(t *testing.T) {
@@ -38,7 +38,7 @@ func Test{{.Kind}}Get(t *testing.T) {
 
 	Expect(*{{.KindLowerSingular}}Output.Id).To(Equal({{.KindLowerSingular}}Model.ID), "found object does not match test object")
 	Expect(*{{.KindLowerSingular}}Output.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", {{.KindLowerSingular}}Model.ID)))
+	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/{{.Project}}/v1/{{.KindLowerPlural}}/%s", {{.KindLowerSingular}}Model.ID)))
 	Expect(*{{.KindLowerSingular}}Output.CreatedAt).To(BeTemporally("~", {{.KindLowerSingular}}Model.CreatedAt))
 	Expect(*{{.KindLowerSingular}}Output.UpdatedAt).To(BeTemporally("~", {{.KindLowerSingular}}Model.UpdatedAt))
 }
@@ -60,7 +60,7 @@ func Test{{.Kind}}Post(t *testing.T) {
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	Expect(*{{.KindLowerSingular}}Output.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
 	Expect(*{{.KindLowerSingular}}Output.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}Output.Id)))
+	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/{{.Project}}/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}Output.Id)))
 
 	// 400 bad request. posting junk json is one way to trigger 400.
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
@@ -91,7 +91,7 @@ func Test{{.Kind}}Patch(t *testing.T) {
 	Expect(*{{.KindLowerSingular}}Output.Id).To(Equal({{.KindLowerSingular}}Model.ID))
 	Expect(*{{.KindLowerSingular}}Output.CreatedAt).To(BeTemporally("~", {{.KindLowerSingular}}Model.CreatedAt))
 	Expect(*{{.KindLowerSingular}}Output.Kind).To(Equal("{{.Kind}}"))
-	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}Output.Id)))
+	Expect(*{{.KindLowerSingular}}Output.Href).To(Equal(fmt.Sprintf("/api/{{.Project}}/v1/{{.KindLowerPlural}}/%s", *{{.KindLowerSingular}}Output.Id)))
 
 	jwtToken := ctx.Value(openapi.ContextAccessToken)
 	// 500 server error. posting junk json is one way to trigger 500.

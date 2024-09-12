@@ -5,11 +5,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/openshift-online/rh-trex/pkg/api"
-	"github.com/openshift-online/rh-trex/pkg/api/openapi"
-	"github.com/openshift-online/rh-trex/pkg/api/presenters"
-	"github.com/openshift-online/rh-trex/pkg/errors"
-	"github.com/openshift-online/rh-trex/pkg/services"
+	"{{.Repo}}/{{.Project}}/pkg/api"
+	"{{.Repo}}/{{.Project}}/pkg/api/openapi"
+	"{{.Repo}}/{{.Project}}/pkg/api/presenters"
+	"{{.Repo}}/{{.Project}}/pkg/errors"
+	"{{.Repo}}/{{.Project}}/pkg/services"
 )
 
 var _ RestHandler = {{.KindLowerSingular}}Handler{}
