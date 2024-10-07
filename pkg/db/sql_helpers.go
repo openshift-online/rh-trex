@@ -3,12 +3,18 @@ package db
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/jinzhu/inflection"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 	"github.com/yaacov/tree-search-language/pkg/tsl"
 	"gorm.io/gorm"
+)
+
+const (
+	invalidFieldNameMsg    = "%s is not a valid field name"
+	disallowedFieldNameMsg = "%s is a disallowed field name"
 )
 
 // Check if a field name starts with properties.
@@ -33,34 +39,33 @@ func hasProperty(n tsl.Node) bool {
 }
 
 // getField gets the sql field associated with a name.
-func getField(name string, disallowedFields map[string]string) (field string, err *errors.ServiceError) {
+func getField(
+	name string,
+	disallowedFields []string,
+	apiToModel map[string]string,
+) (field string, err *errors.ServiceError) {
 	// We want to accept names with trailing and leading spaces
 	trimmedName := strings.Trim(name, " ")
 
-	// Check for properties ->> '<some field name>'
-	if strings.HasPrefix(trimmedName, "properties ->>") {
-		field = trimmedName
-		return
+	mappedField, ok := apiToModel[trimmedName]
+	if !ok {
+		return "", errors.BadRequest(invalidFieldNameMsg, name)
 	}
 
 	// Check for nested field, e.g., subscription_labels.key
-	checkName := trimmedName
-	fieldParts := strings.Split(trimmedName, ".")
+	checkName := mappedField
+	fieldParts := strings.Split(checkName, ".")
 	if len(fieldParts) > 2 {
-		err = errors.BadRequest("%s is not a valid field name", name)
+		err = errors.BadRequest(invalidFieldNameMsg, name)
 		return
-	}
-	if len(fieldParts) > 1 {
-		checkName = fieldParts[1]
 	}
 
 	// Check for allowed fields
-	_, ok := disallowedFields[checkName]
-	if ok {
-		err = errors.BadRequest("%s is not a valid field name", name)
+	if slices.Contains(disallowedFields, checkName) {
+		err = errors.BadRequest(disallowedFieldNameMsg, name)
 		return
 	}
-	field = trimmedName
+	field = checkName
 	return
 }
 
@@ -102,7 +107,8 @@ func propertiesNodeConverter(n tsl.Node) tsl.Node {
 // b. replace the field name with the SQL column name.
 func FieldNameWalk(
 	n tsl.Node,
-	disallowedFields map[string]string) (newNode tsl.Node, err *errors.ServiceError) {
+	disallowedFields []string,
+	apiToModel map[string]string) (newNode tsl.Node, err *errors.ServiceError) {
 
 	var field string
 	var l, r tsl.Node
@@ -124,7 +130,7 @@ func FieldNameWalk(
 		}
 
 		// Check field name in the disallowedFields field names.
-		field, err = getField(userFieldName, disallowedFields)
+		field, err = getField(userFieldName, disallowedFields, apiToModel)
 		if err != nil {
 			return
 		}
@@ -137,7 +143,7 @@ func FieldNameWalk(
 	default:
 		// o/w continue walking the tree.
 		if n.Left != nil {
-			l, err = FieldNameWalk(n.Left.(tsl.Node), disallowedFields)
+			l, err = FieldNameWalk(n.Left.(tsl.Node), disallowedFields, apiToModel)
 			if err != nil {
 				return
 			}
@@ -148,7 +154,7 @@ func FieldNameWalk(
 			switch v := n.Right.(type) {
 			case tsl.Node:
 				// It's a regular node, just add it.
-				r, err = FieldNameWalk(v, disallowedFields)
+				r, err = FieldNameWalk(v, disallowedFields, apiToModel)
 				if err != nil {
 					return
 				}
@@ -162,7 +168,7 @@ func FieldNameWalk(
 
 				// Add all nodes in the right side array.
 				for _, e := range v {
-					r, err = FieldNameWalk(e, disallowedFields)
+					r, err = FieldNameWalk(e, disallowedFields, apiToModel)
 					if err != nil {
 						return
 					}
@@ -189,7 +195,10 @@ func FieldNameWalk(
 }
 
 // cleanOrderBy takes the orderBy arg and cleans it.
-func cleanOrderBy(userArg string, disallowedFields map[string]string) (orderBy string, err *errors.ServiceError) {
+func cleanOrderBy(userArg string,
+	disallowedFields []string,
+	apiToModel map[string]string,
+	tableName string) (orderBy string, err *errors.ServiceError) {
 	var orderField string
 
 	// We want to accept user params with trailing and leading spaces
@@ -197,15 +206,15 @@ func cleanOrderBy(userArg string, disallowedFields map[string]string) (orderBy s
 
 	// Each OrderBy can be a "<field-name>" or a "<field-name> asc|desc"
 	order := strings.Split(trimedName, " ")
-	direction := "none valid"
-
-	if len(order) == 1 {
-		orderField, err = getField(order[0], disallowedFields)
-		direction = "asc"
-	} else if len(order) == 2 {
-		orderField, err = getField(order[0], disallowedFields)
+	direction := "asc"
+	if len(order) == 2 {
 		direction = order[1]
 	}
+	field := order[0]
+	if orderParts := strings.Split(order[0], "."); len(orderParts) == 1 {
+		field = fmt.Sprintf("%s.%s", tableName, field)
+	}
+	orderField, err = getField(field, disallowedFields, apiToModel)
 	if err != nil || (direction != "asc" && direction != "desc") {
 		err = errors.BadRequest("bad order value '%s'", userArg)
 		return
@@ -218,13 +227,15 @@ func cleanOrderBy(userArg string, disallowedFields map[string]string) (orderBy s
 // ArgsToOrderBy returns cleaned orderBy list.
 func ArgsToOrderBy(
 	orderByArgs []string,
-	disallowedFields map[string]string) (orderBy []string, err *errors.ServiceError) {
+	disallowedFields []string,
+	apiToModel map[string]string,
+	tableName string) (orderBy []string, err *errors.ServiceError) {
 
 	var order string
 	if len(orderByArgs) != 0 {
 		orderBy = []string{}
 		for _, o := range orderByArgs {
-			order, err = cleanOrderBy(o, disallowedFields)
+			order, err = cleanOrderBy(o, disallowedFields, apiToModel, tableName)
 			if err != nil {
 				return
 			}

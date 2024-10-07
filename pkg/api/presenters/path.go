@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
-
-	"github.com/openshift-online/rh-trex/pkg/api"
-	"github.com/openshift-online/rh-trex/pkg/errors"
+	"github.com/openshift-online/rh-trex/pkg/util"
 )
 
 const (
@@ -18,12 +16,5 @@ func ObjectPath(id string, obj interface{}) *string {
 }
 
 func path(i interface{}) string {
-	switch i.(type) {
-	case api.Dinosaur, *api.Dinosaur:
-		return "dinosaurs"
-	case errors.ServiceError, *errors.ServiceError:
-		return "errors"
-	default:
-		return ""
-	}
+	return fmt.Sprintf("%ss", util.ToSnakeCase(util.GetBaseType(i)))
 }

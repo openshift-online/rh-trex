@@ -7,7 +7,27 @@ import (
 
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/db"
+	"github.com/openshift-online/rh-trex/pkg/util"
 )
+
+var (
+	dinosaurTableName = util.ToSnakeCase(api.DinosaurTypeName) + "s"
+	dinosaurColumns   = []string{
+		"id",
+		"created_at",
+		"updated_at",
+		"species",
+	}
+)
+
+func DinosaurApiToModel() TableMappingRelation {
+	result := map[string]string{}
+	applyBaseMapping(result, dinosaurColumns, dinosaurTableName)
+	return TableMappingRelation{
+		Mapping:           result,
+		relationTableName: dinosaurTableName,
+	}
+}
 
 type DinosaurDao interface {
 	Get(ctx context.Context, id string) (*api.Dinosaur, error)

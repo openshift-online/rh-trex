@@ -82,7 +82,7 @@ func (h dinosaurHandler) List(w http.ResponseWriter, r *http.Request) {
 
 			listArgs := services.NewListArguments(r.URL.Query())
 			var dinosaurs = []api.Dinosaur{}
-			paging, err := h.generic.List(ctx, "username", listArgs, &dinosaurs)
+			paging, err := h.generic.List(ctx, listArgs, &dinosaurs)
 			if err != nil {
 				return nil, err
 			}

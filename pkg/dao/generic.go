@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/jinzhu/inflection"
@@ -9,6 +10,41 @@ import (
 
 	"github.com/openshift-online/rh-trex/pkg/db"
 )
+
+type TableMappingRelation struct {
+	Mapping           map[string]string
+	relationTableName string
+}
+
+type relationMapping func() TableMappingRelation
+
+func applyBaseMapping(result map[string]string, columns []string, tableName string) {
+	for _, c := range columns {
+		mappingKey := c
+		mappingValue := fmt.Sprintf("%s.%s", tableName, c)
+		columnParts := strings.Split(c, ".")
+		if len(columnParts) == 1 {
+			mappingKey = mappingValue
+		}
+		if len(columnParts) == 2 {
+			mappingValue = strings.Split(mappingKey, ".")[1]
+		}
+		result[mappingKey] = mappingValue
+	}
+}
+
+func applyRelationMapping(result map[string]string, relations []relationMapping) {
+	for _, relation := range relations {
+		tableMappingRelation := relation()
+		for k, v := range tableMappingRelation.Mapping {
+			if _, ok := result[k]; ok {
+				result[tableMappingRelation.relationTableName+"."+k] = v
+			} else {
+				result[k] = v
+			}
+		}
+	}
+}
 
 type Where struct {
 	sql    string
