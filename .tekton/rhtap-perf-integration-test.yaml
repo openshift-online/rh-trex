@@ -12,14 +12,6 @@ spec:
       name: SNAPSHOT
       default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
       type: string
-    - description: 'Namespace where the application is running'
-      name: NAMESPACE
-      default: "default"
-      type: string
-    - description: 'Application endpoint port'
-      name: PORT
-      default: ""
-      type: string
     - description: 'Horreum Test Name'
       name: HR_TEST_NAME
       default: ""
@@ -75,15 +67,43 @@ spec:
               else
                 exit 1
               fi
+    - name: extract-secrets
+      taskSpec:
+        results:
+          - name: HORREUM_PASSWORD
+            type: string
+          - name: HORREUM_URI
+            type: string
+          - name: HORREUM_USER
+            type: string
+          - name: HORREUM_COFIG_SET
+            type: string                       
+        steps:
+          - name: extract-secrets
+            image: registry.redhat.io/openshift4/ose-cli:latest
+            script: |
+              #!/bin/bash
+              horreum_sec_set='true'
+              horreum_password=''
+              horreum_uri=''
+              horreum_user=''
+              oc get secret horreum
+              if [ $? -ne 0 ]; then
+                horreum_sec_set='false'
+              else
+                horreum_password=$(oc get secret horreum -o jsonpath='{.data.horreum_password}' | base64 --decode)
+                horreum_uri=$(oc get secret horreum -o jsonpath='{.data.horreum_uri}' | base64 --decode)
+                horreum_user=$(oc get secret horreum -o jsonpath='{.data.horreum_user}' | base64 --decode)
+              fi
+              echo -n "${horreum_password}" | tee $(results.HORREUM_PASSWORD.path)
+              echo -n "${horreum_uri}" | tee $(results.HORREUM_URI.path)
+              echo -n "${horreum_user}" | tee $(results.HORREUM_USER.path)                
+              echo -n "${horreum_sec_set}" | tee $(results.HORREUM_COFIG_SET.path)                   
     - name: deploy-app
       runAfter: [provision-env]
       params:
         - name: SNAPSHOT
           value: $(params.SNAPSHOT)
-        - name: NAMESPACE
-          value: $(params.NAMESPACE)
-        - name: PORT
-          value: $(params.PORT)
         - name: HR_TEST_NAME
           value: $(params.HR_TEST_NAME)          
         - name: HR_REG_VAR
@@ -116,10 +136,6 @@ spec:
           env:
             - name: SNAPSHOT
               value: $(params.SNAPSHOT)
-            - name: NAMESPACE
-              value: $(params.NAMESPACE)
-            - name: PORT
-              value: $(params.PORT)
             - name: KUBECONFIG_VALUE
               valueFrom:
                 secretKeyRef:
@@ -161,21 +177,15 @@ spec:
             mkdir -p /tmp/templates/
             for i in $(ls templates/*yml); do j=${i#*/}; outf=${j%.*};oc process --kubeconfig /tmp/cfg --filename="$i" --local="true" --ignore-unknown-parameters="true" --param="ENVIRONMENT"=development --param="GLOG_V"=10  --param="DATABASE_HOST"=trex-db.$(oc project --short) --param="DATABASE_NAME"=rhtrex  --param="DATABASE_PASSWORD"=foobar-bizz-buzz  --param="DATABASE_PORT"=5432 --param="DATABASE_USER"=trex  --param="DATABASE_SSLMODE"=disable --param="ENABLE_SENTRY"=false --param="SENTRY_KEY"=TODO --param="JWKS_URL"=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs  --param="OCM_SERVICE_CLIENT_ID"=${CLIENT_ID} --param="OCM_SERVICE_CLIENT_SECRET"=${CLIENT_SEC}  --param="OCM_BASE_URL"=https://api.integration.openshift.com --param="IMAGE_REGISTRY="$image_reg --param="IMAGE_REPOSITORY="$image_rep --param="IMAGE_TAG="$image_tag  > /tmp/templates/${outf}.json; done
             oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/db-template.json
+            sleep 60
             oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/secrets-template.json
             oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/service-template.json
-            oc expose --kubeconfig /tmp/cfg service trex
+            sleep 60
             oc get --kubeconfig /tmp/cfg all
-            ROUTE_NAME=$(oc get --kubeconfig /tmp/cfg routes trex -o name --insecure-skip-tls-verify)
-            HOST=$(oc get --kubeconfig /tmp/cfg "${ROUTE_NAME}" -o jsonpath={.spec.host}  --insecure-skip-tls-verify)
-            echo "Found target host ${HOST} for app ${APPLICATION_NAME}"
-            
-            # Check the application endpoint
-            ENDPOINT_OUTPUT=$(curl -k http://${HOST}:${PORT})
-            echo -e "The endpoint outputs the following:\n ${ENDPOINT_OUTPUT}"
-            echo -e "Snapshot output:\n ${SNAPSHOT}"
+            oc get --kubeconfig /tmp/cfg events
+            oc describe --kubeconfig /tmp/cfg pod -l app=trex
+            oc logs --kubeconfig /tmp/cfg -l app=trex
 
-            echo ${HOST} > /tekton/home/endpoint_url            
-            echo -n ${HOST} | tee $(results.APP_URL.path)
             if [ -z $(params.HR_TEST_NAME) ]
             then
               echo '$(params.SNAPSHOT)'|jq -r .components[].name |  tr -d '\n\t' | tee $(results.test_name.path)
@@ -189,19 +199,44 @@ spec:
             else
               echo -n '$(params.HR_REG_VAR)' | tee $(results.reg_var.path)
             fi             
-    - name: perf-benchmark
+    - name: perf-benchmark 
       params:
-        - name: url
-          value: $(tasks.deploy-app.results.APP_URL)
         - name: test_name
           value: $(tasks.deploy-app.results.test_name)
         - name: reg_var
           value: $(tasks.deploy-app.results.reg_var)
+        - name: HORREUM_COFIG_SET
+          value: $(tasks.extract-secrets.results.HORREUM_COFIG_SET)
+        - name: HORREUM_PASSWORD
+          value: $(tasks.extract-secrets.results.HORREUM_PASSWORD)
+        - name: HORREUM_URI
+          value: $(tasks.extract-secrets.results.HORREUM_URI)
+        - name: HORREUM_USER
+          value: $(tasks.extract-secrets.results.HORREUM_USER)           
       taskSpec:
         params:
-          - name: url
           - name: test_name
-          - name: reg_var          
+          - name: reg_var
+          - name: HORREUM_COFIG_SET
+          - name: HORREUM_PASSWORD
+          - name: HORREUM_URI
+          - name: HORREUM_USER
+        sidecars:
+        - name: port-forward
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          env:       
+            - name: KUBECONFIG_VALUE
+              valueFrom:
+                secretKeyRef:
+                  name: "$(tasks.provision-env.results.secretRef)"
+                  key: kubeconfig          
+          ports:
+            - containerPort: 8080
+          script: |
+            #!/usr/bin/env bash
+            cat <<< "$KUBECONFIG_VALUE" > /tmp/cfg
+            export KUBECONFIG=/tmp/cfg
+            oc port-forward --kubeconfig /tmp/cfg svc/trex 8080:8000                        
         steps:
         - image: grafana/k6
           name: run-perf
@@ -213,50 +248,37 @@ spec:
                   key: ocmtoken          
           script: |
             #!/usr/bin/env sh
-            export
-            echo "Transform result to json format"
             wget -O /tmp/ocm https://github.com/openshift-online/ocm-cli/releases/download/v0.1.65/ocm-linux-amd64
             chmod +x /tmp/ocm
-            echo ${OCM_TOKEN}
-            /tmp/ocm login --token=${OCM_TOKEN} --url=http://$(params.url)
-            export BASE_URL=http://$(params.url)
-            wget -O /tmp/script.js https://raw.githubusercontent.com/yogananth-subramanian/rh-trex/main/.tekton/rhtap-perf-k6-test.js
+            /tmp/ocm login --token=${OCM_TOKEN} --url=https://127.0.0.1:8080 --debug
+            export BASE_URL=https://127.0.0.1:8080
+            wget -O /tmp/script.js https://raw.githubusercontent.com/openshift-online/rh-trex/refs/heads/main/.tekton/rhtap-perf-k6-test.js
             echo -n `/tmp/ocm token`>/tmp/token
             k6 run /tmp/script.js
             cat /workspace/output.json
         - image: quay.io/yogananth_subramanian/curl-yq-jq
           name: check-regression
-          env:
-            - name: HORREUM_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: horreum
-                  key: horreum_password
-            - name: HORREUM_URI
-              valueFrom:
-                secretKeyRef:
-                  name: horreum
-                  key: horreum_uri
-            - name: HORREUM_USER
-              valueFrom:
-                secretKeyRef:
-                  name: horreum
-                  key: horreum_user          
           script: |
-            set -xv
-            echo "Transform result to json format"
-            cat /workspace/output.json
-            test_name=$(params.test_name)
-            reg_var=$(params.reg_var)
-            KEYCLOAK_URI=$(curl -s -k -X GET  ${HORREUM_URI}/api/config/keycloak|jq -r .url)
-            TOKEN=$(curl -s  -k  ${KEYCLOAK_URI}/realms/horreum/protocol/openid-connect/token   -d "username=$HORREUM_USER"  -d "password=$HORREUM_PASSWORD" -d 'grant_type=password' -d 'client_id=horreum-ui' | jq -r .access_token)
-            curl -k -s -v ${HORREUM_URI}'/api/run/data?start=$.startTime&stop=$.endTime&test='$test_name -X POST -H 'Authorization: Bearer '${TOKEN} -H 'Content-Type: application/json'  -d @/workspace/output.json
-            testid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/test/byName/'$test_name|jq -r .id)
-            varid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/alerting/variables?test='$testid|jq -r --arg regvar "$reg_var" '.[] | select(.name==$regvar)| .id ')
-            changes=`curl -s -k -X GET ${HORREUM_URI}'/api/alerting/changes?var='$varid  |jq  '.| length'`
-            if [ -z  $changes ] || [ $changes -gt 0  ] ;then echo "Regression check failed";exit 1;fi            
+            set -x
+            horreum_sec_set=$(params.HORREUM_COFIG_SET)
+            if [ ${horreum_sec_set} == 'false' ]; then
+              echo "Horreum config not set"
+            else
+              echo "Transform result to json format"
+              cat /workspace/output.json
+              test_name=$(params.test_name)
+              reg_var=$(params.reg_var)
+              KEYCLOAK_URI=$(curl -s -k -X GET  ${HORREUM_URI}/api/config/keycloak|jq -r .url)
+              TOKEN=$(curl -s  -k  ${KEYCLOAK_URI}/realms/horreum/protocol/openid-connect/token   -d "username=$HORREUM_USER"  -d "password=$HORREUM_PASSWORD" -d 'grant_type=password' -d 'client_id=horreum-ui' | jq -r .access_token)
+              curl -k -s -v ${HORREUM_URI}'/api/run/data?start=$.startTime&stop=$.endTime&test='$test_name -X POST -H 'Authorization: Bearer '${TOKEN} -H 'Content-Type: application/json'  -d @/workspace/output.json
+              testid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/test/byName/'$test_name|jq -r .id)
+              varid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/alerting/variables?test='$testid|jq -r --arg regvar "$reg_var" '.[] | select(.name==$regvar)| .id ')
+              changes=`curl -s -k -X GET ${HORREUM_URI}'/api/alerting/changes?var='$varid  |jq  '.| length'`
+              if [ -z  $changes ] || [ $changes -gt 0  ] ;then echo "Regression check failed";exit 1;fi                  
+            fi 
       runAfter:
         - deploy-app
+        - extract-secrets    
   finally:
     - name: cleanup  
       params:

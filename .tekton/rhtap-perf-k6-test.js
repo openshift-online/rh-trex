@@ -6,13 +6,13 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.2/index.js';
 
 const token = open('/tmp/token');
 const BASE_URL = `${__ENV.BASE_URL}`;
-const SLEEP_DURATION = 0.2;
 const listTrend = new Trend('List_API');
 const postTrend = new Trend('POST_API');
 const getTrend = new Trend('GET_ID_API');
 const patchTrend = new Trend('PATCH_API');
 
 export const options = {
+  insecureSkipTLSVerify: true,
   scenarios: {
     k6_rhtrex: {
       executor: 'constant-arrival-rate',
@@ -22,7 +22,7 @@ export const options = {
     },
   },
   thresholds: {
-    iteration_duration: ['med<900'],
+    iteration_duration: ['med<40'],
     List_API: ['med<10'],
     POST_API: ['med<10'],
     PATCH_API: ['med<20'],
@@ -66,7 +66,6 @@ export default function () {
                 "A JSON array of dinosaur objects": (r) => r.status === 200
             });
             listTrend.add(request.timings.duration);
-            sleep(SLEEP_DURATION);
 
         }
         {
@@ -81,7 +80,6 @@ export default function () {
             });
 
             postTrend.add(request.timings.duration);
-            sleep(SLEEP_DURATION);
         }
 
     });
@@ -98,7 +96,6 @@ export default function () {
             });
 
             getTrend.add(request.timings.duration);
-            sleep(SLEEP_DURATION);
 
         }
         {
@@ -112,7 +109,6 @@ export default function () {
 
 
             patchTrend.add(request.timings.duration);
-            sleep(SLEEP_DURATION);
         }
 
 
