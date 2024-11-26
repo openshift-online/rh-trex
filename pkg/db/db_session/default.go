@@ -158,6 +158,9 @@ func (f *Default) CheckConnection() error {
 // THIS MUST **NOT** BE CALLED UNTIL THE SERVER/PROCESS IS EXITING!!
 // This should only ever be called once for the entire duration of the application and only at the end.
 func (f *Default) Close() error {
+	if f.db == nil {
+		return nil
+	}
 	return f.db.Close()
 }
 

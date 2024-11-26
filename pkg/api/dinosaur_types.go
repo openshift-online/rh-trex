@@ -1,6 +1,13 @@
 package api
 
-import "gorm.io/gorm"
+import (
+	"github.com/openshift-online/rh-trex/pkg/util"
+	"gorm.io/gorm"
+)
+
+var (
+	DinosaurTypeName = util.GetBaseType(Dinosaur{})
+)
 
 type Dinosaur struct {
 	Meta
