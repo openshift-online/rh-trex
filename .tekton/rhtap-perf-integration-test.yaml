@@ -12,13 +12,17 @@ spec:
       name: SNAPSHOT
       default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
       type: string
-    - description: 'Horreum Test Name'
-      name: HR_TEST_NAME
-      default: ""
-      type: string      
     - description: 'Horreum regression variable'
       name: HR_REG_VAR
       default: ""
+      type: string
+    - description: 'Horreum Test Name'
+      name: HR_TEST_NAME
+      default: ""
+      type: string
+    - description: 'Horreum url'
+      name: HORREUM_URI
+      default: "https://horreum.corp.redhat.com"
       type: string        
   tasks:
     - name: provision-env
@@ -41,7 +45,6 @@ spec:
                 value: "$(context.pipelineRun.uid)"
             script: |
               #!/bin/bash
-              set -ex
               set -o pipefail
       
               cat <<EOF > space_request.yaml
@@ -70,11 +73,7 @@ spec:
     - name: extract-secrets
       taskSpec:
         results:
-          - name: HORREUM_PASSWORD
-            type: string
-          - name: HORREUM_URI
-            type: string
-          - name: HORREUM_USER
+          - name: HORREUM_API_KEY
             type: string
           - name: HORREUM_COFIG_SET
             type: string                       
@@ -84,20 +83,14 @@ spec:
             script: |
               #!/bin/bash
               horreum_sec_set='true'
-              horreum_password=''
-              horreum_uri=''
-              horreum_user=''
+              horreum_api_key=''
               oc get secret horreum
               if [ $? -ne 0 ]; then
                 horreum_sec_set='false'
               else
-                horreum_password=$(oc get secret horreum -o jsonpath='{.data.horreum_password}' | base64 --decode)
-                horreum_uri=$(oc get secret horreum -o jsonpath='{.data.horreum_uri}' | base64 --decode)
-                horreum_user=$(oc get secret horreum -o jsonpath='{.data.horreum_user}' | base64 --decode)
+                horreum_api_key=$(oc get secret horreum -o jsonpath='{.data.horreum_api_key}' | base64 --decode)
               fi
-              echo -n "${horreum_password}" | tee $(results.HORREUM_PASSWORD.path)
-              echo -n "${horreum_uri}" | tee $(results.HORREUM_URI.path)
-              echo -n "${horreum_user}" | tee $(results.HORREUM_USER.path)                
+              echo -n "${horreum_api_key}" > $(results.HORREUM_API_KEY.path)
               echo -n "${horreum_sec_set}" | tee $(results.HORREUM_COFIG_SET.path)                   
     - name: deploy-app
       runAfter: [provision-env]
@@ -167,7 +160,7 @@ spec:
             REPO_URL=$(echo $SNAPSHOT | jq -r '.components[] | .source.git.url')
             REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | .source.git.revision')
             REPO_IMG=$(echo $SNAPSHOT | jq -r '.components[] | .containerImage')
-            git clone $REPO_URL $TARGET_COMPONENT_NAME
+            GIT_SSL_NO_VERIFY=true git clone $REPO_URL $TARGET_COMPONENT_NAME
             cd $TARGET_COMPONENT_NAME
             git checkout $REPO_COMMIT
             rev=$(echo ${REPO_IMG#*/})
@@ -177,10 +170,10 @@ spec:
             mkdir -p /tmp/templates/
             for i in $(ls templates/*yml); do j=${i#*/}; outf=${j%.*};oc process --kubeconfig /tmp/cfg --filename="$i" --local="true" --ignore-unknown-parameters="true" --param="ENVIRONMENT"=development --param="GLOG_V"=10  --param="DATABASE_HOST"=trex-db.$(oc project --short) --param="DATABASE_NAME"=rhtrex  --param="DATABASE_PASSWORD"=foobar-bizz-buzz  --param="DATABASE_PORT"=5432 --param="DATABASE_USER"=trex  --param="DATABASE_SSLMODE"=disable --param="ENABLE_SENTRY"=false --param="SENTRY_KEY"=TODO --param="JWKS_URL"=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs  --param="OCM_SERVICE_CLIENT_ID"=${CLIENT_ID} --param="OCM_SERVICE_CLIENT_SECRET"=${CLIENT_SEC}  --param="OCM_BASE_URL"=https://api.integration.openshift.com --param="IMAGE_REGISTRY="$image_reg --param="IMAGE_REPOSITORY="$image_rep --param="IMAGE_TAG="$image_tag  > /tmp/templates/${outf}.json; done
             oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/db-template.json
-            sleep 60
+            oc wait --for=condition=Ready --timeout=300s pod --selector name=trex-db
             oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/secrets-template.json
             oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/service-template.json
-            sleep 60
+            oc wait --for=condition=Ready --timeout=300s pod --selector app=trex
             oc get --kubeconfig /tmp/cfg all
             oc get --kubeconfig /tmp/cfg events
             oc describe --kubeconfig /tmp/cfg pod -l app=trex
@@ -207,20 +200,14 @@ spec:
           value: $(tasks.deploy-app.results.reg_var)
         - name: HORREUM_COFIG_SET
           value: $(tasks.extract-secrets.results.HORREUM_COFIG_SET)
-        - name: HORREUM_PASSWORD
-          value: $(tasks.extract-secrets.results.HORREUM_PASSWORD)
-        - name: HORREUM_URI
-          value: $(tasks.extract-secrets.results.HORREUM_URI)
-        - name: HORREUM_USER
-          value: $(tasks.extract-secrets.results.HORREUM_USER)           
+        - name: HORREUM_API_KEY
+          value: $(tasks.extract-secrets.results.HORREUM_API_KEY)
       taskSpec:
         params:
           - name: test_name
           - name: reg_var
           - name: HORREUM_COFIG_SET
-          - name: HORREUM_PASSWORD
-          - name: HORREUM_URI
-          - name: HORREUM_USER
+          - name: HORREUM_API_KEY
         sidecars:
         - name: port-forward
           image: registry.redhat.io/openshift4/ose-cli:latest
@@ -258,8 +245,11 @@ spec:
             cat /workspace/output.json
         - image: quay.io/yogananth_subramanian/curl-yq-jq
           name: check-regression
+          env:
+            - name: HORREUM_URI
+              value: $(params.HORREUM_URI)
           script: |
-            set -x
+            #!/usr/bin/env bash
             horreum_sec_set=$(params.HORREUM_COFIG_SET)
             if [ ${horreum_sec_set} == 'false' ]; then
               echo "Horreum config not set"
@@ -268,11 +258,10 @@ spec:
               cat /workspace/output.json
               test_name=$(params.test_name)
               reg_var=$(params.reg_var)
-              KEYCLOAK_URI=$(curl -s -k -X GET  ${HORREUM_URI}/api/config/keycloak|jq -r .url)
-              TOKEN=$(curl -s  -k  ${KEYCLOAK_URI}/realms/horreum/protocol/openid-connect/token   -d "username=$HORREUM_USER"  -d "password=$HORREUM_PASSWORD" -d 'grant_type=password' -d 'client_id=horreum-ui' | jq -r .access_token)
-              curl -k -s -v ${HORREUM_URI}'/api/run/data?start=$.startTime&stop=$.endTime&test='$test_name -X POST -H 'Authorization: Bearer '${TOKEN} -H 'Content-Type: application/json'  -d @/workspace/output.json
-              testid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/test/byName/'$test_name|jq -r .id)
-              varid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/alerting/variables?test='$testid|jq -r --arg regvar "$reg_var" '.[] | select(.name==$regvar)| .id ')
+              api_key=$(params.HORREUM_API_KEY)
+              curl -k -s ${HORREUM_URI}'/api/run/data?start=$.startTime&stop=$.endTime&test='$test_name -X POST -H 'Content-Type: application/json' -H 'X-Horreum-API-Key: '${api_key}  -d @/workspace/output.json
+              testid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/test/byName/'$test_name |jq -r .id)
+              varid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/alerting/variables?test='$testid |jq -r --arg regvar "$reg_var" '.[] | select(.name==$regvar)| .id ')
               changes=`curl -s -k -X GET ${HORREUM_URI}'/api/alerting/changes?var='$varid  |jq  '.| length'`
               if [ -z  $changes ] || [ $changes -gt 0  ] ;then echo "Regression check failed";exit 1;fi                  
             fi 
