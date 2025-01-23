@@ -1,0 +1,251 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: rapiddast-scan
+spec:
+  description: >-
+    Implement the RapidDAST scanning task in rh-trex to service as a proof of concept for users.
+  params:
+    - description: 'Snapshot of the application'
+      name: SNAPSHOT
+      default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
+      type: string
+  tasks:
+    - name: provision-env
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/build-definitions.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/eaas-provision-space/0.1/eaas-provision-space.yaml
+      params:
+        - name: ownerName
+          value: $(context.pipelineRun.name)
+        - name: ownerUid
+          value: $(context.pipelineRun.uid)
+    - name: deploy-app
+      runAfter: [provision-env]
+      params:
+        - name: SNAPSHOT
+          value: $(params.SNAPSHOT)
+      taskSpec:
+        params:
+          - name: SNAPSHOT
+            description: Expected output of the application endpoint
+          - default: 'default'
+            name: NAMESPACE
+            description: Namespace of the application under test
+          - default: ""
+            name: PORT
+            description: Application endpoint Port
+        results:
+          - name: APP_URL
+            description: APP URL
+        steps:
+          - name: deploy-component
+            image: registry.redhat.io/openshift4/ose-cli:latest
+            env:
+              - name: SNAPSHOT
+                value: $(params.SNAPSHOT)
+              - name: KUBECONFIG_VALUE
+                valueFrom:
+                  secretKeyRef:
+                    name: "$(tasks.provision-env.results.secretRef)"
+                    key: kubeconfig
+              - name: CLIENT_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: ocm
+                    key: client_id
+              - name: CLIENT_SEC
+                valueFrom:
+                  secretKeyRef:
+                    name: ocm
+                    key: client_secret                      
+            script: |
+              #!/usr/bin/env bash
+              cat <<< "$KUBECONFIG_VALUE" > /tmp/cfg
+              dnf -y install jq git
+              export KUBECONFIG=/tmp/cfg
+
+              # ENABLE_HTTPS is set to false in service-template for this test 
+              # when the clusters only have self-signed certificates.
+              # This option should not be used in production.
+
+              COMPONENT_NAME=$(echo -n ${SNAPSHOT} | jq -r .components[0].name)
+
+              echo "Deploying component ${COMPONENT_NAME}..."
+              COMPONENT_NAME=$(echo -n ${SNAPSHOT} | jq -r .components[0].name)
+
+              TARGET_COMPONENT_NAME="/tmp/rh-trex"
+              REPO_URL=$(echo $SNAPSHOT | jq -r '.components[] | .source.git.url')
+              REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | .source.git.revision')
+              REPO_IMG=$(echo $SNAPSHOT | jq -r '.components[] | .containerImage')
+              git clone $REPO_URL $TARGET_COMPONENT_NAME
+              cd $TARGET_COMPONENT_NAME
+              git checkout $REPO_COMMIT
+              rev=$(echo ${REPO_IMG#*/})
+              image_reg=$(echo ${REPO_IMG%%/*})
+              image_tag=$(echo ${rev#*:})
+              image_rep=$(echo ${rev%:*})
+              mkdir -p /tmp/templates/
+              for i in $(ls templates/*yml); do j=${i#*/}; outf=${j%.*};oc process --kubeconfig /tmp/cfg --filename="$i" --local="true" --ignore-unknown-parameters="true" --param="ENVIRONMENT"=development --param="GLOG_V"=10  --param="DATABASE_HOST"=trex-db.$(oc project --short) --param="DATABASE_NAME"=rhtrex  --param="DATABASE_PASSWORD"=foobar-bizz-buzz  --param="DATABASE_PORT"=5432 --param="DATABASE_USER"=trex  --param="DATABASE_SSLMODE"=disable --param="ENABLE_SENTRY"=false --param="SENTRY_KEY"=TODO --param="JWKS_URL"=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs  --param="OCM_SERVICE_CLIENT_ID"=${CLIENT_ID} --param="OCM_SERVICE_CLIENT_SECRET"=${CLIENT_SEC}  --param="OCM_BASE_URL"=https://api.integration.openshift.com --param="IMAGE_REGISTRY="$image_reg --param="IMAGE_REPOSITORY="$image_rep --param="IMAGE_TAG="$image_tag  > /tmp/templates/${outf}.json; done
+              oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/db-template.json
+              sleep 60
+              oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/secrets-template.json
+              oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/service-template.json
+              sleep 60
+              oc get --kubeconfig /tmp/cfg all
+              oc get --kubeconfig /tmp/cfg events
+              oc describe --kubeconfig /tmp/cfg pod -l app=trex
+              oc logs --kubeconfig /tmp/cfg -l app=trex
+    - name: setup-test
+      runAfter: [deploy-app]
+      taskSpec:
+        results: 
+          - name: authenticated_url
+            description: "The authenticated URL for the Dinosaur API"
+          - name: config_path
+            description: "Path to the RapiDAST configuration file"
+        sidecars:
+        - name: port-forward
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          env:       
+            - name: KUBECONFIG_VALUE
+              valueFrom:
+                secretKeyRef:
+                  name: "$(tasks.provision-env.results.secretRef)"
+                  key: kubeconfig
+            - name: OCM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ocm
+                  key: ocmtoken          
+          ports:
+            - containerPort: 8000
+          script: |
+            #!/usr/bin/env bash
+            set -ex 
+            cat <<< "$KUBECONFIG_VALUE" > /tmp/cfg
+            export KUBECONFIG=/tmp/cfg
+
+            echo "Starting port-forward for service/trex on port 8000..."
+            oc port-forward --address=0.0.0.0 --kubeconfig /tmp/cfg svc/trex 8000:8000   
+        steps:
+          - name: get-url
+            image: registry.redhat.io/openshift4/ose-cli:latest
+            env:
+            - name: OCM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ocm
+                  key: ocmtoken          
+            script: |
+              #!/usr/bin/env bash
+              set -ex
+
+              # wait for port-forward to be ready
+              timeout 5m bash -c 'until echo > /dev/tcp/localhost/8000; do sleep 2s; done' || {
+                echo "[ERROR] Port-forward is not ready. Exiting."
+                exit 1
+              }
+
+               # ENABLE_HTTPS is set to false in service-template for this test 
+               # when the clusters only have self-signed certificates.
+               # This option should not be used in production.
+
+              BASE_URL="http://127.0.0.1:8000"
+              CONFIG_PATH="/workspace/config.yaml"
+
+              wget -O /tmp/ocm https://github.com/openshift-online/ocm-cli/releases/download/v1.0.3/ocm-linux-amd64
+              chmod +x /tmp/ocm
+              export PATH=$PATH:/tmp
+
+              dnf install -y jq
+
+              /tmp/ocm login --token=${OCM_TOKEN} --url=${BASE_URL}
+
+              AUTH_RESPONSE=$(/tmp/ocm get /api/rh-trex/v1/dinosaurs)
+
+              # Print the response to the logs
+              echo "${AUTH_RESPONSE}" | jq '.items[]' || echo "No dinosaurs found or failed to parse the response."
+
+              AUTH_URL="${BASE_URL}/api/rh-trex/v1/dinosaurs"
+              echo -n "${AUTH_URL}" | tee $(results.authenticated_url.path)
+              echo -n "${CONFIG_PATH}" | tee $(results.config_path.path)
+          - name: run-rapiddast
+            image: quay.io/redhatproductsecurity/rapidast:latest
+            env:
+            - name: OCM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ocm
+                  key: ocmtoken
+            script: |
+              #!/usr/bin/env bash
+              set -ex
+
+              curl -L -o /tmp/ocm https://github.com/openshift-online/ocm-cli/releases/download/v1.0.3/ocm-linux-amd64
+              chmod +x /tmp/ocm
+              export PATH=$PATH:/tmp
+
+              AUTH_URL=$(cat /tekton/results/authenticated_url)
+              CONFIG_PATH="/workspace/config.yaml"
+              RESULTS_DIR="/tmp/results"
+              LOCAL_OPENAPI_PATH="/workspace/openapi.yaml"
+
+              # Fetch the local `openapi.yaml` file from the repository
+              curl -L -o ${LOCAL_OPENAPI_PATH} https://raw.githubusercontent.com/jencull/rh-trex/main/openapi/openapi.yaml || {
+                echo "[ERROR] Failed to download the OpenAPI spec from the repository."
+                exit 1
+              }
+
+              mkdir -p ${RESULTS_DIR}
+              chmod o+w ${RESULTS_DIR}
+
+              # Create the RapiDAST configuration file
+              cat <<EOF > ${CONFIG_PATH}
+                config:
+                  configVersion: 5
+
+                application:
+                  shortName: "test-app"
+                  url: "${AUTH_URL}"  # Base URL for the application under test
+
+                general:
+                  authentication:
+                    type: http_header
+                    parameters:
+                      name: Authorization
+                      value_from_var: OCM_TOKEN
+
+                scanners:
+                  zap:
+                    apiScan:
+                      apis:
+                        apiFile: "${LOCAL_OPENAPI_PATH}" # Path to the OpenAPI spec
+                      resultsDir: "${RESULTS_DIR}"  # Directory to store scan results
+                    activeScan:
+                      policy: "API-scan-minimal"  # predefined minimal policy for active scanning
+                    report:
+                      format: ["json", "html"]  # Generate JSON and HTML reports
+                    miscOptions:
+                      zapPort: 8080  # Default ZAP port
+                      memMaxHeap: "2048m"  # Reduced heap size for minimal application
+              EOF
+
+              # run scan
+              ./rapidast.py --config ${CONFIG_PATH}
+
+              echo "RapiDAST scan completed. Checking results..."
+              FINAL_RESULTS_DIR=$(find ./results -type d -name "DAST-*" -print -quit)
+              if [ -z "$FINAL_RESULTS_DIR" ]; then
+                echo "[ERROR] No results directory found. Check the scan configuration."
+                exit 1
+              fi
+
+              echo "[INFO] Results found in: ${FINAL_RESULTS_DIR}"
+              ls -l ${FINAL_RESULTS_DIR}
