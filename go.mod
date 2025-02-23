@@ -22,8 +22,8 @@ require (
 	github.com/openshift-online/ocm-sdk-go v0.1.334
 	github.com/prometheus/client_golang v1.16.0
 	github.com/segmentio/ksuid v1.0.2
-	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/cobra v1.9.1
+	github.com/spf13/pflag v1.0.6
 	github.com/yaacov/tree-search-language v0.0.0-20190923184055-1c2dad2e354b
 	gopkg.in/resty.v1 v1.12.0
 	gorm.io/driver/postgres v1.0.5
@@ -41,7 +41,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
