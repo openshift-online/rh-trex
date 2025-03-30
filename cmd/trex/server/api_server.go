@@ -10,7 +10,7 @@ import (
 	_ "github.com/auth0/go-jwt-middleware"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/ghodss/yaml"
-	_ "github.com/golang-jwt/jwt/v4"
+	_ "github.com/golang-jwt/jwt/v5"
 	"github.com/golang/glog"
 	gorillahandlers "github.com/gorilla/handlers"
 	sdk "github.com/openshift-online/ocm-sdk-go"

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/segmentio/ksuid"
