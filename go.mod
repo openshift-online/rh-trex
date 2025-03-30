@@ -9,7 +9,7 @@ require (
 	github.com/docker/go-healthcheck v0.1.0
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-gormigrate/gormigrate/v2 v2.0.0
+	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/glog v1.0.0
 	github.com/google/uuid v1.3.0
@@ -27,7 +27,7 @@ require (
 	github.com/yaacov/tree-search-language v0.0.0-20190923184055-1c2dad2e354b
 	gopkg.in/resty.v1 v1.12.0
 	gorm.io/driver/postgres v1.0.5
-	gorm.io/gorm v1.20.5
+	gorm.io/gorm v1.25.12
 )
 
 require (
@@ -50,7 +50,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.11.0 // indirect
 	github.com/jackc/pgx/v4 v4.16.0 // indirect
-	github.com/jinzhu/now v1.1.1 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
@@ -67,7 +67,7 @@ require (
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
