@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	_ "github.com/auth0/go-jwt-middleware"
+	_ "github.com/auth0/go-jwt-middleware/v2"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/ghodss/yaml"
 	_ "github.com/golang-jwt/jwt/v4"
