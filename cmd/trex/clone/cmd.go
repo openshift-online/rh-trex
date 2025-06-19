@@ -14,16 +14,19 @@ import (
 
 type provisionCfgFlags struct {
 	Name        string
+	Repo        string
 	Destination string
 }
 
 func (c *provisionCfgFlags) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.Name, "name", c.Name, "Name of the new service being provisioned")
 	fs.StringVar(&c.Destination, "destination", c.Destination, "Target directory for the newly provisioned instance")
+	fs.StringVar(&c.Repo, "repo", c.Repo, "git repo of project")
 }
 
 var provisionCfg = &provisionCfgFlags{
-	Name:        "maestro",
+	Name:        "rh-trex",
+	Repo:        "github.com/openshift-online",
 	Destination: "/tmp/clone-test",
 }
 
@@ -80,6 +83,12 @@ func clone(_ *cobra.Command, _ []string) {
 				return err
 			}
 
+			if strings.Contains(content, "github.com/openshift-online/rh-trex") {
+				glog.Infof("find/replace required for file: %s", path)
+				replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
+				content = strings.Replace(content, "github.com/openshift-online/rh-trex", replacement, -1)
+			}
+
 			if strings.Contains(content, "RHTrex") {
 				glog.Infof("find/replace required for file: %s", path)
 				content = strings.Replace(content, "RHTrex", provisionCfg.Name, -1)
@@ -105,6 +114,13 @@ func clone(_ *cobra.Command, _ []string) {
 				content = strings.Replace(content, "TRex", provisionCfg.Name, -1)
 			}
 
+			if exists(dest) {
+				e := os.Remove(dest)
+				if e != nil {
+					return err
+				}
+			}
+
 			file, err := os.OpenFile(dest, os.O_APPEND|os.O_CREATE|os.O_RDWR, rw)
 			if err != nil {
 				return err
@@ -127,4 +143,12 @@ func clone(_ *cobra.Command, _ []string) {
 		fmt.Println(err)
 	}
 
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return true
 }

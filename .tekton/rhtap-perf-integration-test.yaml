@@ -1,0 +1,281 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: integration-test-app
+spec:
+  description: >-
+    Expects a Snapshot of a simple application with endpoint containing the expected output to be deployed on an environment. 
+    A secret containing the kubeconfig for the environment needs to be mounted via the cluster-credentials workspace binding.
+    The route to the single component is expected to have the same name as the component (default appstudio behavior).
+  params:
+    - description: 'Snapshot of the application'
+      name: SNAPSHOT
+      default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
+      type: string
+    - description: 'Namespace where the application is running'
+      name: NAMESPACE
+      default: "default"
+      type: string
+    - description: 'Application endpoint port'
+      name: PORT
+      default: ""
+      type: string
+    - description: 'Horreum Test Name'
+      name: HR_TEST_NAME
+      default: ""
+      type: string      
+    - description: 'Horreum regression variable'
+      name: HR_REG_VAR
+      default: ""
+      type: string        
+  tasks:
+    - name: provision-env
+      taskSpec:
+        results:
+          - name: secretRef
+            description:
+              SecretRef is the name of the secret with a SA token that has admin-like
+              (or whatever we set in the tier template) permissions in the namespace
+            type: string
+        steps:
+          - name: request-ephemeral-namespace
+            image: registry.redhat.io/openshift4/ose-cli:4.13@sha256:73df37794ffff7de1101016c23dc623e4990810390ebdabcbbfa065214352c7c
+            env:
+              - name: KONFLUXNAMESPACE
+                value: "$(context.pipelineRun.namespace)"
+              - name: PIPELINERUN_NAME
+                value: "$(context.pipelineRun.name)"
+              - name: PIPELINERUN_UID
+                value: "$(context.pipelineRun.uid)"
+            script: |
+              #!/bin/bash
+              set -ex
+              set -o pipefail
+      
+              cat <<EOF > space_request.yaml
+              apiVersion: toolchain.dev.openshift.com/v1alpha1
+              kind: SpaceRequest
+              metadata:
+                generateName: task-spacerequest-
+                namespace: $KONFLUXNAMESPACE
+                ownerReferences:
+                - apiVersion: tekton.dev/v1
+                  kind: PipelineRun
+                  name: $PIPELINERUN_NAME
+                  uid: $PIPELINERUN_UID
+              spec:
+                tierName: appstudio-env
+              EOF
+      
+              SPACEREQUEST_NAME=$(oc create -f space_request.yaml -o=jsonpath='{.metadata.name}')
+      
+              if oc wait spacerequests $SPACEREQUEST_NAME --for=condition=Ready --timeout=5m -n $KONFLUXNAMESPACE; then
+                secretRef=$(oc get spacerequests $SPACEREQUEST_NAME -o=jsonpath='{.status.namespaceAccess[0].secretRef}')
+                echo -n $secretRef | tee $(results.secretRef.path)
+              else
+                exit 1
+              fi
+    - name: deploy-app
+      runAfter: [provision-env]
+      params:
+        - name: SNAPSHOT
+          value: $(params.SNAPSHOT)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+        - name: PORT
+          value: $(params.PORT)
+        - name: HR_TEST_NAME
+          value: $(params.HR_TEST_NAME)          
+        - name: HR_REG_VAR
+          value: $(params.HR_REG_VAR)
+      taskSpec:
+        params:
+          - name: SNAPSHOT
+            description: Expected output of the application endpoint
+          - default: 'default'
+            name: NAMESPACE
+            description: Namespace of the application under test
+          - default: ""
+            name: PORT
+            description: Application endpoint Port
+          - name: HR_TEST_NAME
+            description: 'Horreum Test Name'            
+          - name: HR_REG_VAR
+            description: 'Horreum regression variable'            
+        results:
+          - name: APP_URL
+            description: APP URL
+          - name: test_name
+            description: Test name
+          - name: reg_var
+            description: Regression variable             
+          - name: TEST_OUTPUT
+            description: Test output             
+        steps:
+        - image: registry.redhat.io/openshift4/ose-cli:latest
+          env:
+            - name: SNAPSHOT
+              value: $(params.SNAPSHOT)
+            - name: NAMESPACE
+              value: $(params.NAMESPACE)
+            - name: PORT
+              value: $(params.PORT)
+            - name: KUBECONFIG_VALUE
+              valueFrom:
+                secretKeyRef:
+                  name: "$(tasks.provision-env.results.secretRef)"
+                  key: kubeconfig
+            - name: CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ocm
+                  key: client_id
+            - name: CLIENT_SEC
+              valueFrom:
+                secretKeyRef:
+                  name: ocm
+                  key: client_secret                      
+          script: |
+            #!/usr/bin/env bash
+            cat <<< "$KUBECONFIG_VALUE" > /tmp/cfg
+            dnf -y install jq git
+            export KUBECONFIG=/tmp/cfg
+
+            # Get the route for the application endpoint
+            COMPONENT_NAME=$(echo -n ${SNAPSHOT} | jq -r .components[0].name)
+            # The --insecure-skip-tls-verify option is added for local testing
+            # when the clusters only have self-signed certificates.
+            # This option should not be used in production.
+
+            TARGET_COMPONENT_NAME="/tmp/rh-trex"
+            REPO_URL=$(echo $SNAPSHOT | jq -r '.components[] | .source.git.url')
+            REPO_COMMIT=$(echo $SNAPSHOT | jq -r '.components[] | .source.git.revision')
+            REPO_IMG=$(echo $SNAPSHOT | jq -r '.components[] | .containerImage')
+            git clone $REPO_URL $TARGET_COMPONENT_NAME
+            cd $TARGET_COMPONENT_NAME
+            git checkout $REPO_COMMIT
+            rev=$(echo ${REPO_IMG#*/})
+            image_reg=$(echo ${REPO_IMG%%/*})
+            image_tag=$(echo ${rev#*:})
+            image_rep=$(echo ${rev%:*})
+            mkdir -p /tmp/templates/
+            for i in $(ls templates/*yml); do j=${i#*/}; outf=${j%.*};oc process --kubeconfig /tmp/cfg --filename="$i" --local="true" --ignore-unknown-parameters="true" --param="ENVIRONMENT"=development --param="GLOG_V"=10  --param="DATABASE_HOST"=trex-db.$(oc project --short) --param="DATABASE_NAME"=rhtrex  --param="DATABASE_PASSWORD"=foobar-bizz-buzz  --param="DATABASE_PORT"=5432 --param="DATABASE_USER"=trex  --param="DATABASE_SSLMODE"=disable --param="ENABLE_SENTRY"=false --param="SENTRY_KEY"=TODO --param="JWKS_URL"=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs  --param="OCM_SERVICE_CLIENT_ID"=${CLIENT_ID} --param="OCM_SERVICE_CLIENT_SECRET"=${CLIENT_SEC}  --param="OCM_BASE_URL"=https://api.integration.openshift.com --param="IMAGE_REGISTRY="$image_reg --param="IMAGE_REPOSITORY="$image_rep --param="IMAGE_TAG="$image_tag  > /tmp/templates/${outf}.json; done
+            oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/db-template.json
+            oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/secrets-template.json
+            oc apply --kubeconfig /tmp/cfg  -f /tmp/templates/service-template.json
+            oc expose --kubeconfig /tmp/cfg service trex
+            oc get --kubeconfig /tmp/cfg all
+            ROUTE_NAME=$(oc get --kubeconfig /tmp/cfg routes trex -o name --insecure-skip-tls-verify)
+            HOST=$(oc get --kubeconfig /tmp/cfg "${ROUTE_NAME}" -o jsonpath={.spec.host}  --insecure-skip-tls-verify)
+            echo "Found target host ${HOST} for app ${APPLICATION_NAME}"
+            
+            # Check the application endpoint
+            ENDPOINT_OUTPUT=$(curl -k http://${HOST}:${PORT})
+            echo -e "The endpoint outputs the following:\n ${ENDPOINT_OUTPUT}"
+            echo -e "Snapshot output:\n ${SNAPSHOT}"
+
+            echo ${HOST} > /tekton/home/endpoint_url            
+            echo -n ${HOST} | tee $(results.APP_URL.path)
+            if [ -z $(params.HR_TEST_NAME) ]
+            then
+              echo '$(params.SNAPSHOT)'|jq -r .components[].name |  tr -d '\n\t' | tee $(results.test_name.path)
+            else
+              echo -n  '$(params.HR_TEST_NAME)' | tee $(results.test_name.path)
+            fi            
+            
+            if [ -z $(params.HR_REG_VAR) ]
+            then
+              echo -n 'iteration_duration' | tee $(results.reg_var.path)
+            else
+              echo -n '$(params.HR_REG_VAR)' | tee $(results.reg_var.path)
+            fi             
+    - name: perf-benchmark
+      params:
+        - name: url
+          value: $(tasks.deploy-app.results.APP_URL)
+        - name: test_name
+          value: $(tasks.deploy-app.results.test_name)
+        - name: reg_var
+          value: $(tasks.deploy-app.results.reg_var)
+      taskSpec:
+        params:
+          - name: url
+          - name: test_name
+          - name: reg_var          
+        steps:
+        - image: grafana/k6
+          name: run-perf
+          env:
+            - name: OCM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ocm
+                  key: ocmtoken          
+          script: |
+            #!/usr/bin/env sh
+            export
+            echo "Transform result to json format"
+            wget -O /tmp/ocm https://github.com/openshift-online/ocm-cli/releases/download/v0.1.65/ocm-linux-amd64
+            chmod +x /tmp/ocm
+            echo ${OCM_TOKEN}
+            /tmp/ocm login --token=${OCM_TOKEN} --url=http://$(params.url)
+            export BASE_URL=http://$(params.url)
+            wget -O /tmp/script.js https://raw.githubusercontent.com/yogananth-subramanian/rh-trex/main/.tekton/rhtap-perf-k6-test.js
+            echo -n `/tmp/ocm token`>/tmp/token
+            k6 run /tmp/script.js
+            cat /workspace/output.json
+        - image: quay.io/yogananth_subramanian/curl-yq-jq
+          name: check-regression
+          env:
+            - name: HORREUM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_password
+            - name: HORREUM_URI
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_uri
+            - name: HORREUM_USER
+              valueFrom:
+                secretKeyRef:
+                  name: horreum
+                  key: horreum_user          
+          script: |
+            set -xv
+            echo "Transform result to json format"
+            cat /workspace/output.json
+            test_name=$(params.test_name)
+            reg_var=$(params.reg_var)
+            KEYCLOAK_URI=$(curl -s -k -X GET  ${HORREUM_URI}/api/config/keycloak|jq -r .url)
+            TOKEN=$(curl -s  -k  ${KEYCLOAK_URI}/realms/horreum/protocol/openid-connect/token   -d "username=$HORREUM_USER"  -d "password=$HORREUM_PASSWORD" -d 'grant_type=password' -d 'client_id=horreum-ui' | jq -r .access_token)
+            curl -k -s -v ${HORREUM_URI}'/api/run/data?start=$.startTime&stop=$.endTime&test='$test_name -X POST -H 'Authorization: Bearer '${TOKEN} -H 'Content-Type: application/json'  -d @/workspace/output.json
+            testid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/test/byName/'$test_name|jq -r .id)
+            varid=$(curl -s -k -X GET  ${HORREUM_URI}'/api/alerting/variables?test='$testid|jq -r --arg regvar "$reg_var" '.[] | select(.name==$regvar)| .id ')
+            changes=`curl -s -k -X GET ${HORREUM_URI}'/api/alerting/changes?var='$varid  |jq  '.| length'`
+            if [ -z  $changes ] || [ $changes -gt 0  ] ;then echo "Regression check failed";exit 1;fi            
+      runAfter:
+        - deploy-app
+  finally:
+    - name: cleanup  
+      params:
+        - name: aggregateTasksStatus
+          value: "$(tasks.status)"
+      taskSpec:
+        results:
+          - name: TEST_OUTPUT
+        params:
+          - name: aggregateTasksStatus
+        steps:
+        - image: quay.io/yogananth_subramanian/curl-yq-jq  
+          name: step1
+          script: |
+            RESULT="SUCCESS"
+            if [ $(params.aggregateTasksStatus) == "Failed" ]
+            then
+              RESULT="FAILURE"
+            fi
+            TEST_OUTPUT=$(jq -rc --arg date $(date +%s) --arg RESULT "${RESULT}" --null-input \
+            '{result: $RESULT, timestamp: $date, failures: 0, successes: 0, warnings: 0}')
+            echo -n "${TEST_OUTPUT}" | tee $(results.TEST_OUTPUT.path)
