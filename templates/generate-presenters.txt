@@ -23,15 +23,11 @@ func Convert{{.Kind}}({{.KindLowerSingular}} openapi.{{.Kind}}) *api.{{.Kind}} {
 
 func Present{{.Kind}}({{.KindLowerSingular}} *api.{{.Kind}}) openapi.{{.Kind}} {
 	reference := PresentReference({{.KindLowerSingular}}.ID, {{.KindLowerSingular}})
-
-	reference.CreatedAt = PresentTime({{.KindLowerSingular}}.CreatedAt)
-	reference.UpdatedAt = PresentTime({{.KindLowerSingular}}.UpdatedAt)
-
 	return openapi.{{.Kind}}{
-		Id:         reference.Id,
-		CreatedAt:  PresentTime(*reference.CreatedAt),
-		UpdatedAt:  PresentTime(*reference.UpdatedAt),
-		Kind:       reference.Kind,
-		Href:       reference.Href,
+		Id:        reference.Id,
+		Kind:      reference.Kind,
+		Href:      reference.Href,
+		CreatedAt: openapi.PtrTime({{.KindLowerSingular}}.CreatedAt),
+		UpdatedAt: openapi.PtrTime({{.KindLowerSingular}}.UpdatedAt),
 	}
 }

@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  description: rh-trex API
-  title: rh-trex API
+  description: rh-trex Service API
+  title: rh-trex Service API
   version: 0.0.1
 servers:
 - description: current domain
@@ -173,13 +173,11 @@ paths:
     get:
       parameters:
       - description: The id of record
-        explode: false
         in: path
         name: id
         required: true
         schema:
           type: string
-        style: simple
       responses:
         "200":
           content:
@@ -214,16 +212,21 @@ paths:
       security:
       - Bearer: []
       summary: Get an dinosaur by id
+    parameters:
+    - description: The id of record
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
     patch:
       parameters:
       - description: The id of record
-        explode: false
         in: path
         name: id
         required: true
         schema:
           type: string
-        style: simple
       requestBody:
         content:
           application/json:
@@ -379,6 +382,12 @@ components:
         kind:
           type: string
         href:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        updated_at:
+          format: date-time
           type: string
       type: object
     List:

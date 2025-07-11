@@ -89,17 +89,111 @@ TRex is a Go-based REST API template for Red Hat TAP (Trusted Application Pipeli
 
 ## Code Generation
 
-Use the generator script to create new resource types:
+### How to Generate a New Kind
+
+The generator script creates complete CRUD functionality for a new resource type. The process is now fully automated with no manual steps required.
+
+**Single Command to Generate a New Kind:**
 ```bash
 go run ./scripts/generator.go --kind KindName
 ```
 
-Manual updates required after generation:
-- Update `pkg/api/presenters/kind.go` and `pkg/api/presenters/path.go`
-- Add service locator in `cmd/trex/environments/`
-- Update routes in `cmd/trex/server/routes.go`
-- Add migration in `pkg/db/migrations/`
-- Create test factories in `test/factories/`
+**Complete Example:**
+```bash
+# Generate a new Kind called "FizzBuzz"
+go run ./scripts/generator.go --kind FizzBuzz
+
+# This creates a complete implementation with:
+# - API model and handlers
+# - Service and DAO layers  
+# - Database migration
+# - Test files and factories
+# - OpenAPI specifications
+# - Service locators and routing
+```
+
+### What the Generator Creates
+
+The generator automatically creates and configures:
+
+1. **Generated Files** (no manual editing needed):
+   - `pkg/api/fizzbuzz.go` - API model
+   - `pkg/handlers/fizzbuzz.go` - HTTP handlers
+   - `pkg/services/fizzbuzz.go` - Business logic
+   - `pkg/dao/fizzbuzz.go` - Data access layer
+   - `pkg/dao/mocks/fizzbuzz.go` - Mock for testing
+   - `pkg/db/migrations/YYYYMMDDHHMM_add_fizzbuzzs.go` - Database migration
+   - `test/integration/fizzbuzzs_test.go` - Integration tests
+   - `test/factories/fizzbuzzs.go` - Test data factories
+   - `openapi/openapi.fizzbuzzs.yaml` - OpenAPI specification
+   - `cmd/trex/environments/locator_fizzbuzz.go` - Service locator
+
+2. **Updated Files** (automatically modified):
+   - `pkg/api/presenters/kind.go` - Adds Kind mapping
+   - `pkg/api/presenters/path.go` - Adds snake_case path mapping  
+   - `cmd/trex/environments/types.go` - Adds service to Services struct
+   - `cmd/trex/environments/framework.go` - Adds service initialization
+   - `cmd/trex/server/routes.go` - Registers API routes
+   - `pkg/db/migrations/migration_structs.go` - Enables database migration
+   - `openapi/openapi.yaml` - Adds API references
+
+3. **Regenerated OpenAPI Client**:
+   ```bash
+   make generate  # Automatically regenerates client code
+   ```
+
+### Naming Patterns
+
+The generator uses consistent naming patterns:
+- **API paths**: snake_case (e.g., `/api/rh-trex/v1/fizz_buzzs`)
+- **Go types**: PascalCase (e.g., `FizzBuzz`)
+- **Variables**: camelCase (e.g., `fizzBuzz`)
+- **Database tables**: snake_case (e.g., `fizz_buzzs`)
+
+### Template Fields Available
+
+When creating custom templates, these fields are available:
+- `{{.Kind}}` - PascalCase (e.g., "FizzBuzz")
+- `{{.KindPlural}}` - PascalCase plural (e.g., "FizzBuzzs")
+- `{{.KindLowerSingular}}` - camelCase singular (e.g., "fizzBuzz")
+- `{{.KindLowerPlural}}` - camelCase plural (e.g., "fizzBuzzs")
+- `{{.KindSnakeCasePlural}}` - snake_case plural for API paths (e.g., "fizz_buzzs")
+- `{{.Project}}` - Project name (e.g., "rh-trex")
+- `{{.Repo}}` - Repository path (e.g., "github.com/openshift-online")
+- `{{.Cmd}}` - Command directory name (e.g., "trex")
+
+### Testing the Generated Kind
+
+After generation, verify the implementation:
+```bash
+# Run integration tests for the new Kind
+export GOPATH=/tmp/go
+go test -v ./test/integration -run TestFizzBuzz
+
+# Run all tests to ensure no regressions
+make test-integration
+```
+
+### Expected Results
+
+- **All tests pass** immediately after generation
+- **API endpoints** respond correctly with proper HTTP status codes
+- **Database operations** work (CREATE, READ, UPDATE, DELETE, SEARCH)
+- **OpenAPI client** includes the new Kind's methods
+- **Service locators** properly inject dependencies
+- **Integration tests** verify complete functionality
+
+### Key Improvements
+
+The generator has been enhanced to:
+1. **Dynamically detect** command directory structure
+2. **Automatically handle** all service registrations
+3. **Generate correct** snake_case API paths
+4. **Use proper** service locator patterns with lock factories
+5. **Create complete** test suites with proper factory methods
+6. **Maintain consistency** with existing codebase patterns
+
+**No manual steps are required** - the generator handles everything automatically!
 
 ## Authentication
 

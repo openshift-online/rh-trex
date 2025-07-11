@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"{{.Repo}}/{{.Project}}/pkg/dao"
+	"{{.Repo}}/{{.Project}}/pkg/db"
 
 	"{{.Repo}}/{{.Project}}/pkg/api"
 	"{{.Repo}}/{{.Project}}/pkg/errors"
@@ -18,8 +19,9 @@ type {{.Kind}}Service interface {
 	FindByIDs(ctx context.Context, ids []string) (api.{{.Kind}}List, *errors.ServiceError)
 }
 
-func New{{.Kind}}Service({{.KindLowerSingular}}Dao dao.{{.Kind}}Dao, events EventService) {{.Kind}}Service {
+func New{{.Kind}}Service(lockFactory db.LockFactory, {{.KindLowerSingular}}Dao dao.{{.Kind}}Dao, events EventService) {{.Kind}}Service {
 	return &sql{{.Kind}}Service{
+		lockFactory: lockFactory,
 		{{.KindLowerSingular}}Dao: {{.KindLowerSingular}}Dao,
 		events:      events,
 	}
@@ -28,6 +30,7 @@ func New{{.Kind}}Service({{.KindLowerSingular}}Dao dao.{{.Kind}}Dao, events Even
 var _ {{.Kind}}Service = &sql{{.Kind}}Service{}
 
 type sql{{.Kind}}Service struct {
+	lockFactory db.LockFactory
 	{{.KindLowerSingular}}Dao dao.{{.Kind}}Dao
 	events      EventService
 }

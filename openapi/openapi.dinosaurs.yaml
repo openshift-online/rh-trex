@@ -1,18 +1,18 @@
 paths:
   # NEW ENDPOINT START
-  /api/{{.Project}}/v1/{{.KindSnakeCasePlural}}:
+  /api/rh-trex/v1/dinosaurs:
   # NEW ENDPOINT END
     get:
-      summary: Returns a list of {{.KindLowerPlural}}
+      summary: Returns a list of dinosaurs
       security:
         - Bearer: []
       responses:
         '200':
-          description: A JSON array of {{.KindLowerSingular}} objects
+          description: A JSON array of dinosaur objects
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}List'
+                $ref: '#/components/schemas/DinosaurList'
         '401':
           description: Auth token is invalid
           content:
@@ -38,23 +38,23 @@ paths:
         - $ref: '#/components/parameters/orderBy'
         - $ref: '#/components/parameters/fields'
     post:
-      summary: Create a new {{.KindLowerSingular}}
+      summary: Create a new dinosaur
       security:
         - Bearer: []
       requestBody:
-        description: {{.Kind}} data
+        description: Dinosaur data
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/{{.Kind}}'
+              $ref: '#/components/schemas/Dinosaur'
       responses:
         '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Dinosaur'
         '400':
           description: Validation errors occurred
           content:
@@ -74,31 +74,31 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '409':
-          description: {{.Kind}} already exists
+          description: Dinosaur already exists
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '500':
-          description: An unexpected error occurred creating the {{.KindLowerSingular}}
+          description: An unexpected error occurred creating the dinosaur
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
   # NEW ENDPOINT START
-  /api/{{.Project}}/v1/{{.KindSnakeCasePlural}}/{id}:
+  /api/rh-trex/v1/dinosaurs/{id}:
   # NEW ENDPOINT END
     get:
-      summary: Get an {{.KindLowerSingular}} by id
+      summary: Get an dinosaur by id
       security:
         - Bearer: []
       responses:
         '200':
-          description: {{.Kind}} found by id
+          description: Dinosaur found by id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Dinosaur'
         '401':
           description: Auth token is invalid
           content:
@@ -112,7 +112,7 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '404':
-          description: No {{.KindLowerSingular}} with specified id exists
+          description: No dinosaur with specified id exists
           content:
             application/json:
               schema:
@@ -124,23 +124,23 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
     patch:
-      summary: Update an {{.KindLowerSingular}}
+      summary: Update an dinosaur
       security:
         - Bearer: []
       requestBody:
-        description: Updated {{.KindLowerSingular}} data
+        description: Updated dinosaur data
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/{{.Kind}}PatchRequest'
+              $ref: '#/components/schemas/DinosaurPatchRequest'
       responses:
         '200':
-          description: {{.Kind}} updated successfully
+          description: Dinosaur updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Dinosaur'
         '400':
           description: Validation errors occurred
           content:
@@ -160,19 +160,19 @@ paths:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '404':
-          description: No {{.KindLowerSingular}} with specified id exists
+          description: No dinosaur with specified id exists
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '409':
-          description: {{.Kind}} already exists
+          description: Dinosaur already exists
           content:
             application/json:
               schema:
                 $ref: 'openapi.yaml#/components/schemas/Error'
         '500':
-          description: Unexpected error updating {{.KindLowerSingular}}
+          description: Unexpected error updating dinosaur
           content:
             application/json:
               schema:
@@ -182,16 +182,22 @@ paths:
 components:
   schemas:
     # NEW SCHEMA START
-    {{.Kind}}:
+    Dinosaur:
     # NEW SCHEMA END
       allOf:
         - $ref: 'openapi.yaml#/components/schemas/ObjectReference'
         - type: object
           properties:
-            foo:
+            species:
               type: string
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
     # NEW SCHEMA START
-    {{.Kind}}List:
+    DinosaurList:
     # NEW SCHEMA END
       allOf:
         - $ref: 'openapi.yaml#/components/schemas/List'
@@ -200,14 +206,14 @@ components:
             items:
               type: array
               items:
-                $ref: '#/components/schemas/{{.Kind}}'
+                $ref: '#/components/schemas/Dinosaur'
     # NEW SCHEMA START
-    {{.Kind}}PatchRequest:
+    DinosaurPatchRequest:
     # NEW SCHEMA END
       type: object
       properties:
-        foo:
-            type: string
+        species:
+          type: string
   parameters:
       id:
         name: id

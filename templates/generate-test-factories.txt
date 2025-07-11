@@ -29,3 +29,12 @@ func (f *Factories) New{{.Kind}}List(name string, count int) ([]*api.{{.Kind}}, 
 	}
 	return {{.KindPlural}}, nil
 }
+
+// Aliases for test compatibility
+func (f *Factories) New{{.KindPlural}}(id string) (*api.{{.Kind}}, error) {
+	return f.New{{.Kind}}(id)
+}
+
+func (f *Factories) New{{.KindPlural}}List(name string, count int) ([]*api.{{.Kind}}, error) {
+	return f.New{{.Kind}}List(name, count)
+}
