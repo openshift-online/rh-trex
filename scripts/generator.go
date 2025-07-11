@@ -144,6 +144,11 @@ func main() {
 		if strings.EqualFold("generate-"+nm, "generate-openapi-kind") {
 			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
 		}
+		
+		// Add controller registration after all templates are processed
+		if nm == "services" {
+			addControllerRegistration(k)
+		}
 	}
 }
 
@@ -235,4 +240,26 @@ func writeAfterLine(path string, matchingLine string, lineToWrite string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func addControllerRegistration(k myWriter) {
+	controllerFile := fmt.Sprintf("cmd/%s/server/controllers.go", k.Cmd)
+	
+	// Add controller registration
+	controllerRegistration := fmt.Sprintf(`
+	%sServices := env().Services.%s()
+
+	s.KindControllerManager.Add(&controllers.ControllerConfig{
+		Source: "%s",
+		Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
+			api.CreateEventType: {%sServices.OnUpsert},
+			api.UpdateEventType: {%sServices.OnUpsert},
+			api.DeleteEventType: {%sServices.OnDelete},
+		},
+	})
+`, k.KindLowerSingular, k.KindPlural, k.KindPlural, k.KindLowerSingular, k.KindLowerSingular, k.KindLowerSingular)
+	
+	// Insert after the existing dinosaur registration
+	matchingLine := `	})`
+	writeAfterLine(controllerFile, matchingLine, controllerRegistration)
 }
