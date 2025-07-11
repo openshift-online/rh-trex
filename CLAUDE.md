@@ -91,7 +91,7 @@ TRex is a Go-based REST API template for Red Hat TAP (Trusted Application Pipeli
 
 ### How to Generate a New Kind
 
-The generator script creates complete CRUD functionality for a new resource type. The process is now fully automated with no manual steps required.
+The generator script creates complete CRUD functionality with **event-driven architecture** for a new resource type. The process is now fully automated with no manual steps required.
 
 **Single Command to Generate a New Kind:**
 ```bash
@@ -105,11 +105,12 @@ go run ./scripts/generator.go --kind FizzBuzz
 
 # This creates a complete implementation with:
 # - API model and handlers
-# - Service and DAO layers  
+# - Service and DAO layers with event-driven controllers
 # - Database migration
 # - Test files and factories
 # - OpenAPI specifications
 # - Service locators and routing
+# - Automatic controller registration for event handling
 ```
 
 ### What the Generator Creates
@@ -119,7 +120,7 @@ The generator automatically creates and configures:
 1. **Generated Files** (no manual editing needed):
    - `pkg/api/fizzbuzz.go` - API model
    - `pkg/handlers/fizzbuzz.go` - HTTP handlers
-   - `pkg/services/fizzbuzz.go` - Business logic
+   - `pkg/services/fizzbuzz.go` - Business logic with event handlers
    - `pkg/dao/fizzbuzz.go` - Data access layer
    - `pkg/dao/mocks/fizzbuzz.go` - Mock for testing
    - `pkg/db/migrations/YYYYMMDDHHMM_add_fizzbuzzs.go` - Database migration
@@ -134,6 +135,7 @@ The generator automatically creates and configures:
    - `cmd/trex/environments/types.go` - Adds service to Services struct
    - `cmd/trex/environments/framework.go` - Adds service initialization
    - `cmd/trex/server/routes.go` - Registers API routes
+   - `cmd/trex/server/controllers.go` - Adds event handler registration
    - `pkg/db/migrations/migration_structs.go` - Enables database migration
    - `openapi/openapi.yaml` - Adds API references
 
@@ -161,6 +163,39 @@ When creating custom templates, these fields are available:
 - `{{.Project}}` - Project name (e.g., "rh-trex")
 - `{{.Repo}}` - Repository path (e.g., "github.com/openshift-online")
 - `{{.Cmd}}` - Command directory name (e.g., "trex")
+- `{{.ID}}` - Timestamp ID for migrations (e.g., "202507111234")
+
+### Generated Event Handlers
+
+Each generated service includes idempotent event handlers:
+
+```go
+// OnUpsert handles CREATE and UPDATE events
+func (s *sqlKindService) OnUpsert(ctx context.Context, id string) error {
+    logger := logger.NewOCMLogger(ctx)
+    
+    kind, err := s.kindDao.Get(ctx, id)
+    if err != nil {
+        return err
+    }
+    
+    logger.Infof("Do idempotent somethings with this kind: %s", kind.ID)
+    return nil
+}
+
+// OnDelete handles DELETE events
+func (s *sqlKindService) OnDelete(ctx context.Context, id string) error {
+    logger := logger.NewOCMLogger(ctx)
+    logger.Infof("This kind has been deleted: %s", id)
+    return nil
+}
+```
+
+**Key Handler Characteristics:**
+- **Idempotent**: Safe to run multiple times
+- **Logged**: Structured logging for debugging
+- **Error Handling**: Proper error propagation
+- **Context Aware**: Supports request tracing
 
 ### Testing the Generated Kind
 
@@ -172,6 +207,10 @@ go test -v ./test/integration -run TestFizzBuzz
 
 # Run all tests to ensure no regressions
 make test-integration
+
+# Test event-driven functionality
+# Events are automatically created during CRUD operations
+# Controllers process events asynchronously via PostgreSQL LISTEN/NOTIFY
 ```
 
 ### Expected Results
@@ -179,9 +218,53 @@ make test-integration
 - **All tests pass** immediately after generation
 - **API endpoints** respond correctly with proper HTTP status codes
 - **Database operations** work (CREATE, READ, UPDATE, DELETE, SEARCH)
+- **Event-driven controllers** automatically process database events
+- **Idempotent handlers** safely process CREATE/UPDATE/DELETE events
 - **OpenAPI client** includes the new Kind's methods
 - **Service locators** properly inject dependencies
 - **Integration tests** verify complete functionality
+- **Controller registration** automatically handles event processing
+
+### Event-Driven Architecture
+
+The generator creates a complete event-driven system:
+
+**Generated Service Interface:**
+```go
+type KindService interface {
+    // Standard CRUD operations
+    Get(ctx context.Context, id string) (*api.Kind, *errors.ServiceError)
+    Create(ctx context.Context, kind *api.Kind) (*api.Kind, *errors.ServiceError)
+    Replace(ctx context.Context, kind *api.Kind) (*api.Kind, *errors.ServiceError)
+    Delete(ctx context.Context, id string) *errors.ServiceError
+    All(ctx context.Context) (api.KindList, *errors.ServiceError)
+    FindByIDs(ctx context.Context, ids []string) (api.KindList, *errors.ServiceError)
+    
+    // Event-driven controller functions
+    OnUpsert(ctx context.Context, id string) error
+    OnDelete(ctx context.Context, id string) error
+}
+```
+
+**Automatic Controller Registration:**
+```go
+// Generated in cmd/trex/server/controllers.go
+kindServices := env().Services.Kinds()
+
+s.KindControllerManager.Add(&controllers.ControllerConfig{
+    Source: "Kinds",
+    Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
+        api.CreateEventType: {kindServices.OnUpsert},
+        api.UpdateEventType: {kindServices.OnUpsert},
+        api.DeleteEventType: {kindServices.OnDelete},
+    },
+})
+```
+
+**Event Flow:**
+1. **API Operation** (CREATE/UPDATE/DELETE) → **Event Creation** → **Database NOTIFY**
+2. **Controller Listener** → **Event Handlers** → **Business Logic**
+3. **Idempotent Processing** → **Structured Logging** → **Error Handling**
 
 ### Key Improvements
 
@@ -192,6 +275,8 @@ The generator has been enhanced to:
 4. **Use proper** service locator patterns with lock factories
 5. **Create complete** test suites with proper factory methods
 6. **Maintain consistency** with existing codebase patterns
+7. **Generate event-driven controllers** with idempotent handlers
+8. **Automatically register** event handlers in controller system
 
 **No manual steps are required** - the generator handles everything automatically!
 

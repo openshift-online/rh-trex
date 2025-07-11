@@ -4,6 +4,7 @@ import (
 	"context"
 	"{{.Repo}}/{{.Project}}/pkg/dao"
 	"{{.Repo}}/{{.Project}}/pkg/db"
+	logger "{{.Repo}}/{{.Project}}/pkg/logger"
 
 	"{{.Repo}}/{{.Project}}/pkg/api"
 	"{{.Repo}}/{{.Project}}/pkg/errors"
@@ -17,6 +18,10 @@ type {{.Kind}}Service interface {
 	All(ctx context.Context) (api.{{.Kind}}List, *errors.ServiceError)
 
 	FindByIDs(ctx context.Context, ids []string) (api.{{.Kind}}List, *errors.ServiceError)
+
+	// idempotent functions for the control plane, but can also be called synchronously by any actor
+	OnUpsert(ctx context.Context, id string) error
+	OnDelete(ctx context.Context, id string) error
 }
 
 func New{{.Kind}}Service(lockFactory db.LockFactory, {{.KindLowerSingular}}Dao dao.{{.Kind}}Dao, events EventService) {{.Kind}}Service {
@@ -110,4 +115,23 @@ func (s *sql{{.Kind}}Service) All(ctx context.Context) (api.{{.Kind}}List, *erro
 		return nil, errors.GeneralError("Unable to get all {{.KindLowerPlural}}: %s", err)
 	}
 	return {{.KindLowerPlural}}, nil
+}
+
+func (s *sql{{.Kind}}Service) OnUpsert(ctx context.Context, id string) error {
+	logger := logger.NewOCMLogger(ctx)
+
+	{{.KindLowerSingular}}, err := s.{{.KindLowerSingular}}Dao.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("Do idempotent somethings with this {{.KindLowerSingular}}: %s", {{.KindLowerSingular}}.ID)
+
+	return nil
+}
+
+func (s *sql{{.Kind}}Service) OnDelete(ctx context.Context, id string) error {
+	logger := logger.NewOCMLogger(ctx)
+	logger.Infof("This {{.KindLowerSingular}} has been deleted: %s", id)
+	return nil
 }
