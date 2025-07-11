@@ -29,6 +29,138 @@ TRex is a Go-based REST API template for Red Hat TAP (Trusted Application Pipeli
 - `make db/teardown` - Stop and remove PostgreSQL container
 - `./trex migrate` - Run database migrations
 
+### TRex CLI Commands
+
+The `trex` binary provides three main subcommands for different operational tasks:
+
+#### `trex serve` - Start the API Server
+Serves the rh-trex REST API with full authentication, database connectivity, and monitoring capabilities.
+
+**Basic Usage:**
+```bash
+./trex serve                              # Start server on localhost:8000
+./trex serve --api-server-bindaddress :8080  # Custom bind address
+```
+
+**Key Configuration Options:**
+- **Server Binding:**
+  - `--api-server-bindaddress` - API server bind address (default: "localhost:8000")
+  - `--api-server-hostname` - Server's public hostname
+  - `--enable-https` - Enable HTTPS rather than HTTP
+  - `--https-cert-file` / `--https-key-file` - TLS certificate files
+
+- **Database Configuration:**
+  - `--db-host-file` - Database host file (default: "secrets/db.host")
+  - `--db-name-file` - Database name file (default: "secrets/db.name") 
+  - `--db-user-file` - Database username file (default: "secrets/db.user")
+  - `--db-password-file` - Database password file (default: "secrets/db.password")
+  - `--db-port-file` - Database port file (default: "secrets/db.port")
+  - `--db-sslmode` - Database SSL mode: disable | require | verify-ca | verify-full (default: "disable")
+  - `--db-max-open-connections` - Maximum open DB connections (default: 50)
+  - `--enable-db-debug` - Enable database debug mode
+
+- **Authentication & Authorization:**
+  - `--enable-jwt` - Enable JWT authentication validation (default: true)
+  - `--enable-authz` - Enable authorization on endpoints (default: true)
+  - `--jwk-cert-url` - JWK Certificate URL for JWT validation (default: Red Hat SSO)
+  - `--jwk-cert-file` - Local JWK Certificate file
+  - `--acl-file` - Access control list file
+
+- **OCM Integration:**
+  - `--enable-ocm-mock` - Enable mock OCM clients (default: true)
+  - `--ocm-base-url` - OCM API base URL (default: integration environment)
+  - `--ocm-token-url` - OCM token endpoint URL (default: Red Hat SSO)
+  - `--ocm-client-id-file` - OCM API client ID file (default: "secrets/ocm-service.clientId")
+  - `--ocm-client-secret-file` - OCM API client secret file (default: "secrets/ocm-service.clientSecret")
+  - `--self-token-file` - OCM API privileged offline SSO token file
+  - `--ocm-debug` - Enable OCM API debug logging
+
+- **Monitoring & Health Checks:**
+  - `--health-check-server-bindaddress` - Health check server address (default: "localhost:8083")
+  - `--enable-health-check-https` - Enable HTTPS for health check server
+  - `--metrics-server-bindaddress` - Metrics server address (default: "localhost:8080")
+  - `--enable-metrics-https` - Enable HTTPS for metrics server
+
+- **Error Monitoring:**
+  - `--enable-sentry` - Enable Sentry error monitoring
+  - `--enable-sentry-debug` - Enable Sentry debug mode
+  - `--sentry-url` - Sentry instance base URL (default: "glitchtip.devshift.net")
+  - `--sentry-key-file` - Sentry key file (default: "secrets/sentry.key")
+  - `--sentry-project` - Sentry project ID (default: "53")
+  - `--sentry-timeout` - Sentry request timeout (default: 5s)
+
+- **Performance Tuning:**
+  - `--http-read-timeout` - HTTP server read timeout (default: 5s)
+  - `--http-write-timeout` - HTTP server write timeout (default: 30s)
+  - `--label-metrics-inclusion-duration` - Telemetry collection timeframe (default: 168h)
+
+#### `trex migrate` - Run Database Migrations
+Executes database schema migrations to set up or update the database structure.
+
+**Basic Usage:**
+```bash
+./trex migrate                           # Run all pending migrations
+./trex migrate --enable-db-debug        # Run with database debug logging
+```
+
+**Configuration Options:**
+- **Database Connection:** (same as serve command)
+  - `--db-host-file`, `--db-name-file`, `--db-user-file`, `--db-password-file`
+  - `--db-port-file`, `--db-sslmode`, `--db-rootcert`
+  - `--db-max-open-connections` - Maximum DB connections (default: 50)
+  - `--enable-db-debug` - Enable database debug mode
+
+**Migration Process:**
+- Applies all pending migrations in order
+- Creates migration tracking table if needed
+- Idempotent - safe to run multiple times
+- Logs each migration applied
+
+#### `trex clone` - Clone New TRex Instance
+Creates a new microservice project based on the TRex template, replacing template content with new service details.
+
+**Basic Usage:**
+```bash
+./trex clone --name my-service                           # Clone with custom name
+./trex clone --name my-service --destination ./my-proj   # Custom destination
+./trex clone --repo github.com/myorg --name my-service   # Custom git repo
+```
+
+**Configuration Options:**
+- `--name` - Name of the new service (default: "rh-trex")
+- `--destination` - Target directory for new instance (default: "/tmp/clone-test")
+- `--repo` - Git repository path (default: "github.com/openshift-online")
+
+**Clone Process:**
+- Creates new directory structure
+- Replaces template strings throughout codebase
+- Updates Go module paths and imports
+- Renames files and directories as needed
+- Maintains Git history and structure
+
+#### Common Global Flags
+All subcommands support these logging flags:
+- `--logtostderr` - Log to stderr instead of files (default: true)
+- `--alsologtostderr` - Log to both stderr and files
+- `--log_dir` - Directory for log files
+- `--stderrthreshold` - Minimum log level for stderr (default: 2)
+- `-v, --v` - Log level for verbose logs
+- `--vmodule` - Module-specific log levels
+- `--log_backtrace_at` - Emit stack trace at specific file:line
+
+**Example Production Server Startup:**
+```bash
+./trex serve \
+  --api-server-bindaddress ":8000" \
+  --enable-https \
+  --https-cert-file /etc/certs/tls.crt \
+  --https-key-file /etc/certs/tls.key \
+  --db-sslmode verify-full \
+  --enable-sentry \
+  --ocm-base-url https://api.openshift.com \
+  --disable-ocm-mock
+```
+
 ### Development Workflow
 - `make generate` - Regenerate OpenAPI client and models
 - `make clean` - Remove temporary generated files
