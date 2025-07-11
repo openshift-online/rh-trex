@@ -145,9 +145,10 @@ func main() {
 			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
 		}
 		
-		// Add controller registration after all templates are processed
+		// Add controller registration and presenter mappings after all templates are processed
 		if nm == "services" {
 			addControllerRegistration(k)
+			addPresenterMappings(k)
 		}
 	}
 }
@@ -259,7 +260,41 @@ func addControllerRegistration(k myWriter) {
 	})
 `, k.KindLowerSingular, k.KindPlural, k.KindPlural, k.KindLowerSingular, k.KindLowerSingular, k.KindLowerSingular)
 	
-	// Insert after the existing dinosaur registration
-	matchingLine := `	})`
-	writeAfterLine(controllerFile, matchingLine, controllerRegistration)
+	// Insert before the return statement
+	matchingLine := `	return s`
+	writeBeforePattern(controllerFile, matchingLine, controllerRegistration)
+}
+
+func addPresenterMappings(k myWriter) {
+	// Add Kind mapping to presenters/kind.go
+	kindFile := "pkg/api/presenters/kind.go"
+	kindMapping := fmt.Sprintf(`	case api.%s, *api.%s:
+		result = "%s"`, k.Kind, k.Kind, k.Kind)
+	
+	// Insert before the errors case
+	kindMatchingLine := `	case errors.ServiceError, *errors.ServiceError:
+		result = "Error"`
+	writeBeforePattern(kindFile, kindMatchingLine, kindMapping)
+	
+	// Add path mapping to presenters/path.go  
+	pathFile := "pkg/api/presenters/path.go"
+	pathMapping := fmt.Sprintf(`	case api.%s, *api.%s:
+		return "%s"`, k.Kind, k.Kind, k.KindSnakeCasePlural)
+	
+	// Insert before the errors case
+	pathMatchingLine := `	case errors.ServiceError, *errors.ServiceError:
+		return "errors"`
+	writeBeforePattern(pathFile, pathMatchingLine, pathMapping)
+}
+
+func writeBeforePattern(path string, matchingLine string, lineToWrite string) {
+	input, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	output := bytes.Replace(input, []byte(matchingLine), []byte(lineToWrite+"\n"+matchingLine), -1)
+	if err = os.WriteFile(path, output, 0666); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
