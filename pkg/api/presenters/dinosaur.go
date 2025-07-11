@@ -3,12 +3,13 @@ package presenters
 import (
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
+	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
 	"github.com/openshift-online/rh-trex/pkg/util"
 )
 
 func ConvertDinosaur(dinosaur openapi.Dinosaur) *api.Dinosaur {
 	return &api.Dinosaur{
-		Meta: api.Meta{
+		Meta: coreapi.Meta{
 			ID: util.NilToEmptyString(dinosaur.Id),
 		},
 		Species: util.NilToEmptyString(dinosaur.Species),

@@ -8,6 +8,7 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
 	"github.com/openshift-online/rh-trex/pkg/api/presenters"
+	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 	"github.com/openshift-online/rh-trex/pkg/services"
 )
@@ -61,7 +62,7 @@ func (h dinosaurHandler) Patch(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			id := mux.Vars(r)["id"]
 			dino, err := h.dinosaur.Replace(ctx, &api.Dinosaur{
-				Meta:    api.Meta{ID: id},
+				Meta:    coreapi.Meta{ID: id},
 				Species: *patch.Species,
 			})
 			if err != nil {

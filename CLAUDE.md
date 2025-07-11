@@ -14,10 +14,14 @@ TRex is a Go-based REST API template for Red Hat TAP (Trusted Application Pipeli
 - `make run` - Run migrations and start the server (runs on localhost:8000)
 
 ### Testing
-- `make test` - Run unit tests
-- `make test-integration` - Run integration tests
+- `make test` - Run unit tests (ALWAYS run after any code changes)
+- `make test-integration` - Run integration tests (run after major changes - slower)
 - `make ci-test-unit` - Run unit tests with JSON output for CI
 - `make ci-test-integration` - Run integration tests with JSON output for CI
+
+**Testing Guidelines:**
+- **ALWAYS run `make test` after any code changes** to ensure nothing breaks
+- **Run `make test-integration` after major changes** (new features, refactoring, etc.) as it's slower but more comprehensive
 
 ### Code Quality
 - `make verify` - Run source code verification (vet, formatting)
@@ -338,6 +342,7 @@ func (s *sqlKindService) OnDelete(ctx context.Context, id string) error {
 
 ### Testing the Generated Kind
 
+
 After generation, verify the implementation:
 ```bash
 # Run integration tests for the new Kind
@@ -621,6 +626,18 @@ ocm post /api/rh-trex/v1/dinosaurs '{"species": "foo"}'
 - Integration tests run against real database
 - Test factories in `test/factories/` for data setup
 - Environment-specific test configuration
+
+### Testing Best Practices
+
+**Code Change Testing Protocol:**
+- **After ANY code changes:** Run `make test` to verify unit tests pass
+- **After major changes:** Run `make test-integration` to verify full system integration
+- **Major changes include:** New features, refactoring, architecture changes, database schema changes
+
+**Why This Matters:**
+- Unit tests are fast and catch basic regressions immediately
+- Integration tests are slower but verify complete system functionality
+- This approach balances speed with thoroughness
 
 ### Database Issues During Testing
 
