@@ -78,7 +78,6 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Patch).Methods(http.MethodPatch)
 	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Delete).Methods(http.MethodDelete)
 	apiV1DinosaursRouter.Use(authMiddleware.AuthenticateAccountJWT)
-
 	apiV1DinosaursRouter.Use(authzMiddleware.AuthorizeApi)
 
 	return mainRouter
