@@ -47,6 +47,21 @@ func init() {
 	flags.StringVar(&project, "project", project, "the name of the project.  e.g rh-trex")
 }
 
+func getCmdDir() string {
+	entries, err := os.ReadDir("cmd")
+	if err != nil {
+		panic(err)
+	}
+	
+	for _, entry := range entries {
+		if entry.IsDir() {
+			return entry.Name()
+		}
+	}
+	
+	panic("No command directory found in cmd/")
+}
+
 func main() {
 	// Parse flags
 	pflag.Parse()
@@ -77,13 +92,17 @@ func main() {
 			panic(err)
 		}
 
+		kindLowerCamel := strings.ToLower(string(kind[0])) + kind[1:]
+		kindSnakeCase := toSnakeCase(kind)
 		k := myWriter{
-			Project:           project,
-			Repo:              repo,
-			Kind:              kind,
-			KindPlural:        fmt.Sprintf("%ss", kind),
-			KindLowerPlural:   strings.ToLower(fmt.Sprintf("%ss", kind)),
-			KindLowerSingular: strings.ToLower(kind),
+			Project:             project,
+			Repo:                repo,
+			Cmd:                 getCmdDir(),
+			Kind:                kind,
+			KindPlural:          fmt.Sprintf("%ss", kind),
+			KindLowerPlural:     kindLowerCamel + "s",
+			KindLowerSingular:   kindLowerCamel,
+			KindSnakeCasePlural: kindSnakeCase + "s",
 		}
 
 		now := time.Now()
@@ -100,7 +119,7 @@ func main() {
 			"generate-test-factories": fmt.Sprintf("test/factories/%s.go", k.KindLowerPlural),
 			"generate-test":           fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural),
 			"generate-services":       fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
-			"generate-servicelocator": fmt.Sprintf("cmd/%s/environments/locator_%s.go", k.KindLowerSingular, k.KindLowerSingular),
+			"generate-servicelocator": fmt.Sprintf("cmd/%s/environments/locator_%s.go", k.Cmd, k.KindLowerSingular),
 		}
 
 		outputPath, ok := outputPaths["generate-"+nm]
@@ -135,14 +154,27 @@ func datePad(d int) string {
 	return fmt.Sprintf("%d", d)
 }
 
+func toSnakeCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result.WriteByte('_')
+		}
+		result.WriteRune(r)
+	}
+	return strings.ToLower(result.String())
+}
+
 type myWriter struct {
-	Repo              string
-	Project           string
-	Kind              string
-	KindPlural        string
-	KindLowerPlural   string
-	KindLowerSingular string
-	ID                string
+	Repo                     string
+	Project                  string
+	Cmd                      string
+	Kind                     string
+	KindPlural               string
+	KindLowerPlural          string
+	KindLowerSingular        string
+	KindSnakeCasePlural      string
+	ID                       string
 }
 
 func modifyOpenapi(mainPath string, kindPath string) {

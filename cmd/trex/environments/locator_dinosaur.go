@@ -17,19 +17,3 @@ func NewDinosaurServiceLocator(env *Env) DinosaurServiceLocator {
 		)
 	}
 }
-
-type GenericServiceLocator func() services.GenericService
-
-func NewGenericServiceLocator(env *Env) GenericServiceLocator {
-	return func() services.GenericService {
-		return services.NewGenericService(dao.NewGenericDao(&env.Database.SessionFactory))
-	}
-}
-
-type EventServiceLocator func() services.EventService
-
-func NewEventServiceLocator(env *Env) EventServiceLocator {
-	return func() services.EventService {
-		return services.NewEventService(dao.NewEventDao(&env.Database.SessionFactory))
-	}
-}

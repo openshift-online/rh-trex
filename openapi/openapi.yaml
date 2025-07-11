@@ -12,181 +12,9 @@ servers:
     description: Staging server
 paths:
   /api/rh-trex/v1/dinosaurs:
-    get:
-      summary: Returns a list of dinosaurs
-      security:
-        - Bearer: []
-      responses:
-        '200':
-          description: A JSON array of dinosaur objects
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DinosaurList'
-        '401':
-          description: Auth token is invalid
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Unauthorized to perform operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Unexpected error occurred
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/size'
-      - $ref: '#/components/parameters/search'
-      - $ref: '#/components/parameters/orderBy'
-      - $ref: '#/components/parameters/fields'
-    post:
-      summary: Create a new dinosaur
-      security:
-        - Bearer: []
-      requestBody:
-        description: Dinosaur data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Dinosaur'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dinosaur'
-        '400':
-          description: Validation errors occurred
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Auth token is invalid
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Unauthorized to perform operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: Dinosaur already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: An unexpected error occurred creating the dinosaur
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+    $ref: 'openapi.dinosaurs.yaml#/paths/~1api~1rh-trex~1v1~1dinosaurs'
   /api/rh-trex/v1/dinosaurs/{id}:
-    get:
-      summary: Get an dinosaur by id
-      security:
-        - Bearer: []
-      responses:
-        '200':
-          description: Dinosaur found by id
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dinosaur'
-        '401':
-          description: Auth token is invalid
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Unauthorized to perform operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: No dinosaur with specified id exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Unexpected error occurred
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    patch:
-      summary: Update an dinosaur
-      security:
-        - Bearer: []
-      requestBody:
-        description: Updated dinosaur data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DinosaurPatchRequest'
-      responses:
-        '200':
-          description: Dinosaur updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dinosaur'
-        '400':
-          description: Validation errors occurred
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Auth token is invalid
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Unauthorized to perform operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: No dinosaur with specified id exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: Dinosaur already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Unexpected error updating dinosaur
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    parameters:
-    - $ref: '#/components/parameters/id'
+    $ref: 'openapi.dinosaurs.yaml#/paths/~1api~1rh-trex~1v1~1dinosaurs~1{id}'
   # AUTO-ADD NEW PATHS
 components:
   securitySchemes:
@@ -248,32 +76,11 @@ components:
             items:
               $ref: '#/components/schemas/Error'
     Dinosaur:
-      allOf:
-      - $ref: '#/components/schemas/ObjectReference'
-      - type: object
-        properties:
-          species:
-            type: string
-          created_at:
-            type: string
-            format: date-time
-          updated_at:
-            type: string
-            format: date-time
+      $ref: 'openapi.dinosaurs.yaml#/components/schemas/Dinosaur'
     DinosaurList:
-      allOf:
-      - $ref: '#/components/schemas/List'
-      - type: object
-        properties:
-          items:
-            type: array
-            items:
-              $ref: '#/components/schemas/Dinosaur'
+      $ref: 'openapi.dinosaurs.yaml#/components/schemas/DinosaurList'
     DinosaurPatchRequest:
-      type: object
-      properties:
-        species:
-          type: string
+      $ref: 'openapi.dinosaurs.yaml#/components/schemas/DinosaurPatchRequest'
     # AUTO-ADD NEW SCHEMAS
   parameters:
     id:

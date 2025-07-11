@@ -92,7 +92,7 @@ func (km *KindControllerManager) Handle(id string) {
 		return
 	}
 	threadContext := context.WithValue(ctx, "event", id)
-	
+
 	km.handle(threadContext, id)
 }
 

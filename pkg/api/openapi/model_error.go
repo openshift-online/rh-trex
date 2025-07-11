@@ -1,7 +1,7 @@
 /*
-rh-trex API
+rh-trex Service API
 
-rh-trex API
+rh-trex Service API
 
 API version: 0.0.1
 */
@@ -12,6 +12,7 @@ package openapi
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // checks if the Error type satisfies the MappedNullable interface at compile time
@@ -19,12 +20,14 @@ var _ MappedNullable = &Error{}
 
 // Error struct for Error
 type Error struct {
-	Id          *string `json:"id,omitempty"`
-	Kind        *string `json:"kind,omitempty"`
-	Href        *string `json:"href,omitempty"`
-	Code        *string `json:"code,omitempty"`
-	Reason      *string `json:"reason,omitempty"`
-	OperationId *string `json:"operation_id,omitempty"`
+	Id          *string    `json:"id,omitempty"`
+	Kind        *string    `json:"kind,omitempty"`
+	Href        *string    `json:"href,omitempty"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+	Code        *string    `json:"code,omitempty"`
+	Reason      *string    `json:"reason,omitempty"`
+	OperationId *string    `json:"operation_id,omitempty"`
 }
 
 // NewError instantiates a new Error object
@@ -138,6 +141,70 @@ func (o *Error) HasHref() bool {
 // SetHref gets a reference to the given string and assigns it to the Href field.
 func (o *Error) SetHref(v string) {
 	o.Href = &v
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *Error) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Error) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *Error) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *Error) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
+}
+
+// GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
+func (o *Error) GetUpdatedAt() time.Time {
+	if o == nil || IsNil(o.UpdatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.UpdatedAt
+}
+
+// GetUpdatedAtOk returns a tuple with the UpdatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Error) GetUpdatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.UpdatedAt) {
+		return nil, false
+	}
+	return o.UpdatedAt, true
+}
+
+// HasUpdatedAt returns a boolean if a field has been set.
+func (o *Error) HasUpdatedAt() bool {
+	if o != nil && !IsNil(o.UpdatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetUpdatedAt gets a reference to the given time.Time and assigns it to the UpdatedAt field.
+func (o *Error) SetUpdatedAt(v time.Time) {
+	o.UpdatedAt = &v
 }
 
 // GetCode returns the Code field value if set, zero value otherwise.
@@ -254,6 +321,12 @@ func (o Error) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Href) {
 		toSerialize["href"] = o.Href
+	}
+	if !IsNil(o.CreatedAt) {
+		toSerialize["created_at"] = o.CreatedAt
+	}
+	if !IsNil(o.UpdatedAt) {
+		toSerialize["updated_at"] = o.UpdatedAt
 	}
 	if !IsNil(o.Code) {
 		toSerialize["code"] = o.Code
