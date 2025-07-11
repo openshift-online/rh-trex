@@ -1,10 +1,18 @@
 package api
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
+)
 
 type Dinosaur struct {
-	Meta
-	Species string
+	coreapi.Meta
+	Species string `json:"species" gorm:"index"`
+}
+
+// GetMeta returns the metadata for the dinosaur (implements MetaProvider)
+func (d *Dinosaur) GetMeta() *coreapi.Meta {
+	return &d.Meta
 }
 
 type DinosaurList []*Dinosaur
