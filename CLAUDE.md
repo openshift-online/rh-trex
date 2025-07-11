@@ -220,3 +220,16 @@ ocm post /api/rh-trex/v1/dinosaurs '{"species": "foo"}'
 - Integration tests run against real database
 - Test factories in `test/factories/` for data setup
 - Environment-specific test configuration
+
+### Database Issues During Testing
+
+If integration tests fail with PostgreSQL-related errors (missing columns, transaction issues), recreate the database:
+
+```bash
+# From project root directory
+make db/teardown  # Stop and remove PostgreSQL container
+make db/setup     # Start fresh PostgreSQL container
+make test-integration  # Run tests again
+```
+
+**Note:** Always run `make` commands from the project root directory where the Makefile is located.
