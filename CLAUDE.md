@@ -178,29 +178,66 @@ All subcommands support these logging flags:
 
 ## Architecture
 
+TRex now uses the **rh-trex-core** library for enhanced error handling, database operations, and controller management. This provides consistent patterns across all TRex-based microservices.
+
+### Core Library Integration
+
+**rh-trex-core Dependency:**
+- **Repository**: `github.com/openshift-online/rh-trex-core`
+- **Purpose**: Shared framework components for TRex-based microservices
+- **Components**: Enhanced error handling, database utilities, controller management
+- **Benefits**: Consistent patterns, reduced duplication, centralized improvements
+
+**Enhanced Error Handling (`pkg/services/util.go`):**
+- **PII Sanitization**: Automatically redacts sensitive fields in error messages
+- **Constraint Detection**: Intelligent database constraint violation handling
+- **Core Library Delegation**: TRex error handlers delegate to `rh-trex-core/errors`
+- **Type Conversion**: Seamless conversion between core and TRex error types
+
+```go
+// Enhanced error handlers that delegate to core library
+func handleGetError(resourceType, field string, value interface{}, err error) *errors.ServiceError {
+    valueStr := fmt.Sprintf("%v", value)
+    coreErr := coreerrors.HandleGetError(resourceType, field, valueStr, err)
+    return convertCoreError(coreErr)
+}
+```
+
+**Dual Controller System (`cmd/trex/server/controllers_core.go`):**
+- **Legacy Controllers**: Existing TRex controller system for backward compatibility
+- **Core Controllers**: New controller system using rh-trex-core framework
+- **Event Bus Adapter**: Bridges TRex events to core library event system
+- **Unified Management**: Both systems run concurrently during transition
+
 ### Core Components
 
 **Main Application (`cmd/trex/main.go`):**
 - CLI tool with subcommands: `migrate`, `serve`, `clone`
 - Uses Cobra for command structure
+- **Now includes** core library integration for enhanced functionality
 
 **Environment Framework (`cmd/trex/environments/`):**
 - Configurable environments: development, testing, production
 - Visitor pattern for component initialization
 - Service locator pattern for dependency injection
+- **Enhanced with** core library session factory integration
 
 **API Layer (`pkg/api/`):**
 - OpenAPI-generated models and clients
 - Example "Dinosaur" entity with CRUD operations
-- Standardized error handling and metadata
+- **Enhanced error handling** using rh-trex-core patterns
+- Standardized metadata and response structures
 
 **Data Layer:**
 - **DAO Pattern** (`pkg/dao/`): Data Access Objects for database operations
 - **Database** (`pkg/db/`): GORM-based persistence with PostgreSQL
+- **Core Integration**: Session factories compatible with rh-trex-core
 - **Migrations** (`pkg/db/migrations/`): Database schema versioning
 
 **Service Layer (`pkg/services/`):**
 - Business logic separated from handlers
+- **Enhanced error handling** with PII sanitization and constraint detection
+- **Core library delegation** for consistent error patterns
 - Generic service patterns for reuse
 - Event-driven architecture support
 
@@ -208,6 +245,7 @@ All subcommands support these logging flags:
 - REST API endpoints
 - Authentication/authorization middleware
 - OpenAPI specification compliance
+- **Improved error responses** using core library patterns
 
 **Infrastructure:**
 - **Authentication** (`pkg/auth/`): OIDC integration with Red Hat SSO
@@ -215,6 +253,7 @@ All subcommands support these logging flags:
 - **Configuration** (`pkg/config/`): Environment-specific settings
 - **Logging** (`cmd/trex/server/logging/`): Structured logging with request middleware
 - **Metrics** (`pkg/handlers/prometheus_metrics.go`): Prometheus integration
+- **Core Controllers**: Event-driven processing using rh-trex-core framework
 
 ### Key Patterns
 
@@ -222,12 +261,15 @@ All subcommands support these logging flags:
 2. **Dependency Injection**: Service locator pattern in environments framework
 3. **Code Generation**: OpenAPI specs generate client code and documentation
 4. **Test-Driven Development**: Comprehensive test support with mocks and factories
+5. **Core Library Integration**: Consistent error handling and database patterns
+6. **Event-Driven Architecture**: Dual controller system for legacy and core processing
+7. **PII Protection**: Automatic sanitization of sensitive data in error messages
 
 ## Code Generation
 
 ### How to Generate a New Kind
 
-The generator script creates complete CRUD functionality with **event-driven architecture** for a new resource type. The process is now fully automated with no manual steps required.
+The generator script creates complete CRUD functionality with **event-driven architecture** and **rh-trex-core integration** for a new resource type. Generated services automatically use enhanced error handling from the core library. The process is now fully automated with no manual steps required.
 
 **Single Command to Generate a New Kind:**
 ```bash
@@ -242,11 +284,13 @@ go run ./scripts/generator.go --kind FizzBuzz
 # This creates a complete implementation with:
 # - API model and handlers
 # - Service and DAO layers with event-driven controllers
+# - Enhanced error handling using rh-trex-core patterns
 # - Database migration
 # - Test files and factories
 # - OpenAPI specifications
 # - Service locators and routing
 # - Automatic controller registration for event handling
+# - PII sanitization in error messages
 ```
 
 ### What the Generator Creates
@@ -257,7 +301,7 @@ The generator automatically creates and configures:
    - `pkg/api/fizzbuzz.go` - API model
    - `pkg/api/presenters/fizzbuzz.go` - Presenter conversion functions  
    - `pkg/handlers/fizzbuzz.go` - HTTP handlers
-   - `pkg/services/fizzbuzz.go` - Business logic with event handlers
+   - `pkg/services/fizzbuzz.go` - Business logic with event handlers and rh-trex-core error handling
    - `pkg/dao/fizzbuzz.go` - Data access layer
    - `pkg/dao/mocks/fizzbuzz.go` - Mock for testing
    - `pkg/db/migrations/YYYYMMDDHHMM_add_fizzbuzzs.go` - Database migration
@@ -337,8 +381,9 @@ func (s *sqlKindService) OnDelete(ctx context.Context, id string) error {
 **Key Handler Characteristics:**
 - **Idempotent**: Safe to run multiple times
 - **Logged**: Structured logging for debugging
-- **Error Handling**: Proper error propagation
+- **Error Handling**: Uses rh-trex-core enhanced error handling with PII sanitization
 - **Context Aware**: Supports request tracing
+- **Core Integration**: Automatically delegates to core library error patterns
 
 ### Testing the Generated Kind
 
@@ -423,6 +468,126 @@ The generator has been enhanced to:
 8. **Automatically register** event handlers in controller system
 
 **Minimal manual steps required** - the generator automates most of the process, with only 4 files requiring manual updates!
+
+## Core Library Usage (rh-trex-core)
+
+### Overview
+
+TRex now integrates with the **rh-trex-core** library to provide consistent, enhanced functionality across all TRex-based microservices. The core library provides:
+
+- **Enhanced Error Handling**: PII sanitization, constraint detection, standardized error responses
+- **Database Utilities**: Session factories, advisory locks, transaction management  
+- **Controller Framework**: Event-driven processing with PostgreSQL LISTEN/NOTIFY
+- **Type-Safe Operations**: Go generics for CRUD operations and error handling
+
+### Error Handling Integration
+
+**Automatic PII Sanitization:**
+```go
+// PII fields are automatically redacted in error messages
+var piiFields []string = []string{
+    "username", "first_name", "last_name", "email", "address",
+}
+
+// Core library automatically sanitizes these fields
+coreErr := coreerrors.HandleGetError("User", "email", "user@example.com", err)
+// Result: "User with email='<redacted>' not found"
+```
+
+**Enhanced Constraint Detection:**
+```go
+// Core library intelligently detects database constraint violations
+func handleCreateError(resourceType string, err error) *errors.ServiceError {
+    coreErr := coreerrors.HandleCreateError(resourceType, err)
+    return convertCoreError(coreErr)
+}
+
+// Automatically detects:
+// - Unique constraint violations → Conflict errors
+// - Foreign key violations → BadRequest errors  
+// - Not null violations → BadRequest errors
+// - Check constraint violations → BadRequest errors
+```
+
+**Service Implementation Pattern:**
+```go
+// Generated services automatically use core library patterns
+func (s *sqlKindService) Get(ctx context.Context, id string) (*api.Kind, *errors.ServiceError) {
+    kind, err := s.kindDao.Get(ctx, id)
+    if err != nil {
+        // Delegates to core library with automatic PII sanitization
+        return nil, handleGetError("Kind", "id", id, err)
+    }
+    return kind, nil
+}
+```
+
+### Core Library Dependencies
+
+**Required Go Module:**
+```go
+// go.mod
+require (
+    github.com/openshift-online/rh-trex-core v0.0.0-20250711220747-a9ce95f9f591
+    gorm.io/driver/postgres v1.5.9  // Updated for compatibility
+    gorm.io/gorm v1.30.0
+)
+```
+
+**Import Patterns:**
+```go
+import (
+    "github.com/openshift-online/rh-trex/pkg/errors"
+    coreerrors "github.com/openshift-online/rh-trex-core/errors"
+    coreapi "github.com/openshift-online/rh-trex-core/api"
+    corecontrollers "github.com/openshift-online/rh-trex-core/controllers"
+    coredb "github.com/openshift-online/rh-trex-core/db"
+)
+```
+
+### Controller Integration
+
+**Dual Controller System:**
+- **Legacy Controllers**: Existing TRex controller system (backward compatibility)
+- **Core Controllers**: New rh-trex-core controller framework (future development)
+- **Event Bus Adapter**: Seamless integration between systems
+
+**Core Controller Registration:**
+```go
+// Core controller manager with enhanced functionality
+coreManager := corecontrollers.NewControllerManager(
+    coredb.NewAdvisoryLockFactory(coreSessionFactory),
+    eventBus,
+)
+
+// Register with both systems during transition
+s.CoreControllerManager.RegisterController(&corecontrollers.ControllerConfig{
+    Source: "Dinosaurs",
+    Handlers: map[coreapi.EventType][]corecontrollers.ControllerHandlerFunc{
+        coreapi.CreateEventType: {func(ctx context.Context, id string) error {
+            return dinoServices.OnUpsert(ctx, id)
+        }},
+    },
+})
+```
+
+### Migration Guidelines
+
+**For New Resources:**
+- Generated code automatically uses rh-trex-core patterns
+- No manual migration needed for new Kinds
+- Enhanced error handling included by default
+
+**For Existing Services:**
+- Error handlers already migrated to use core library
+- Gradual migration of controller system in progress
+- Backward compatibility maintained throughout transition
+
+**Best Practices:**
+- Use `handleGetError`, `handleCreateError`, etc. for all database operations
+- Import core library types with aliases to avoid conflicts
+- Test both unit and integration tests after any core library updates
+- Follow PII sanitization patterns for sensitive data
 
 ### Required Manual Steps
 
@@ -632,7 +797,8 @@ ocm post /api/rh-trex/v1/dinosaurs '{"species": "foo"}'
 **Code Change Testing Protocol:**
 - **After ANY code changes:** Run `make test` to verify unit tests pass
 - **After major changes:** Run `make test-integration` to verify full system integration
-- **Major changes include:** New features, refactoring, architecture changes, database schema changes
+- **After core library updates:** Run both unit and integration tests to ensure compatibility
+- **Major changes include:** New features, refactoring, architecture changes, database schema changes, rh-trex-core version updates
 
 **Why This Matters:**
 - Unit tests are fast and catch basic regressions immediately

@@ -2,7 +2,7 @@ package migrations
 
 import (
 	"github.com/go-gormigrate/gormigrate/v2"
-	coredb "github.com/openshift-online/rh-trex/pkg/core/db"
+	coredb "github.com/openshift-online/rh-trex-core/db"
 )
 
 // gormigrate is a wrapper for gorm's migration functions that adds schema versioning and rollback capabilities.

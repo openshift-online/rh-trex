@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
 	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
