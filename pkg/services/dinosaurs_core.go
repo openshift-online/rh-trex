@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
-	coreservices "github.com/openshift-online/rh-trex/pkg/core/services"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
+	coreservices "github.com/openshift-online/rh-trex-core/services"
+	"github.com/openshift-online/rh-trex-core/errors"
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
-	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 // DinosaurCoreService extends the base service with dinosaur-specific business logic
@@ -76,7 +76,7 @@ func NewDinosaurCoreService(
 func (s *DinosaurCoreService) FindBySpecies(ctx context.Context, species string) (api.DinosaurList, *errors.ServiceError) {
 	dinosaurs, err := s.dao.FindBySpecies(ctx, species)
 	if err != nil {
-		return nil, handleGetError("Dinosaur", "species", species, err)
+		return nil, errors.HandleGetError("Dinosaur", "species", species, err)
 	}
 
 	// Convert slice to DinosaurList
@@ -103,7 +103,7 @@ func (s *DinosaurCoreService) Replace(ctx context.Context, dinosaur *api.Dinosau
 
 	found, err := s.dao.Get(ctx, dinosaur.ID)
 	if err != nil {
-		return nil, handleGetError("Dinosaur", "id", dinosaur.ID, err)
+		return nil, errors.HandleGetError("Dinosaur", "id", dinosaur.ID, err)
 	}
 
 	// New species is no change, the update action is not needed.
@@ -114,12 +114,12 @@ func (s *DinosaurCoreService) Replace(ctx context.Context, dinosaur *api.Dinosau
 	found.Species = dinosaur.Species
 	updated, err := s.dao.Replace(ctx, found)
 	if err != nil {
-		return nil, handleUpdateError("Dinosaur", err)
+		return nil, errors.HandleUpdateError("Dinosaur", err)
 	}
 
 	// Emit update event manually (since we're bypassing the base service)
 	if err := s.EmitEvent(ctx, "Dinosaurs", updated.ID, coreapi.UpdateEventType); err != nil {
-		return nil, handleUpdateError("Dinosaur", err)
+		return nil, errors.HandleUpdateError("Dinosaur", err)
 	}
 
 	return updated, nil
@@ -129,7 +129,7 @@ func (s *DinosaurCoreService) Replace(ctx context.Context, dinosaur *api.Dinosau
 func (s *DinosaurCoreService) All(ctx context.Context) (api.DinosaurList, *errors.ServiceError) {
 	dinosaurs, err := s.dao.All(ctx)
 	if err != nil {
-		return nil, errors.GeneralError("Unable to get all dinosaurs: %s", err)
+		return nil, errors.HandleGetError("Dinosaur", "list", "", err)
 	}
 
 	// Convert slice to DinosaurList
@@ -145,7 +145,7 @@ func (s *DinosaurCoreService) All(ctx context.Context) (api.DinosaurList, *error
 func (s *DinosaurCoreService) FindByIDs(ctx context.Context, ids []string) (api.DinosaurList, *errors.ServiceError) {
 	dinosaurs, err := s.dao.FindByIDs(ctx, ids)
 	if err != nil {
-		return nil, errors.GeneralError("Unable to get all dinosaurs: %s", err)
+		return nil, errors.HandleGetError("Dinosaur", "list", "", err)
 	}
 
 	// Convert slice to DinosaurList

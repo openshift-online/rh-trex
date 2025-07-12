@@ -3,7 +3,7 @@ package presenters
 import (
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
 	"github.com/openshift-online/rh-trex/pkg/util"
 )
 

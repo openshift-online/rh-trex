@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
-	coredao "github.com/openshift-online/rh-trex/pkg/core/dao"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
+	coredao "github.com/openshift-online/rh-trex-core/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
 )
 

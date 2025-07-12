@@ -2,7 +2,7 @@ package api
 
 import (
 	"gorm.io/gorm"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
 )
 
 type Dinosaur struct {

@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
-	corecontrollers "github.com/openshift-online/rh-trex/pkg/core/controllers"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
+	corecontrollers "github.com/openshift-online/rh-trex-core/controllers"
 	"github.com/openshift-online/rh-trex/pkg/controllers"
 	"github.com/openshift-online/rh-trex/pkg/db"
+	coredb "github.com/openshift-online/rh-trex-core/db"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 	"github.com/openshift-online/rh-trex/pkg/logger"
 )
@@ -65,9 +66,11 @@ func NewControllersServerCore() *ControllersServerCore {
 	// Create event bus adapter
 	eventBus := NewEventBusAdapter(env().Services.Events())
 
-	// Create core controller manager
+	// Create core controller manager using existing database session
+	sessionFactory := env().Database.SessionFactory
+	coreSessionFactory := coredb.NewBasicSessionFactory(sessionFactory.New(context.Background()))
 	coreManager := corecontrollers.NewControllerManager(
-		db.NewAdvisoryLockFactory(env().Database.SessionFactory),
+		coredb.NewAdvisoryLockFactory(coreSessionFactory),
 		eventBus,
 	)
 

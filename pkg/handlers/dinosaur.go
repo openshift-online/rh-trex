@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
 	"github.com/openshift-online/rh-trex/pkg/api/presenters"
-	coreapi "github.com/openshift-online/rh-trex/pkg/core/api"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 	"github.com/openshift-online/rh-trex/pkg/services"
 )
