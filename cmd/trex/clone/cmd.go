@@ -104,7 +104,7 @@ func clone(_ *cobra.Command, _ []string) {
 				content = strings.Replace(content, "rhtrex", strings.ToLower(provisionCfg.Name), -1)
 			}
 
-			if strings.Contains(content, "trex") {
+			if strings.Contains(content, "trex") && !strings.Contains(content, "rh-trex-core") {
 				glog.Infof("find/replace required for file: %s", path)
 				content = strings.Replace(content, "trex", strings.ToLower(provisionCfg.Name), -1)
 			}
