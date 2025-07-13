@@ -9,7 +9,7 @@ require (
 	github.com/docker/go-healthcheck v0.1.0
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-gormigrate/gormigrate/v2 v2.0.0
+	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/glog v1.2.5
 	github.com/google/uuid v1.3.0
@@ -63,9 +63,9 @@ require (
 	github.com/smartystreets/goconvey v1.8.1 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
