@@ -83,10 +83,22 @@ func clone(_ *cobra.Command, _ []string) {
 				return err
 			}
 
+			// Special handling for CLAUDE.md to add TRex clone information
+			if strings.HasSuffix(path, "CLAUDE.md") {
+				content = addTRexCloneSection(content, provisionCfg.Name)
+			}
+
 			if strings.Contains(content, "github.com/openshift-online/rh-trex") && !strings.Contains(content, "github.com/openshift-online/rh-trex-core") {
 				glog.Infof("find/replace required for file: %s", path)
 				replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
-				content = strings.Replace(content, "github.com/openshift-online/rh-trex", replacement, -1)
+				// Use line-by-line replacement to preserve rh-trex-core dependencies
+				lines := strings.Split(content, "\n")
+				for i, line := range lines {
+					if strings.Contains(line, "github.com/openshift-online/rh-trex") && !strings.Contains(line, "rh-trex-core") {
+						lines[i] = strings.Replace(line, "github.com/openshift-online/rh-trex", replacement, -1)
+					}
+				}
+				content = strings.Join(lines, "\n")
 			}
 
 			if strings.Contains(content, "RHTrex") {
@@ -96,7 +108,14 @@ func clone(_ *cobra.Command, _ []string) {
 
 			if strings.Contains(content, "rh-trex") && !strings.Contains(content, "github.com/openshift-online/rh-trex-core") {
 				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
+				// Use line-by-line replacement to preserve rh-trex-core dependencies
+				lines := strings.Split(content, "\n")
+				for i, line := range lines {
+					if strings.Contains(line, "rh-trex") && !strings.Contains(line, "rh-trex-core") {
+						lines[i] = strings.Replace(line, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
+					}
+				}
+				content = strings.Join(lines, "\n")
 			}
 
 			if strings.Contains(content, "rhtrex") {
@@ -106,7 +125,14 @@ func clone(_ *cobra.Command, _ []string) {
 
 			if strings.Contains(content, "trex") && !strings.Contains(content, "rh-trex-core") {
 				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "trex", strings.ToLower(provisionCfg.Name), -1)
+				// Use line-by-line replacement to preserve rh-trex-core dependencies
+				lines := strings.Split(content, "\n")
+				for i, line := range lines {
+					if strings.Contains(line, "trex") && !strings.Contains(line, "rh-trex-core") {
+						lines[i] = strings.Replace(line, "trex", strings.ToLower(provisionCfg.Name), -1)
+					}
+				}
+				content = strings.Join(lines, "\n")
 			}
 
 			if strings.Contains(content, "TRex") {
@@ -151,4 +177,88 @@ func exists(path string) bool {
 		return false
 	}
 	return true
+}
+
+// addTRexCloneSection adds TRex clone information to CLAUDE.md
+func addTRexCloneSection(content, projectName string) string {
+	cloneSection := fmt.Sprintf(`
+## TRex Clone Information
+
+**THIS IS A TREX CLONE** - This project was created from the TRex template framework.
+
+- **Template Source**: [github.com/openshift-online/rh-trex](https://github.com/openshift-online/rh-trex)
+- **Clone Name**: %s
+- **Template Framework**: TRex provides REST API microservice templates with CRUD operations, authentication, database management, and code generation
+
+### Applying TRex Updates
+
+To apply bug fixes and improvements from the main TRex repository to this clone:
+
+**1. Identify the fixes** in the main TRex repository (typically in generator templates or core functionality)
+
+**2. Apply the same changes** to this clone by comparing files:
+   - Generator: scripts/generator.go and templates/ directory
+   - Core functionality: Follow TRex patterns for error handling, database operations, etc.
+
+**3. Common update scenarios:**
+   - **Generator fixes**: Compare scripts/generator.go with main TRex and apply missing functions/features
+   - **Template updates**: Compare templates/ directory files and apply template improvements
+   - **Core library integration**: Update to newer versions of rh-trex-core dependency
+   - **Build system improvements**: Apply Makefile, CI/CD, or container updates
+
+**4. Testing after updates:**
+   - make test                 (Run unit tests)
+   - make test-integration     (Run integration tests)
+   - go run ./scripts/generator.go --kind TestKind  (Test generator functionality)
+
+**5. Example update process** (like applied to ABE clone):
+   - Compare generator files between main TRex and this clone
+   - diff /path/to/main/trex/scripts/generator.go ./scripts/generator.go
+   - Apply missing functions (e.g., toCamelCase, ProjectCamelCase field)
+   - Update templates with dynamic ProjectCamelCase variables
+   - Test the changes: make test && make test-integration
+
+For systematic updates, use this checklist:
+- [ ] Compare scripts/generator.go with main TRex
+- [ ] Compare templates/ directory contents 
+- [ ] Check for new rh-trex-core library versions
+- [ ] Verify all tests pass after applying changes
+- [ ] Test code generation with a sample Kind
+
+`, strings.ToUpper(projectName))
+
+	// Insert the clone section after the first # header (after "# CLAUDE.md")
+	lines := strings.Split(content, "\n")
+	var result []string
+	
+	headerFound := false
+	sectionInserted := false
+	
+	for _, line := range lines {
+		result = append(result, line)
+		
+		// Insert clone section after the first header and its description
+		if !headerFound && strings.HasPrefix(line, "# ") {
+			headerFound = true
+		} else if headerFound && !sectionInserted && (strings.HasPrefix(line, "## ") || (strings.TrimSpace(line) == "" && len(result) > 3)) {
+			// Insert before the next section or after a blank line following the description
+			if strings.HasPrefix(line, "## ") {
+				// Insert before this section
+				result = result[:len(result)-1] // Remove the current line
+				result = append(result, strings.Split(cloneSection, "\n")...)
+				result = append(result, line) // Add back the current line
+			} else if strings.TrimSpace(line) == "" {
+				// Insert after blank line
+				result = append(result, strings.Split(cloneSection, "\n")...)
+			}
+			sectionInserted = true
+		}
+	}
+	
+	// If we haven't inserted yet, append at the end
+	if !sectionInserted {
+		result = append(result, strings.Split(cloneSection, "\n")...)
+	}
+	
+	return strings.Join(result, "\n")
 }

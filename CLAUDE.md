@@ -348,6 +348,7 @@ When creating custom templates, these fields are available:
 - `{{.KindLowerPlural}}` - camelCase plural (e.g., "fizzBuzzs")
 - `{{.KindSnakeCasePlural}}` - snake_case plural for API paths (e.g., "fizz_buzzs")
 - `{{.Project}}` - Project name (e.g., "rh-trex")
+- `{{.ProjectCamelCase}}` - Project name in CamelCase for dynamic API methods (e.g., "RhTrex", "ChessApi")
 - `{{.Repo}}` - Repository path (e.g., "github.com/openshift-online")
 - `{{.Cmd}}` - Command directory name (e.g., "trex")
 - `{{.ID}}` - Timestamp ID for migrations (e.g., "202507111234")
@@ -765,6 +766,93 @@ make generate
 # For a Kind called "TestWidget", run this one-liner:
 rm -rf pkg/api/testWidget.go pkg/api/presenters/testWidget.go pkg/handlers/testWidget.go pkg/services/testWidget.go pkg/dao/testWidget.go pkg/dao/mocks/testWidget.go pkg/db/migrations/*testWidget* test/integration/testWidgets_test.go test/factories/testWidgets.go openapi/openapi.testWidgets.yaml cmd/trex/environments/locator_testWidget.go pkg/api/openapi/model_test_widget*.go pkg/api/openapi/docs/TestWidget*.md && git checkout HEAD -- cmd/trex/server/controllers.go cmd/trex/server/routes.go cmd/trex/environments/types.go cmd/trex/environments/framework.go pkg/api/presenters/kind.go pkg/api/presenters/path.go pkg/db/migrations/migration_structs.go openapi/openapi.yaml && make generate
 ```
+
+## TRex Clone Command
+
+The `trex clone` command creates new microservice projects based on the TRex template, with automatic replacement of template content for the new service.
+
+### Clone Command Usage
+
+**Basic Clone:**
+```bash
+./trex clone --name my-service --destination /tmp/my-service
+```
+
+**Clone with Custom Repository:**
+```bash
+./trex clone --name my-service --repo github.com/myorg --destination ./my-project
+```
+
+**Parameters:**
+- `--name`: Name of the new service (will replace "rh-trex" throughout the codebase)
+- `--repo`: Git repository path (default: "github.com/openshift-online")
+- `--destination`: Target directory for the new service (default: "/tmp/clone-test")
+
+### Clone Process
+
+The clone command performs the following transformations:
+
+1. **Project Name Replacement**: Replaces `rh-trex` with the new service name throughout the codebase
+2. **Repository Path Updates**: Updates import paths from `github.com/openshift-online/rh-trex` to the specified repository
+3. **File and Directory Renaming**: Renames files and directories to match the new service name
+4. **Template Variable Substitution**: Updates configuration files, documentation, and build scripts
+5. **Core Library Preservation**: Automatically preserves `rh-trex-core` dependency imports
+
+### Core Library Preservation
+
+**Critical Fix Applied**: The clone command now uses **line-by-line replacement logic** to preserve `rh-trex-core` library imports. The clone process:
+
+✅ **Preserves**: Any line containing `rh-trex-core` (imports, dependencies, references)
+✅ **Replaces**: Only lines containing TRex project references without core library context
+✅ **Maintains**: Correct `github.com/openshift-online/rh-trex-core` dependency
+
+**Protected Patterns:**
+- `github.com/openshift-online/rh-trex-core` - Core library import paths
+- Import aliases like `coreapi "github.com/openshift-online/rh-trex-core/api"`
+- Any go.mod dependency lines with `rh-trex-core`
+- Source file imports from core library packages
+
+### Complete Clone Workflow
+
+**1. Clone the Template:**
+```bash
+./trex clone --name MyService --repo gitlab.com/myorg --destination /tmp/my-service
+```
+
+**2. Setup Database:**
+```bash
+cd /tmp/my-service
+make db/setup     # Start PostgreSQL container
+```
+
+**3. Build and Migrate:**
+```bash
+make binary       # Build the service binary
+./myservice migrate  # Run database migrations
+```
+
+**4. Run Tests:**
+```bash
+make test         # Run unit tests (should pass immediately)
+make test-integration  # Run integration tests (with database)
+```
+
+**5. Generate New Resources:**
+```bash
+go run ./scripts/generator.go --kind MyResource
+# Then complete the 4 manual registration steps
+make test-integration  # Verify new resource works
+```
+
+### Clone Command Fix Details
+
+**Previous Issue**: Clone command incorrectly replaced `rh-trex-core` dependencies, causing build failures.
+
+**Applied Fix**: Modified `/cmd/trex/clone/cmd.go` to use line-by-line replacement that checks each line individually for `rh-trex-core` before applying transformations.
+
+**Result**: All cloned projects now maintain correct core library dependencies and build successfully without manual fixes.
+
+**Verified**: Clone → Build → Database Setup → Test workflow works end-to-end.
 
 ## Authentication
 
