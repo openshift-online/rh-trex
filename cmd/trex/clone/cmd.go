@@ -83,7 +83,7 @@ func clone(_ *cobra.Command, _ []string) {
 				return err
 			}
 
-			if strings.Contains(content, "github.com/openshift-online/rh-trex") {
+			if strings.Contains(content, "github.com/openshift-online/rh-trex") && !strings.Contains(content, "github.com/openshift-online/rh-trex-core") {
 				glog.Infof("find/replace required for file: %s", path)
 				replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
 				content = strings.Replace(content, "github.com/openshift-online/rh-trex", replacement, -1)
@@ -94,7 +94,7 @@ func clone(_ *cobra.Command, _ []string) {
 				content = strings.Replace(content, "RHTrex", provisionCfg.Name, -1)
 			}
 
-			if strings.Contains(content, "rh-trex") {
+			if strings.Contains(content, "rh-trex") && !strings.Contains(content, "github.com/openshift-online/rh-trex-core") {
 				glog.Infof("find/replace required for file: %s", path)
 				content = strings.Replace(content, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
 			}
