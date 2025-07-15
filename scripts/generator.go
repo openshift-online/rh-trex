@@ -151,6 +151,8 @@ func main() {
 		if nm == "services" {
 			addControllerRegistration(k)
 			addPresenterMappings(k)
+			addServiceLocatorToTypes(k)
+			addServiceLocatorToFramework(k)
 		}
 	}
 }
@@ -313,4 +315,26 @@ func writeBeforePattern(path string, matchingLine string, lineToWrite string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func addServiceLocatorToTypes(k myWriter) {
+	typesFile := fmt.Sprintf("cmd/%s/environments/types.go", k.Cmd)
+	
+	// Add service locator field to Services struct
+	serviceField := fmt.Sprintf("\t%s %sServiceLocator", k.KindPlural, k.Kind)
+	
+	// Insert before the closing brace of Services struct
+	matchingLine := "}"
+	writeBeforePattern(typesFile, matchingLine, serviceField)
+}
+
+func addServiceLocatorToFramework(k myWriter) {
+	frameworkFile := fmt.Sprintf("cmd/%s/environments/framework.go", k.Cmd)
+	
+	// Add service locator initialization to LoadServices method
+	serviceInitialization := fmt.Sprintf("\te.Services.%s = New%sServiceLocator(e)", k.KindPlural, k.Kind)
+	
+	// Insert before the closing brace of LoadServices method
+	matchingLine := "}"
+	writeBeforePattern(frameworkFile, matchingLine, serviceInitialization)
 }

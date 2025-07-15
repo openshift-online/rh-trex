@@ -60,6 +60,11 @@ func clone(_ *cobra.Command, _ []string) {
 		if path == ".git" || strings.Contains(path, ".git/") {
 			return nil
 		}
+		
+		// Skip clone command to prevent self-corruption
+		if strings.Contains(path, "cmd/trex/clone/") || strings.Contains(path, "/clone/cmd.go") {
+			return nil
+		}
 
 		dest := provisionCfg.Destination + "/" + path
 		if strings.Contains(dest, "trex") {
@@ -88,17 +93,12 @@ func clone(_ *cobra.Command, _ []string) {
 				content = addTRexCloneSection(content, provisionCfg.Name)
 			}
 
-			if strings.Contains(content, "github.com/openshift-online/rh-trex") && !strings.Contains(content, "github.com/openshift-online/rh-trex-core") {
+			if strings.Contains(content, "github.com/openshift-online/rh-trex/pkg/") {
 				glog.Infof("find/replace required for file: %s", path)
 				replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
-				// Use line-by-line replacement to preserve rh-trex-core dependencies
-				lines := strings.Split(content, "\n")
-				for i, line := range lines {
-					if strings.Contains(line, "github.com/openshift-online/rh-trex") && !strings.Contains(line, "rh-trex-core") {
-						lines[i] = strings.Replace(line, "github.com/openshift-online/rh-trex", replacement, -1)
-					}
-				}
-				content = strings.Join(lines, "\n")
+				// Replace specific rh-trex package imports, preserving rh-trex-core
+				content = strings.Replace(content, "github.com/openshift-online/rh-trex/pkg/", replacement+"/pkg/", -1)
+				content = strings.Replace(content, "github.com/openshift-online/rh-trex/cmd/", replacement+"/cmd/", -1)
 			}
 
 			if strings.Contains(content, "RHTrex") {
