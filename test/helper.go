@@ -238,7 +238,7 @@ func (helper *Helper) NewApiClient() *openapi.APIClient {
 }
 
 func (helper *Helper) NewRandAccount() *amv1.Account {
-	return helper.NewAccount(helper.NewID(), faker.Name(), faker.Email())
+	return helper.NewAccount(helper.NewID(), faker.Name(), helper.NewID()+"@lol.nope")
 }
 
 func (helper *Helper) NewAccount(username, name, email string) *amv1.Account {
