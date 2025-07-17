@@ -192,24 +192,6 @@ If clone fails:
 4. Rebuild TRex binary: `make binary`
 5. Validate import path replacement logic
 
-## Generator Service Locator Bug
-
-**Problem**: Fixed generator uses overly broad pattern matching `"}"` which corrupts ALL struct definitions, not just the Services struct.
-
-**Symptoms**: 
-- Service locator fields added to ApplicationConfig, Database, Handlers, Clients structs
-- Framework.go has service initialization scattered throughout methods
-- Build failures due to invalid struct definitions
-
-**Root Cause**: Functions `addServiceLocatorToTypes()` and `addServiceLocatorToFramework()` use generic `"}"` pattern instead of specific struct/method signatures.
-
-**Immediate Fix**: Manual cleanup required:
-1. Remove erroneous service locator fields from non-Services structs in types.go
-2. Remove scattered service initialization from framework.go except in LoadServices()
-3. Verify Services struct has correct service locator fields
-4. Fix the bug in TRex clone commmand
-5. 
-**Proper Fix Needed**: Update generator pattern matching to target specific code structures instead of generic closing braces.
 
 ## Historical Context
 

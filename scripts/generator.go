@@ -369,7 +369,7 @@ func addRouteRegistration(k myWriter) {
 		k.KindPlural, k.KindLowerSingular,
 		k.KindPlural, k.KindLowerSingular,
 		k.KindPlural, k.KindLowerSingular,
-		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural,
 		k.KindPlural)
 	
 	// Insert after the "// ADD ROUTES HERE" comment

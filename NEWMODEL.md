@@ -3,6 +3,7 @@
 ## Rules
 0. **Critical**: Only successful generation, compilation, and testing. Any test failure is fatal and must be fixed before proceeding.
 1. **Validation**: Review model relationships and validate business logic
+2. **Always**: Continue automatically unless in an error state or performing destructive acts (e.g, `rm`, `git push`, etc)
 
 ## Phase 1: Initial Prompt
 1. **Prompt**: start new model
