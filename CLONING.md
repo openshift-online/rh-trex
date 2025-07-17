@@ -61,6 +61,7 @@ if strings.Contains(content, "github.com/openshift-online/rh-trex/pkg/") {
 2. Remove clone command registration
 3. Update go.mod module name
 4. Run go mod tidy
+5. RemoveFrom clone only, remove: CLONING.md, INSTANTAPI.md 
 
 ## Clone Process Requirements
 
@@ -206,7 +207,8 @@ If clone fails:
 1. Remove erroneous service locator fields from non-Services structs in types.go
 2. Remove scattered service initialization from framework.go except in LoadServices()
 3. Verify Services struct has correct service locator fields
-
+4. Fix the bug in TRex clone commmand
+5. 
 **Proper Fix Needed**: Update generator pattern matching to target specific code structures instead of generic closing braces.
 
 ## Historical Context

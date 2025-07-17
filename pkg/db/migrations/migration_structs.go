@@ -24,6 +24,8 @@ import (
 var MigrationList = []*gormigrate.Migration{
 	addDinosaurs(),
 	addEvents(),
+
+	// ADD MIGRATIONS HERE
 }
 
 // Model represents the base model struct. All entities will have this struct embedded.
@@ -31,7 +33,7 @@ var MigrationList = []*gormigrate.Migration{
 type Model = coredb.Model
 
 // fkMigration represents a foreign key relationship for database migrations
-// This is now defined in the core framework but aliased here for backwards compatibility  
+// This is now defined in the core framework but aliased here for backwards compatibility
 type fkMigration = coredb.FKMigration
 
 // CreateFK creates foreign key constraints for database migrations
