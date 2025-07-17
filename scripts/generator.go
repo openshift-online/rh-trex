@@ -153,6 +153,12 @@ func main() {
 			addPresenterMappings(k)
 			addServiceLocatorToTypes(k)
 			addServiceLocatorToFramework(k)
+			addRouteRegistration(k)
+		}
+		
+		// Add migration registration after migration is generated
+		if nm == "migration" {
+			addMigrationRegistration(k)
 		}
 	}
 }
@@ -323,9 +329,9 @@ func addServiceLocatorToTypes(k myWriter) {
 	// Add service locator field to Services struct
 	serviceField := fmt.Sprintf("\t%s %sServiceLocator", k.KindPlural, k.Kind)
 	
-	// Insert before the closing brace of Services struct
-	matchingLine := "}"
-	writeBeforePattern(typesFile, matchingLine, serviceField)
+	// Insert after the "// ADD LOCATORS HERE" comment
+	matchingLine := "\t// ADD LOCATORS HERE"
+	writeAfterLine(typesFile, matchingLine, serviceField)
 }
 
 func addServiceLocatorToFramework(k myWriter) {
@@ -334,7 +340,50 @@ func addServiceLocatorToFramework(k myWriter) {
 	// Add service locator initialization to LoadServices method
 	serviceInitialization := fmt.Sprintf("\te.Services.%s = New%sServiceLocator(e)", k.KindPlural, k.Kind)
 	
-	// Insert before the closing brace of LoadServices method
-	matchingLine := "}"
-	writeBeforePattern(frameworkFile, matchingLine, serviceInitialization)
+	// Insert after the "// ADD SERVICES HERE" comment
+	matchingLine := "\t// ADD SERVICES HERE"
+	writeAfterLine(frameworkFile, matchingLine, serviceInitialization)
+}
+
+func addRouteRegistration(k myWriter) {
+	routesFile := fmt.Sprintf("cmd/%s/server/routes.go", k.Cmd)
+	
+	// Add handler creation and route registration
+	routeRegistration := fmt.Sprintf(`
+	%sHandler := handlers.New%sHandler(services.%s(), services.Generic())
+
+	//  /api/rh-trex/v1/%s
+	apiV1%sRouter := apiV1Router.PathPrefix("/%s").Subrouter()
+	apiV1%sRouter.HandleFunc("", %sHandler.List).Methods(http.MethodGet)
+	apiV1%sRouter.HandleFunc("/{id}", %sHandler.Get).Methods(http.MethodGet)
+	apiV1%sRouter.HandleFunc("", %sHandler.Create).Methods(http.MethodPost)
+	apiV1%sRouter.HandleFunc("/{id}", %sHandler.Patch).Methods(http.MethodPatch)
+	apiV1%sRouter.HandleFunc("/{id}", %sHandler.Delete).Methods(http.MethodDelete)
+	apiV1%sRouter.Use(authMiddleware.AuthenticateAccountJWT)
+	apiV1%sRouter.Use(authzMiddleware.AuthorizeApi)`, 
+		k.KindLowerSingular, k.Kind, k.KindPlural,
+		k.KindLowerPlural, 
+		k.KindPlural, k.KindLowerPlural,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural)
+	
+	// Insert after the "// ADD ROUTES HERE" comment
+	matchingLine := "\t// ADD ROUTES HERE"
+	writeAfterLine(routesFile, matchingLine, routeRegistration)
+}
+
+func addMigrationRegistration(k myWriter) {
+	migrationFile := "pkg/db/migrations/migration_structs.go"
+	
+	// Add migration function call
+	migrationCall := fmt.Sprintf("\tadd%s(),", k.KindPlural)
+	
+	// Insert after the "// ADD MIGRATIONS HERE" comment
+	matchingLine := "\t// ADD MIGRATIONS HERE"
+	writeAfterLine(migrationFile, matchingLine, migrationCall)
 }

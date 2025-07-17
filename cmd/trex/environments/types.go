@@ -46,6 +46,8 @@ type Services struct {
 	Dinosaurs DinosaurServiceLocator
 	Generic   GenericServiceLocator
 	Events    EventServiceLocator
+
+	// ADD LOCATORS HERE
 }
 
 type Clients struct {

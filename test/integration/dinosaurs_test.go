@@ -257,7 +257,7 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 
 	// starts 20 threads to update this dinosaur at the same time
-	threads := 20
+	threads := 50
 	var wg sync.WaitGroup
 	wg.Add(threads)
 
