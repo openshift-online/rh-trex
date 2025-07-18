@@ -108,7 +108,8 @@ func main() {
 		}
 
 		now := time.Now()
-		k.ID = fmt.Sprintf("%d%s%s%s%s", now.Year(), datePad(int(now.Month())), datePad(now.Day()), datePad(now.Hour()), datePad(now.Minute()))
+		// Include seconds and microseconds to prevent timestamp collisions when generating multiple entities rapidly
+		k.ID = fmt.Sprintf("%d%s%s%s%s%s%06d", now.Year(), datePad(int(now.Month())), datePad(now.Day()), datePad(now.Hour()), datePad(now.Minute()), datePad(now.Second()), now.Nanosecond()/1000)
 
 		outputPaths := map[string]string{
 			"generate-api":            fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
@@ -369,7 +370,7 @@ func addRouteRegistration(k myWriter) {
 		k.KindPlural, k.KindLowerSingular,
 		k.KindPlural, k.KindLowerSingular,
 		k.KindPlural, k.KindLowerSingular,
-		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural,
 		k.KindPlural)
 	
 	// Insert after the "// ADD ROUTES HERE" comment

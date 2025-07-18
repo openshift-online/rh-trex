@@ -24,7 +24,6 @@ import (
 var MigrationList = []*gormigrate.Migration{
 	addDinosaurs(),
 	addEvents(),
-
 	// ADD MIGRATIONS HERE
 }
 
