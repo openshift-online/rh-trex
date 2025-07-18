@@ -80,6 +80,7 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1DinosaursRouter.Use(authMiddleware.AuthenticateAccountJWT)
 	apiV1DinosaursRouter.Use(authzMiddleware.AuthorizeApi)
 
+
 	// ADD ROUTES HERE
 
 	return mainRouter
