@@ -113,7 +113,7 @@ func openapiYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "openapi.yaml", size: 4860, mode: os.FileMode(420), modTime: time.Unix(1752810270, 0)}
+	info := bindataFileInfo{name: "openapi.yaml", size: 4860, mode: os.FileMode(420), modTime: time.Unix(1753038497, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

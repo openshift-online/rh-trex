@@ -77,7 +77,7 @@ func main() {
 		"test-factories",
 		"handlers",
 		"openapi-kind",
-		"servicelocator",
+		"plugin",
 	}
 
 	for _, nm := range templates {
@@ -122,12 +122,21 @@ func main() {
 			"generate-test-factories": fmt.Sprintf("test/factories/%s.go", k.KindLowerPlural),
 			"generate-test":           fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural),
 			"generate-services":       fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
-			"generate-servicelocator": fmt.Sprintf("cmd/%s/environments/locator_%s.go", k.Cmd, k.KindLowerSingular),
+			"generate-plugin":         fmt.Sprintf("plugins/%s/plugin.go", k.KindLowerSingular),
 		}
 
 		outputPath, ok := outputPaths["generate-"+nm]
 		if !ok {
 			panic("expected to find outputPath for " + nm)
+		}
+
+		// Create directory if it doesn't exist (for plugin directory)
+		if nm == "plugin" {
+			dir := fmt.Sprintf("plugins/%s", k.KindLowerSingular)
+			err := os.MkdirAll(dir, 0755)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		f, err := os.Create(outputPath)
@@ -146,15 +155,6 @@ func main() {
 
 		if strings.EqualFold("generate-"+nm, "generate-openapi-kind") {
 			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
-		}
-		
-		// Add controller registration and presenter mappings after all templates are processed
-		if nm == "services" {
-			addControllerRegistration(k)
-			addPresenterMappings(k)
-			addServiceLocatorToTypes(k)
-			addServiceLocatorToFramework(k)
-			addRouteRegistration(k)
 		}
 		
 		// Add migration registration after migration is generated

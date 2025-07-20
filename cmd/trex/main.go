@@ -8,6 +8,9 @@ import (
 
 	"github.com/openshift-online/rh-trex/cmd/trex/migrate"
 	"github.com/openshift-online/rh-trex/cmd/trex/servecmd"
+	
+	// Import all plugins for auto-registration
+	_ "github.com/openshift-online/rh-trex/plugins/dinosaurs"
 )
 
 // nolint

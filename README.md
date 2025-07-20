@@ -1,6 +1,6 @@
 # TRex
 
-**TRex** is Red Hat TAP's **T**rusted **R**est e**X**ample - a production-ready microservice template for rapid API development.
+**TRex** is Red Hat's **T**rusted **R**est **EX**ample - a production-ready microservice template for rapid API development.
 
 ![Trexxy](rhtap-trex_sm.png)
 
@@ -75,20 +75,28 @@ go run ./scripts/generator.go --kind EntityName
 ```
 
 **Generates:**
-- API models and handlers
-- Service layer with business logic
-- DAO with database operations
-- OpenAPI specifications
-- Database migrations
-- Unit and integration tests
-- Service locator registration
+- **Plugin file**: Single consolidated file with all framework registrations
+- **API models and handlers**: RESTful endpoints with authentication
+- **Service layer**: Business logic with transaction management
+- **DAO layer**: Database operations with GORM
+- **OpenAPI specifications**: Auto-generated API documentation
+- **Database migrations**: Schema evolution with rollback support
+- **Unit and integration tests**: Comprehensive test coverage
+- **Test factories and mocks**: Testing infrastructure
 
-**Note**: See [CLAUDE.md](./CLAUDE.md) for known generator issues and manual fixes required.
+**Plugin Architecture**: The generator creates a single `plugins/{entity}/plugin.go` file containing all framework registrations, eliminating manual framework edits. See [API-PLUGINS.md](./API-PLUGINS.md) for architecture details.
 
 ### Development Workflow
 
-1. **Generate Entity**: Use generator for new business objects
+1. **Generate Entity**: Use generator for new business objects (creates plugin file automatically)
 2. **Customize Logic**: Add business rules in service layer  
 3. **Test**: Run unit tests (`make test`) and integration tests (`make test-integration`)
 4. **Update API**: Modify OpenAPI specs and run `make generate`
 5. **Deploy**: Use `make deploy` for OpenShift or container deployment
+
+### Documentation
+
+- **[API-PLUGINS.md](./API-PLUGINS.md)**: Plugin architecture and auto-discovery patterns
+- **[CLAUDE.md](./CLAUDE.md)**: Development commands and generator usage  
+- **[RUNNING.md](./RUNNING.md)**: Complete setup and deployment guide
+- **[ASCIIARCH.md](./ASCIIARCH.md)**: Architecture diagrams and design patterns

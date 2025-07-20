@@ -1,0 +1,84 @@
+package {{.KindLowerSingular}}
+
+import (
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"{{.Repo}}/{{.Project}}/cmd/{{.Cmd}}/environments"
+	"{{.Repo}}/{{.Project}}/cmd/{{.Cmd}}/environments/registry"
+	"{{.Repo}}/{{.Project}}/cmd/{{.Cmd}}/server"
+	"{{.Repo}}/{{.Project}}/pkg/api"
+	"{{.Repo}}/{{.Project}}/pkg/api/presenters"
+	"{{.Repo}}/{{.Project}}/pkg/auth"
+	"{{.Repo}}/{{.Project}}/pkg/controllers"
+	"{{.Repo}}/{{.Project}}/pkg/dao"
+	"{{.Repo}}/{{.Project}}/pkg/db"
+	"{{.Repo}}/{{.Project}}/pkg/handlers"
+	"{{.Repo}}/{{.Project}}/pkg/services"
+)
+
+// Service Locator
+type {{.Kind}}ServiceLocator func() services.{{.Kind}}Service
+
+func New{{.Kind}}ServiceLocator(env *environments.Env) {{.Kind}}ServiceLocator {
+	return func() services.{{.Kind}}Service {
+		return services.New{{.Kind}}Service(
+			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
+			dao.New{{.Kind}}Dao(&env.Database.SessionFactory),
+			env.Services.Events(),
+		)
+	}
+}
+
+func (s *environments.Services) {{.KindPlural}}() services.{{.Kind}}Service {
+	if s == nil {
+		return nil
+	}
+	if obj, found := s.GetService("{{.KindPlural}}"); found {
+		locator := obj.({{.Kind}}ServiceLocator)
+		return locator()
+	}
+	return nil
+}
+
+func init() {
+	// Service registration
+	registry.RegisterService("{{.KindPlural}}", func(env interface{}) interface{} {
+		return New{{.Kind}}ServiceLocator(env.(*environments.Env))
+	})
+
+	// Routes registration
+	server.RegisterRoutes("{{.KindLowerPlural}}", func(apiV1Router *mux.Router, services server.ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware) {
+		envServices := services.(*environments.Services)
+		{{.KindLowerSingular}}Handler := handlers.New{{.Kind}}Handler(envServices.{{.KindPlural}}(), envServices.Generic())
+
+		{{.KindLowerPlural}}Router := apiV1Router.PathPrefix("/{{.KindLowerPlural}}").Subrouter()
+		{{.KindLowerPlural}}Router.HandleFunc("", {{.KindLowerSingular}}Handler.List).Methods(http.MethodGet)
+		{{.KindLowerPlural}}Router.HandleFunc("/{id}", {{.KindLowerSingular}}Handler.Get).Methods(http.MethodGet)
+		{{.KindLowerPlural}}Router.HandleFunc("", {{.KindLowerSingular}}Handler.Create).Methods(http.MethodPost)
+		{{.KindLowerPlural}}Router.HandleFunc("/{id}", {{.KindLowerSingular}}Handler.Patch).Methods(http.MethodPatch)
+		{{.KindLowerPlural}}Router.HandleFunc("/{id}", {{.KindLowerSingular}}Handler.Delete).Methods(http.MethodDelete)
+		{{.KindLowerPlural}}Router.Use(authMiddleware.AuthenticateAccountJWT)
+		{{.KindLowerPlural}}Router.Use(authzMiddleware.AuthorizeApi)
+	})
+
+	// Controller registration
+	server.RegisterController("{{.KindPlural}}", func(manager *controllers.KindControllerManager, services *environments.Services) {
+		{{.KindLowerSingular}}Services := services.{{.KindPlural}}()
+
+		manager.Add(&controllers.ControllerConfig{
+			Source: "{{.KindPlural}}",
+			Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
+				api.CreateEventType: { {{.KindLowerSingular}}Services.OnUpsert},
+				api.UpdateEventType: { {{.KindLowerSingular}}Services.OnUpsert},
+				api.DeleteEventType: { {{.KindLowerSingular}}Services.OnDelete},
+			},
+		})
+	})
+
+	// Presenter registration
+	presenters.RegisterPath(api.{{.Kind}}{}, "{{.KindSnakeCasePlural}}")
+	presenters.RegisterPath(&api.{{.Kind}}{}, "{{.KindSnakeCasePlural}}")
+	presenters.RegisterKind(api.{{.Kind}}{}, "{{.Kind}}")
+	presenters.RegisterKind(&api.{{.Kind}}{}, "{{.Kind}}")
+}
