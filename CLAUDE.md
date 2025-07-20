@@ -38,7 +38,9 @@ TRex is a Go-based REST API template for Red Hat TAP (Trusted Application Pipeli
 - `make db/teardown` - Remove database container
 
 ### TRex Cloning
-- `./trex clone --name project-name --destination /path` - Clone TRex template for new project
+- `go run ./scripts/cloner.go --name project-name --destination /path` - Clone TRex template for new project
+- **NEW**: Cloning logic moved to standalone script (no longer part of trex binary)
+- **BENEFIT**: Generated clones automatically exclude scripts directory (cloner.go, generator.go)
 - **CRITICAL**: Follow post-clone cleanup steps in CLONING.md
 - **CRITICAL**: Generator service locator registration currently has bugs - manual fixes required
 
