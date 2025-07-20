@@ -46,16 +46,21 @@ type Services struct {
 	Generic         GenericServiceLocator
 	Events          EventServiceLocator
 	serviceRegistry map[string]interface{}
+	mutex           sync.RWMutex
 }
 
 func (s *Services) GetService(name string) interface{} {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	if s.serviceRegistry == nil {
-		s.serviceRegistry = make(map[string]interface{})
+		return nil
 	}
 	return s.serviceRegistry[name]
 }
 
 func (s *Services) SetService(name string, service interface{}) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	if s.serviceRegistry == nil {
 		s.serviceRegistry = make(map[string]interface{})
 	}

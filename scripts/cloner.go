@@ -70,8 +70,8 @@ func cloneProject(cloneCfg *CloneConfig) error {
 			return nil
 		}
 
-		// Skip scripts directory to avoid copying cloner and generator
-		if path == "scripts" || strings.HasPrefix(path, "scripts/") {
+		// Skip cloner.go but keep generator.go for entity generation in clones
+		if path == "scripts/cloner.go" {
 			return nil
 		}
 
@@ -129,7 +129,21 @@ func cloneProject(cloneCfg *CloneConfig) error {
 
 			if strings.Contains(content, "rhtrex") {
 				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "rhtrex", strings.ToLower(cloneCfg.Name), -1)
+				// Use line-by-line replacement to handle database variables with SQL-safe names
+				lines := strings.Split(content, "\n")
+				for i, line := range lines {
+					if strings.Contains(line, "rhtrex") {
+						if strings.Contains(line, "db_name:=") || strings.Contains(line, "db_user:=") || 
+						   strings.Contains(line, "POSTGRES_DB=") || strings.Contains(line, "POSTGRES_USER=") {
+							// Use SQL-safe name for database variables
+							lines[i] = strings.Replace(line, "rhtrex", toSqlSafeName(strings.ToLower(cloneCfg.Name)), -1)
+						} else {
+							// Use regular name for other variables
+							lines[i] = strings.Replace(line, "rhtrex", strings.ToLower(cloneCfg.Name), -1)
+						}
+					}
+				}
+				content = strings.Join(lines, "\n")
 			}
 
 			if strings.Contains(content, "trex") && !strings.Contains(content, "rh-trex-core") {
@@ -138,7 +152,13 @@ func cloneProject(cloneCfg *CloneConfig) error {
 				lines := strings.Split(content, "\n")
 				for i, line := range lines {
 					if strings.Contains(line, "trex") && !strings.Contains(line, "rh-trex-core") {
-						lines[i] = strings.Replace(line, "trex", strings.ToLower(cloneCfg.Name), -1)
+						if strings.Contains(line, "db_user:=") {
+							// Use SQL-safe name for database variables
+							lines[i] = strings.Replace(line, "trex", toSqlSafeName(strings.ToLower(cloneCfg.Name)), -1)
+						} else {
+							// Use regular name for other variables
+							lines[i] = strings.Replace(line, "trex", strings.ToLower(cloneCfg.Name), -1)
+						}
 					}
 				}
 				content = strings.Join(lines, "\n")
@@ -147,6 +167,42 @@ func cloneProject(cloneCfg *CloneConfig) error {
 			if strings.Contains(content, "TRex") {
 				glog.Infof("find/replace required for file: %s", path)
 				content = strings.Replace(content, "TRex", cloneCfg.Name, -1)
+			}
+
+			// 1. Go module declaration replacement
+			if strings.HasPrefix(content, "module github.com/openshift-online/rh-trex") {
+				glog.Infof("find/replace required for file: %s", path)
+				content = strings.Replace(content, "module github.com/openshift-online/rh-trex", 
+					fmt.Sprintf("module %s/%s", cloneCfg.Repo, strings.ToLower(cloneCfg.Name)), 1)
+			}
+
+			// 2. API URL paths replacement
+			if strings.Contains(content, "/api/rh-trex/v1/") {
+				glog.Infof("find/replace required for file: %s", path)
+				content = strings.ReplaceAll(content, "/api/rh-trex/v1/", 
+					fmt.Sprintf("/api/%s/v1/", strings.ToLower(cloneCfg.Name)))
+			}
+
+			// 3. OpenAPI client method names replacement
+			if strings.Contains(content, "ApiRhTrexV1") {
+				glog.Infof("find/replace required for file: %s", path)
+				content = strings.ReplaceAll(content, "ApiRhTrexV1", 
+					fmt.Sprintf("Api%sV1", toCamelCase(cloneCfg.Name)))
+			}
+
+			// 4. Database container names replacement
+			if strings.Contains(content, "psql-rhtrex") {
+				glog.Infof("find/replace required for file: %s", path)
+				content = strings.ReplaceAll(content, "psql-rhtrex", 
+					fmt.Sprintf("psql-%s", toSqlSafeName(strings.ToLower(cloneCfg.Name))))
+			}
+
+
+			// 6. Error code prefixes replacement
+			if strings.Contains(content, "ERROR_CODE_PREFIX = \"rh-trex\"") {
+				glog.Infof("find/replace required for file: %s", path)
+				content = strings.ReplaceAll(content, "ERROR_CODE_PREFIX = \"rh-trex\"", 
+					fmt.Sprintf("ERROR_CODE_PREFIX = \"%s\"", strings.ToLower(cloneCfg.Name)))
 			}
 
 			if exists(dest) {
@@ -183,6 +239,35 @@ func exists(path string) bool {
 		return false
 	}
 	return true
+}
+
+// toCamelCase converts a string to CamelCase (e.g., "ocm-ai" -> "OcmAi")
+func toCamelCase(s string) string {
+	if s == "" {
+		return s
+	}
+	
+	// Split by hyphens and underscores
+	parts := strings.FieldsFunc(s, func(r rune) bool {
+		return r == '-' || r == '_'
+	})
+	
+	var result strings.Builder
+	for _, part := range parts {
+		if len(part) > 0 {
+			result.WriteString(strings.ToUpper(part[:1]))
+			if len(part) > 1 {
+				result.WriteString(strings.ToLower(part[1:]))
+			}
+		}
+	}
+	
+	return result.String()
+}
+
+// toSqlSafeName converts a string to SQL-safe name by replacing hyphens with underscores
+func toSqlSafeName(s string) string {
+	return strings.ReplaceAll(s, "-", "_")
 }
 
 // addTRexCloneSection adds TRex clone information to CLAUDE.md

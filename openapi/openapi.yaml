@@ -15,10 +15,6 @@ paths:
     $ref: 'openapi.dinosaurs.yaml#/paths/~1api~1rh-trex~1v1~1dinosaurs'
   /api/rh-trex/v1/dinosaurs/{id}:
     $ref: 'openapi.dinosaurs.yaml#/paths/~1api~1rh-trex~1v1~1dinosaurs~1{id}'
-  /api/rh-trex/v1/test_entitys:
-    $ref: 'openapi.testEntitys.yaml#/paths/~1api~1rh-trex~1v1~1test_entitys'
-  /api/rh-trex/v1/test_entitys/{id}:
-    $ref: 'openapi.testEntitys.yaml#/paths/~1api~1rh-trex~1v1~1test_entitys~1{id}'
   # AUTO-ADD NEW PATHS
 components:
   securitySchemes:
@@ -85,12 +81,6 @@ components:
       $ref: 'openapi.dinosaurs.yaml#/components/schemas/DinosaurList'
     DinosaurPatchRequest:
       $ref: 'openapi.dinosaurs.yaml#/components/schemas/DinosaurPatchRequest'
-    TestEntity:
-      $ref: 'openapi.testEntitys.yaml#/components/schemas/TestEntity'
-    TestEntityList:
-      $ref: 'openapi.testEntitys.yaml#/components/schemas/TestEntityList'
-    TestEntityPatchRequest:
-      $ref: 'openapi.testEntitys.yaml#/components/schemas/TestEntityPatchRequest'
     # AUTO-ADD NEW SCHEMAS
   parameters:
     id:

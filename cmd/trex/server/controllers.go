@@ -36,6 +36,10 @@ func NewControllersServer() *ControllersServer {
 	// Auto-discovered controllers (no manual editing needed)
 	LoadDiscoveredControllers(s.KindControllerManager, &env().Services)
 
+
+
+
+
 	return s
 }
 
