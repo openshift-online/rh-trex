@@ -28,7 +28,7 @@ TODO: all of it can be better
 var (
 	kind                        string = "Asteroid"
 	repo                        string = "github.com/openshift-online"
-	project                     string = "rh-trex"
+	project                     string = "" // Auto-detected from cmd directory
 	openapiEndpointStart        string = "# NEW ENDPOINT START"
 	openapiEndpointEnd          string = "# NEW ENDPOINT END"
 	openApiSchemaStart          string = "# NEW SCHEMA START"
@@ -44,7 +44,7 @@ func init() {
 
 	flags.StringVar(&kind, "kind", kind, "the name of the kind.  e.g Account or User")
 	flags.StringVar(&repo, "repo", repo, "the name of the repo.  e.g github.com/yourproject")
-	flags.StringVar(&project, "project", project, "the name of the project.  e.g rh-trex")
+	flags.StringVar(&project, "project", project, "the name of the project (auto-detected from cmd/ directory if empty)")
 }
 
 func getCmdDir() string {
@@ -65,6 +65,12 @@ func getCmdDir() string {
 func main() {
 	// Parse flags
 	pflag.Parse()
+	
+	// Auto-detect project name if not specified
+	if project == "" {
+		project = getCmdDir()
+		fmt.Printf("Auto-detected project name: %s\n", project)
+	}
 
 	templates := []string{
 		"api",
@@ -162,6 +168,11 @@ func main() {
 			addMigrationRegistration(k)
 		}
 	}
+	
+	// Print success message with next steps
+	fmt.Printf("\n✅ Successfully generated %s entity!\n", kind)
+	fmt.Printf("📋 Next step: Run 'make generate' to update OpenAPI models\n")
+	fmt.Printf("🚀 Then run 'make test' to verify everything works\n\n")
 }
 
 func datePad(d int) string {
