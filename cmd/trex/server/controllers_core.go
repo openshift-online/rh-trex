@@ -85,34 +85,8 @@ func NewControllersServerCore() *ControllersServerCore {
 		LegacyControllerManager: legacyManager,
 	}
 
-	// Register dinosaur service with core framework
-	dinoServices := env().Services.Dinosaurs()
-
-	// Register with legacy system (for backward compatibility)
-	s.LegacyControllerManager.Add(&controllers.ControllerConfig{
-		Source: "Dinosaurs",
-		Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
-			api.CreateEventType: {dinoServices.OnUpsert},
-			api.UpdateEventType: {dinoServices.OnUpsert},
-			api.DeleteEventType: {dinoServices.OnDelete},
-		},
-	})
-
-	// Register with core system (for future resources)
-	s.CoreControllerManager.RegisterController(&corecontrollers.ControllerConfig{
-		Source: "Dinosaurs",
-		Handlers: map[coreapi.EventType][]corecontrollers.ControllerHandlerFunc{
-			coreapi.CreateEventType: {func(ctx context.Context, id string) error {
-				return dinoServices.OnUpsert(ctx, id)
-			}},
-			coreapi.UpdateEventType: {func(ctx context.Context, id string) error {
-				return dinoServices.OnUpsert(ctx, id)
-			}},
-			coreapi.DeleteEventType: {func(ctx context.Context, id string) error {
-				return dinoServices.OnDelete(ctx, id)
-			}},
-		},
-	})
+	// Auto-discovered controllers (no manual editing needed)
+	LoadDiscoveredControllers(s.LegacyControllerManager, &env().Services)
 
 	return s
 }

@@ -1,54 +1,58 @@
-package clone
+package main
 
 import (
 	"flag"
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/openshift-online/rh-trex/pkg/config"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/golang/glog"
+	"github.com/openshift-online/rh-trex/pkg/config"
 )
 
-type provisionCfgFlags struct {
+type CloneConfig struct {
 	Name        string
 	Repo        string
 	Destination string
 }
 
-func (c *provisionCfgFlags) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&c.Name, "name", c.Name, "Name of the new service being provisioned")
-	fs.StringVar(&c.Destination, "destination", c.Destination, "Target directory for the newly provisioned instance")
-	fs.StringVar(&c.Repo, "repo", c.Repo, "git repo of project")
-}
-
-var provisionCfg = &provisionCfgFlags{
-	Name:        "rh-trex",
-	Repo:        "github.com/openshift-online",
-	Destination: "/tmp/clone-test",
-}
-
-// migrate sub-command handles running migrations
-func NewCloneCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "clone",
-		Short: "Clone a new TRex instance",
-		Long:  "Clone a new TRex instance",
-		Run:   clone,
-	}
-
-	provisionCfg.AddFlags(cmd.PersistentFlags())
-	cmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
-	return cmd
-}
-
 var rw os.FileMode = 0777
 
-func clone(_ *cobra.Command, _ []string) {
+func main() {
+	// Parse command line flags
+	cloneCfg := &CloneConfig{}
+	flag.StringVar(&cloneCfg.Name, "name", "rh-trex", "Name of the new service being provisioned")
+	flag.StringVar(&cloneCfg.Destination, "destination", "/tmp/clone-test", "Target directory for the newly provisioned instance")
+	flag.StringVar(&cloneCfg.Repo, "repo", "github.com/openshift-online", "git repo of project")
+	flag.Parse()
 
-	glog.Infof("creating new TRex instance as %s in directory %s", provisionCfg.Name, provisionCfg.Destination)
+	// Always log to stderr by default
+	if err := flag.Set("logtostderr", "true"); err != nil {
+		glog.Infof("Unable to set logtostderr to true")
+	}
+
+	if cloneCfg.Name == "" {
+		glog.Fatalf("--name is required")
+	}
+	if cloneCfg.Destination == "" {
+		glog.Fatalf("--destination is required")
+	}
+
+	if err := cloneProject(cloneCfg); err != nil {
+		glog.Fatalf("Clone failed: %v", err)
+	}
+
+	glog.Infof("Clone completed successfully!")
+}
+
+func cloneProject(cloneCfg *CloneConfig) error {
+	glog.Infof("creating new TRex instance as %s in directory %s", cloneCfg.Name, cloneCfg.Destination)
+
+	// Ensure the destination base directory exists
+	if err := os.MkdirAll(cloneCfg.Destination, rw); err != nil {
+		return fmt.Errorf("failed to create destination directory %s: %v", cloneCfg.Destination, err)
+	}
 
 	// walk the filesystem, starting at the root of the project
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
@@ -60,15 +64,20 @@ func clone(_ *cobra.Command, _ []string) {
 		if path == ".git" || strings.Contains(path, ".git/") {
 			return nil
 		}
-		
+
 		// Skip clone command to prevent self-corruption
 		if strings.Contains(path, "cmd/trex/clone/") || strings.Contains(path, "/clone/cmd.go") {
 			return nil
 		}
 
-		dest := provisionCfg.Destination + "/" + path
+		// Skip scripts directory to avoid copying cloner and generator
+		if path == "scripts" || strings.HasPrefix(path, "scripts/") {
+			return nil
+		}
+
+		dest := cloneCfg.Destination + "/" + path
 		if strings.Contains(dest, "trex") {
-			dest = strings.Replace(dest, "trex", strings.ToLower(provisionCfg.Name), -1)
+			dest = strings.Replace(dest, "trex", strings.ToLower(cloneCfg.Name), -1)
 		}
 
 		if info.IsDir() {
@@ -90,12 +99,12 @@ func clone(_ *cobra.Command, _ []string) {
 
 			// Special handling for CLAUDE.md to add TRex clone information
 			if strings.HasSuffix(path, "CLAUDE.md") {
-				content = addTRexCloneSection(content, provisionCfg.Name)
+				content = addTRexCloneSection(content, cloneCfg.Name)
 			}
 
 			if strings.Contains(content, "github.com/openshift-online/rh-trex/pkg/") {
 				glog.Infof("find/replace required for file: %s", path)
-				replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
+				replacement := fmt.Sprintf("%s/%s", cloneCfg.Repo, strings.ToLower(cloneCfg.Name))
 				// Replace specific rh-trex package imports, preserving rh-trex-core
 				content = strings.Replace(content, "github.com/openshift-online/rh-trex/pkg/", replacement+"/pkg/", -1)
 				content = strings.Replace(content, "github.com/openshift-online/rh-trex/cmd/", replacement+"/cmd/", -1)
@@ -103,7 +112,7 @@ func clone(_ *cobra.Command, _ []string) {
 
 			if strings.Contains(content, "RHTrex") {
 				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "RHTrex", provisionCfg.Name, -1)
+				content = strings.Replace(content, "RHTrex", cloneCfg.Name, -1)
 			}
 
 			if strings.Contains(content, "rh-trex") && !strings.Contains(content, "github.com/openshift-online/rh-trex-core") {
@@ -112,7 +121,7 @@ func clone(_ *cobra.Command, _ []string) {
 				lines := strings.Split(content, "\n")
 				for i, line := range lines {
 					if strings.Contains(line, "rh-trex") && !strings.Contains(line, "rh-trex-core") {
-						lines[i] = strings.Replace(line, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
+						lines[i] = strings.Replace(line, "rh-trex", strings.ToLower(cloneCfg.Name), -1)
 					}
 				}
 				content = strings.Join(lines, "\n")
@@ -120,7 +129,7 @@ func clone(_ *cobra.Command, _ []string) {
 
 			if strings.Contains(content, "rhtrex") {
 				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "rhtrex", strings.ToLower(provisionCfg.Name), -1)
+				content = strings.Replace(content, "rhtrex", strings.ToLower(cloneCfg.Name), -1)
 			}
 
 			if strings.Contains(content, "trex") && !strings.Contains(content, "rh-trex-core") {
@@ -129,7 +138,7 @@ func clone(_ *cobra.Command, _ []string) {
 				lines := strings.Split(content, "\n")
 				for i, line := range lines {
 					if strings.Contains(line, "trex") && !strings.Contains(line, "rh-trex-core") {
-						lines[i] = strings.Replace(line, "trex", strings.ToLower(provisionCfg.Name), -1)
+						lines[i] = strings.Replace(line, "trex", strings.ToLower(cloneCfg.Name), -1)
 					}
 				}
 				content = strings.Join(lines, "\n")
@@ -137,7 +146,7 @@ func clone(_ *cobra.Command, _ []string) {
 
 			if strings.Contains(content, "TRex") {
 				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "TRex", provisionCfg.Name, -1)
+				content = strings.Replace(content, "TRex", cloneCfg.Name, -1)
 			}
 
 			if exists(dest) {
@@ -165,10 +174,7 @@ func clone(_ *cobra.Command, _ []string) {
 		return nil
 	})
 
-	if err != nil {
-		fmt.Println(err)
-	}
-
+	return err
 }
 
 func exists(path string) bool {
@@ -230,13 +236,13 @@ For systematic updates, use this checklist:
 	// Insert the clone section after the first # header (after "# CLAUDE.md")
 	lines := strings.Split(content, "\n")
 	var result []string
-	
+
 	headerFound := false
 	sectionInserted := false
-	
+
 	for _, line := range lines {
 		result = append(result, line)
-		
+
 		// Insert clone section after the first header and its description
 		if !headerFound && strings.HasPrefix(line, "# ") {
 			headerFound = true
@@ -254,11 +260,11 @@ For systematic updates, use this checklist:
 			sectionInserted = true
 		}
 	}
-	
+
 	// If we haven't inserted yet, append at the end
 	if !sectionInserted {
 		result = append(result, strings.Split(cloneSection, "\n")...)
 	}
-	
+
 	return strings.Join(result, "\n")
 }

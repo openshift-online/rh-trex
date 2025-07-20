@@ -2,6 +2,8 @@ module github.com/openshift-online/rh-trex
 
 go 1.21
 
+replace github.com/openshift-online/rh-trex-core => ../rh-trex-core
+
 require (
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/auth0/go-jwt-middleware v0.0.0-20190805220309-36081240882b
@@ -22,7 +24,7 @@ require (
 	github.com/openshift-online/ocm-sdk-go v0.1.334
 	github.com/openshift-online/rh-trex-core v0.0.0-20250711220747-a9ce95f9f591
 	github.com/prometheus/client_golang v1.16.0
-	github.com/segmentio/ksuid v1.0.2
+	github.com/segmentio/ksuid v1.0.4
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/yaacov/tree-search-language v0.0.0-20190923184055-1c2dad2e354b

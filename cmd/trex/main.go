@@ -6,9 +6,11 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/openshift-online/rh-trex/cmd/trex/clone"
 	"github.com/openshift-online/rh-trex/cmd/trex/migrate"
 	"github.com/openshift-online/rh-trex/cmd/trex/servecmd"
+	
+	// Import all plugins for auto-registration
+	_ "github.com/openshift-online/rh-trex/plugins/dinosaurs"
 )
 
 // nolint
@@ -36,10 +38,9 @@ func main() {
 	// All subcommands under root
 	migrateCmd := migrate.NewMigrateCommand()
 	serveCmd := servecmd.NewServeCommand()
-	provisionCmd := clone.NewCloneCommand()
 
 	// Add subcommand(s)
-	rootCmd.AddCommand(migrateCmd, serveCmd, provisionCmd)
+	rootCmd.AddCommand(migrateCmd, serveCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		glog.Fatalf("error running command: %v", err)
