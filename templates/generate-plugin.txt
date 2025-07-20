@@ -30,11 +30,12 @@ func New{{.Kind}}ServiceLocator(env *environments.Env) {{.Kind}}ServiceLocator {
 	}
 }
 
-func (s *environments.Services) {{.KindPlural}}() services.{{.Kind}}Service {
+// {{.Kind}}Service helper function to get the {{.KindLowerSingular}} service from the registry
+func {{.Kind}}Service(s *environments.Services) services.{{.Kind}}Service {
 	if s == nil {
 		return nil
 	}
-	if obj, found := s.GetService("{{.KindPlural}}"); found {
+	if obj := s.GetService("{{.KindPlural}}"); obj != nil {
 		locator := obj.({{.Kind}}ServiceLocator)
 		return locator()
 	}
@@ -50,7 +51,7 @@ func init() {
 	// Routes registration
 	server.RegisterRoutes("{{.KindLowerPlural}}", func(apiV1Router *mux.Router, services server.ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware) {
 		envServices := services.(*environments.Services)
-		{{.KindLowerSingular}}Handler := handlers.New{{.Kind}}Handler(envServices.{{.KindPlural}}(), envServices.Generic())
+		{{.KindLowerSingular}}Handler := handlers.New{{.Kind}}Handler({{.Kind}}Service(envServices), envServices.Generic())
 
 		{{.KindLowerPlural}}Router := apiV1Router.PathPrefix("/{{.KindLowerPlural}}").Subrouter()
 		{{.KindLowerPlural}}Router.HandleFunc("", {{.KindLowerSingular}}Handler.List).Methods(http.MethodGet)
@@ -64,7 +65,7 @@ func init() {
 
 	// Controller registration
 	server.RegisterController("{{.KindPlural}}", func(manager *controllers.KindControllerManager, services *environments.Services) {
-		{{.KindLowerSingular}}Services := services.{{.KindPlural}}()
+		{{.KindLowerSingular}}Services := {{.Kind}}Service(services)
 
 		manager.Add(&controllers.ControllerConfig{
 			Source: "{{.KindPlural}}",
@@ -77,8 +78,8 @@ func init() {
 	})
 
 	// Presenter registration
-	presenters.RegisterPath(api.{{.Kind}}{}, "{{.KindSnakeCasePlural}}")
-	presenters.RegisterPath(&api.{{.Kind}}{}, "{{.KindSnakeCasePlural}}")
+	presenters.RegisterPath(api.{{.Kind}}{}, "{{.KindLowerPlural}}")
+	presenters.RegisterPath(&api.{{.Kind}}{}, "{{.KindLowerPlural}}")
 	presenters.RegisterKind(api.{{.Kind}}{}, "{{.Kind}}")
 	presenters.RegisterKind(&api.{{.Kind}}{}, "{{.Kind}}")
 }
