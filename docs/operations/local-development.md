@@ -63,12 +63,20 @@ rh-trex=# \dt
 ## Testing
 
 ```shell
-# Run unit tests
+# Run unit tests with coverage
 make test
 
-# Run integration tests
+# Run integration tests with coverage
 make test-integration
+
+# Generate HTML coverage reports
+make coverage-html
+
+# View coverage summary in terminal
+make coverage-func
 ```
+
+For comprehensive testing documentation, see the **[Testing Guide](../reference/testing-guide.md)**.
 
 ## Running the Service
 

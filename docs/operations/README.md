@@ -23,8 +23,9 @@ make binary            # Build TRex
 make run               # Start the service
 
 # Development workflow
-make test              # Run unit tests
-make test-integration  # Run integration tests
+make test              # Run unit tests with coverage
+make test-integration  # Run integration tests with coverage
+make coverage-html     # Generate coverage reports
 make db/teardown       # Clean up database
 ```
 

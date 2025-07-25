@@ -53,14 +53,17 @@ make db/migrate             # Equivalent to: ./trex migrate
 
 ### Testing Commands
 ```bash
-# Run unit tests
+# Run unit tests (with coverage)
 make test
 
-# Run integration tests
+# Run integration tests (with coverage)
 make test-integration
 
-# Run tests with coverage
-make test-coverage
+# Generate HTML coverage reports
+make coverage-html
+
+# Show function-level coverage summary
+make coverage-func
 
 # Run CI tests (JSON output)
 make ci-test-unit

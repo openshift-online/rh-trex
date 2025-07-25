@@ -28,6 +28,8 @@
 /config/master.key
 
 /coverage
+coverage-*.out
+coverage-*.html
 
 # Ignore built binaries
 /trex

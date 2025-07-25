@@ -60,6 +60,8 @@ jwks_url:=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-con
 # Test output files
 unit_test_json_output ?= ${PWD}/unit-test-results.json
 integration_test_json_output ?= ${PWD}/integration-test-results.json
+unit_coverage_output ?= ${PWD}/coverage-unit.out
+integration_coverage_output ?= ${PWD}/coverage-integration.out
 
 # Prints a list of useful targets.
 help:
@@ -74,6 +76,8 @@ help:
 	@echo "make run/docs             run swagger and host the api spec"
 	@echo "make test                 run unit tests"
 	@echo "make test-integration     run integration tests"
+	@echo "make coverage-html        generate HTML coverage reports"
+	@echo "make coverage-func        show function-level coverage summary"
 	@echo "make generate             generate openapi modules"
 	@echo "make image                build docker image"
 	@echo "make push                 push docker image"
@@ -171,7 +175,7 @@ install: check-gopath
 # Examples:
 #   make test TESTFLAGS="-run TestSomething"
 test: install
-	OCM_ENV=testing gotestsum --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+	OCM_ENV=testing gotestsum --format short-verbose -- -p 1 -v -coverprofile=$(unit_coverage_output) -coverpkg=./... $(TESTFLAGS) \
 		./pkg/... \
 		./cmd/...
 .PHONY: test
@@ -185,7 +189,7 @@ test: install
 #   make test-unit-json TESTFLAGS="-run TestSomething"
 ci-test-unit: install
 	@echo $(db_password) > ${PWD}/secrets/db.password
-	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v -coverprofile=$(unit_coverage_output) -coverpkg=./... $(TESTFLAGS) \
 		./pkg/... \
 		./cmd/...
 .PHONY: ci-test-unit
@@ -202,7 +206,7 @@ ci-test-unit: install
 #   make test-integration TESTFLAGS="-short"                skips long-run tests
 ci-test-integration: install
 	@echo $(db_password) > ${PWD}/secrets/db.password
-	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(integration_test_json_output) --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
+	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(integration_test_json_output) --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h -coverprofile=$(integration_coverage_output) -coverpkg=./... $(TESTFLAGS) \
 			./test/integration
 .PHONY: ci-test-integration
 
@@ -218,7 +222,7 @@ ci-test-integration: install
 #   make test-integration TESTFLAGS="-short"                skips long-run tests
 test-integration: install
 	@echo $(db_password) > ${PWD}/secrets/db.password
-	OCM_ENV=testing gotestsum --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
+	OCM_ENV=testing gotestsum --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h -coverprofile=$(integration_coverage_output) -coverpkg=./... $(TESTFLAGS) \
 			./test/integration
 .PHONY: test-integration
 
@@ -242,12 +246,37 @@ run/docs:
 	docker run -d -p 80:8080 -e SWAGGER_JSON=/trex.yaml -v $(PWD)/openapi/rh-trex.yaml:/trex.yaml swaggerapi/swagger-ui
 .PHONY: run/docs
 
+# Run coverage reports
+coverage-html:
+	@if [ -f $(unit_coverage_output) ]; then \
+		go tool cover -html=$(unit_coverage_output) -o coverage-unit.html; \
+		echo "Unit test coverage report generated: coverage-unit.html"; \
+	fi
+	@if [ -f $(integration_coverage_output) ]; then \
+		go tool cover -html=$(integration_coverage_output) -o coverage-integration.html; \
+		echo "Integration test coverage report generated: coverage-integration.html"; \
+	fi
+.PHONY: coverage-html
+
+coverage-func:
+	@if [ -f $(unit_coverage_output) ]; then \
+		echo "=== Unit Test Coverage ==="; \
+		go tool cover -func=$(unit_coverage_output); \
+	fi
+	@if [ -f $(integration_coverage_output) ]; then \
+		echo "=== Integration Test Coverage ==="; \
+		go tool cover -func=$(integration_coverage_output); \
+	fi
+.PHONY: coverage-func
+
 # Delete temporary files
 clean:
 	rm -rf \
 		$(binary) \
 		templates/*-template.json \
 		data/generated/openapi/*.json \
+		coverage-*.out \
+		coverage-*.html \
 .PHONY: clean
 
 .PHONY: cmds
