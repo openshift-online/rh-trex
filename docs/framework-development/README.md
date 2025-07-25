@@ -11,6 +11,7 @@ For contributors and maintainers working on TRex itself.
 ## Contributing
 
 - **[Contributing Guide](contributing.md)** - Development workflow and standards
+- **[Proposals Process](../proposals/)** - Propose new features, changes, or ideas
 - **[Debugging Framework](debugging-framework.md)** - Troubleshooting TRex internals
 
 ## Core Concepts
