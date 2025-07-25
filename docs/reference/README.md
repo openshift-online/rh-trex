@@ -11,6 +11,7 @@ Complete technical reference for TRex APIs, configuration, and commands.
 
 - **[Configuration Options](configuration-options.md)** - All environment variables and settings
 - **[Command Reference](command-reference.md)** - CLI commands and options
+- **[Testing Guide](testing-guide.md)** - Comprehensive testing and code coverage documentation
 
 ## Technical Specifications
 

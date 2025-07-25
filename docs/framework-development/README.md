@@ -66,11 +66,14 @@ make test
 ## Testing Framework Changes
 
 ```bash
-# Unit tests
+# Unit tests with coverage
 make test
 
-# Integration tests  
+# Integration tests with coverage
 make test-integration
+
+# Generate coverage reports
+make coverage-html
 
 # Test generator
 go run ./scripts/generate/main.go --kind TestEntity
@@ -80,6 +83,8 @@ make test
 # Test cloner
 go run ./scripts/clone/main.go --name test-clone --destination /tmp/test
 ```
+
+For detailed testing information, see the **[Testing Guide](../reference/testing-guide.md)**.
 
 ## Code Style
 
