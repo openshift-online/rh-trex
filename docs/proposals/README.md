@@ -16,7 +16,7 @@ Use regular PRs for bug fixes, minor enhancements, and documentation updates.
 
 ## Process
 
-1. **Create**: Copy [proposal-template.md](proposal-template.md) to a descriptive filename
+1. **Create**: Copy [proposal-template.md](proposal-template.md) to `{YYYYMMDD}-proposal.md` format (e.g., `20250115-plugin-versioning.md`)
 2. **Submit**: Open PR with your proposal in `docs/proposals/`
 3. **Review**: Community provides feedback via PR comments
 4. **Decision**: Merged (accepted), closed (rejected), or deferred
