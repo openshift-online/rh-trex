@@ -59,8 +59,13 @@ func TestCloneValidation(t *testing.T) {
 		t.Fatal("Step 1: Clone Process Validation failed")
 	}
 
-	// TODO: Add remaining steps (2-5) in future iterations
-	t.Log("E2E test completed successfully - Steps 2-5 will be implemented next")
+	// Step 2: Post-Clone Setup Validation
+	if !test.runStep2PostCloneSetupValidation() {
+		t.Fatal("Step 2: Post-Clone Setup Validation failed")
+	}
+
+	// TODO: Add remaining steps (3-5) in future iterations
+	t.Log("E2E test completed successfully - Steps 3-5 will be implemented next")
 }
 
 // runStep1CloneProcessValidation implements Step 1: Clone Process Validation
@@ -178,6 +183,128 @@ func (cvt *CloneValidationTest) validateContentTransformations() bool {
 	}
 
 	cvt.t.Log("Content transformations validation passed")
+	return true
+}
+
+// runStep2PostCloneSetupValidation implements Step 2: Post-Clone Setup Validation
+func (cvt *CloneValidationTest) runStep2PostCloneSetupValidation() bool {
+	cvt.t.Log("Starting Step 2: Post-Clone Setup Validation")
+
+	// Run go mod tidy
+	if !cvt.runGoModTidy() {
+		return false
+	}
+
+	// Build the binary
+	if !cvt.runMakeBinary() {
+		return false
+	}
+
+	// Setup database container
+	if !cvt.runMakeDbSetup() {
+		return false
+	}
+
+	// Run database migrations
+	if !cvt.runDatabaseMigrations() {
+		return false
+	}
+
+	cvt.t.Log("Step 2: Post-Clone Setup Validation completed successfully")
+	return true
+}
+
+// runGoModTidy runs go mod tidy to clean up dependencies
+func (cvt *CloneValidationTest) runGoModTidy() bool {
+	cvt.t.Log("Running go mod tidy")
+	
+	output, err := cvt.runCommandInClone("go", "mod", "tidy")
+	if err != nil {
+		cvt.t.Errorf("go mod tidy failed: %v\nOutput: %s", err, string(output))
+		return false
+	}
+	
+	cvt.t.Logf("go mod tidy completed successfully")
+	return true
+}
+
+// runMakeBinary runs make binary to build the service
+func (cvt *CloneValidationTest) runMakeBinary() bool {
+	cvt.t.Log("Running make binary")
+	
+	output, err := cvt.runCommandInClone("make", "binary")
+	if err != nil {
+		cvt.t.Errorf("make binary failed: %v\nOutput: %s", err, string(output))
+		return false
+	}
+	
+	// Verify the binary was created
+	binaryPath := filepath.Join(cvt.cloneDir, cvt.projectName)
+	if _, err := os.Stat(binaryPath); os.IsNotExist(err) {
+		cvt.t.Errorf("Binary not found at expected path: %s", binaryPath)
+		return false
+	}
+	
+	cvt.t.Logf("make binary completed successfully, binary created at: %s", binaryPath)
+	return true
+}
+
+// runMakeDbSetup runs make db/setup to create database container
+func (cvt *CloneValidationTest) runMakeDbSetup() bool {
+	cvt.t.Log("Running make db/setup")
+	
+	output, err := cvt.runCommandInClone("make", "db/setup")
+	if err != nil {
+		cvt.t.Errorf("make db/setup failed: %v\nOutput: %s", err, string(output))
+		return false
+	}
+	
+	// Verify database container is running
+	containerName := fmt.Sprintf("%s-db", cvt.projectName)
+	if !cvt.verifyContainerRunning(containerName) {
+		return false
+	}
+	
+	// Track container for cleanup
+	cvt.addContainer(containerName)
+	
+	cvt.t.Logf("make db/setup completed successfully, container %s is running", containerName)
+	return true
+}
+
+// runDatabaseMigrations runs database migrations using the project binary
+func (cvt *CloneValidationTest) runDatabaseMigrations() bool {
+	cvt.t.Log("Running database migrations")
+	
+	binaryPath := filepath.Join(".", cvt.projectName)
+	output, err := cvt.runCommandInClone(binaryPath, "migrate")
+	if err != nil {
+		cvt.t.Errorf("Database migrations failed: %v\nOutput: %s", err, string(output))
+		return false
+	}
+	
+	cvt.t.Log("Database migrations completed successfully")
+	return true
+}
+
+// verifyContainerRunning checks if a container is running using podman
+func (cvt *CloneValidationTest) verifyContainerRunning(containerName string) bool {
+	cvt.t.Logf("Verifying container %s is running", containerName)
+	
+	cmd := exec.Command("podman", "ps", "--filter", fmt.Sprintf("name=%s", containerName), "--format", "{{.Names}}")
+	output, err := cmd.Output()
+	if err != nil {
+		cvt.t.Errorf("Failed to check container status: %v", err)
+		return false
+	}
+	
+	running := strings.Contains(string(output), containerName)
+	if !running {
+		cvt.t.Errorf("Container %s is not running", containerName)
+		return false
+	}
+	
+	cvt.t.Logf("Container %s is running", containerName)
 	return true
 }
 
