@@ -57,17 +57,10 @@ const (
 func cloneProject(config *CloneConfig) error {
 	fmt.Printf("🚀 Cloning TRex to %s...\n", config.Name)
 
-	// Get current directory (source) - need to go up two levels from scripts/clone/
-	sourceDir, err := os.Getwd()
+	// Find the TRex root directory by looking for go.mod
+	sourceDir, err := findProjectRoot()
 	if err != nil {
-		return fmt.Errorf("failed to get current directory: %v", err)
-	}
-
-	// Go up to the TRex root directory
-	sourceDir = filepath.Join(sourceDir, "..", "..")
-	sourceDir, err = filepath.Abs(sourceDir)
-	if err != nil {
-		return fmt.Errorf("failed to resolve source directory: %v", err)
+		return fmt.Errorf("failed to find project root: %v", err)
 	}
 
 	// Create destination directory
@@ -92,6 +85,29 @@ func cloneProject(config *CloneConfig) error {
 	fmt.Printf("make test && make test-integration\n")
 
 	return nil
+}
+
+// findProjectRoot finds the project root by looking for go.mod
+func findProjectRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		goModPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return "", fmt.Errorf("could not find go.mod in any parent directory")
 }
 
 func copyWithReplacements(srcDir, dstDir string, config *CloneConfig) error {
