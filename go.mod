@@ -15,7 +15,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/glog v1.2.5
 	github.com/google/uuid v1.3.0
-	github.com/gorilla/handlers v1.4.2
+	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.7.3
 	github.com/jinzhu/inflection v1.0.0
 	github.com/lib/pq v1.10.5
