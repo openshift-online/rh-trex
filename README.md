@@ -56,6 +56,7 @@ make db/setup && make run
 - **[Reference](docs/reference/)** - Technical specifications and APIs
 - **[Troubleshooting](docs/troubleshooting/)** - Common problems and solutions
 - **[Framework Development](docs/framework-development/)** - Contributing to TRex
+- **[Spec Directory](spec/)** - AI-assisted feature development artifacts
 
 ## Architecture Overview
 

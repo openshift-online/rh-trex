@@ -32,6 +32,8 @@ This documentation is organized by **user goals** rather than technical categori
 - **References** - Detailed technical information
 - **Examples** - Real-world usage patterns
 
+Additionally, the **[spec/](../spec/)** directory contains artifacts from AI-assisted feature development using spec-driven development methodology.
+
 ## Quick Start Options
 
 **Option 1: Clone TRex Template → New Microservice**
