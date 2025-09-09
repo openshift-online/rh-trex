@@ -114,6 +114,7 @@ go run ./scripts/clone/main.go --name my-service --destination ~/projects/my-ser
 3. **Root README.md** - Project overview with quick paths
 4. **docs/getting-started/choosing-your-path.md** - Decision matrix
 5. **docs/troubleshooting/common-issues.md** - First-line problem solving
+6. **spec/README.md** - AI-assisted development artifacts and spec-driven methodology
 
 ### Common Anti-Patterns to Avoid
 ❌ **Don't** search through scattered root-level .md files (they're deprecated/moved)  
