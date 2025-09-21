@@ -20,7 +20,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0
 	github.com/lib/pq v1.10.5
 	github.com/mendsley/gojwk v0.0.0-20141217222730-4d5ec6e58103
-	github.com/onsi/gomega v1.27.1
+	github.com/onsi/gomega v1.38.2
 	github.com/openshift-online/ocm-sdk-go v0.1.334
 	github.com/openshift-online/rh-trex-core v0.0.0-20250711220747-a9ce95f9f591
 	github.com/prometheus/client_golang v1.16.0
