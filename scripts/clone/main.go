@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -26,6 +27,14 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Usage: %s --name <project-name> --destination <path>\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\nExample:\n")
 		fmt.Fprintf(os.Stderr, "  %s --name user-service --destination ~/projects/user-service\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	// Validate service name - no whitespace allowed
+	if strings.ContainsAny(config.Name, " \t\n\r") {
+		fmt.Fprintf(os.Stderr, "Error: Service name '%s' contains whitespace characters.\n", config.Name)
+		fmt.Fprintf(os.Stderr, "Service names must not contain spaces, tabs, or newlines.\n")
+		fmt.Fprintf(os.Stderr, "Use hyphens or underscores instead: user-service, user_service\n")
 		os.Exit(1)
 	}
 
@@ -57,14 +66,14 @@ const (
 func cloneProject(config *CloneConfig) error {
 	fmt.Printf("🚀 Cloning TRex to %s...\n", config.Name)
 
-	// Get current directory (source) - need to go up two levels from scripts/clone/
-	sourceDir, err := os.Getwd()
+	// Get the directory of the main.go file and go up two levels to get TRex root
+	_, mainFile, err := getCurrentExecutablePath()
 	if err != nil {
-		return fmt.Errorf("failed to get current directory: %v", err)
+		return fmt.Errorf("failed to get executable path: %v", err)
 	}
-
-	// Go up to the TRex root directory
-	sourceDir = filepath.Join(sourceDir, "..", "..")
+	
+	// Get the TRex root directory (go up two levels from scripts/clone/main.go)
+	sourceDir := filepath.Dir(filepath.Dir(filepath.Dir(mainFile)))
 	sourceDir, err = filepath.Abs(sourceDir)
 	if err != nil {
 		return fmt.Errorf("failed to resolve source directory: %v", err)
@@ -87,9 +96,10 @@ func cloneProject(config *CloneConfig) error {
 	fmt.Printf("go mod tidy &&\n")
 	fmt.Printf("make db/setup &&\n")
 	fmt.Printf("make binary &&\n")
-	fmt.Printf("go run scripts/generate/main.go --kind YourEntity &&\n")
+	fmt.Printf("go run ./scripts/generate/. --kind <YourEntity> &&\n")
 	fmt.Printf("make generate &&\n")
 	fmt.Printf("make test && make test-integration\n")
+	fmt.Printf("\n💡 The generate scripts are included in scripts/generate/ for entity generation.\n")
 
 	return nil
 }
@@ -98,11 +108,6 @@ func copyWithReplacements(srcDir, dstDir string, config *CloneConfig) error {
 	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
-		}
-
-		// Skip scripts directory to avoid recursive copying
-		if strings.Contains(path, "scripts/") {
-			return nil
 		}
 
 		// Skip git and other build artifacts
@@ -117,6 +122,12 @@ func copyWithReplacements(srcDir, dstDir string, config *CloneConfig) error {
 		relPath, err := filepath.Rel(srcDir, path)
 		if err != nil {
 			return err
+		}
+
+		// Handle directory renaming for cmd/trex -> cmd/{binaryName}
+		if strings.HasPrefix(relPath, "cmd/trex") {
+			binaryName := toBinaryName(config.Name)
+			relPath = strings.Replace(relPath, "cmd/trex", fmt.Sprintf("cmd/%s", binaryName), 1)
 		}
 
 		dstPath := filepath.Join(dstDir, relPath)
@@ -142,8 +153,6 @@ func copyFileWithReplacements(srcPath, dstPath string, config *CloneConfig) erro
 	}
 
 	// Apply replacements based on file type
-
-	fmt.Printf("Processing file %s to %s:", srcPath, dstPath)
 	processedContent := processFileContent(string(content), srcPath, config)
 
 	dstFile, err := os.Create(dstPath)
@@ -152,13 +161,10 @@ func copyFileWithReplacements(srcPath, dstPath string, config *CloneConfig) erro
 	}
 	defer dstFile.Close()
 
-	written, err := dstFile.WriteString(processedContent)
+	_, err = dstFile.WriteString(processedContent)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("   wrote: %b\n", written)
-	fmt.Printf("")
 
 	return err
 }
@@ -172,6 +178,7 @@ func shouldSkipPath(path string) bool {
 		".trex.md",
 		"clones/",
 		"demos/",
+		"scripts/clone/", // Skip clone directory to avoid recursive copying
 	}
 
 	for _, pattern := range skipPatterns {
@@ -242,18 +249,39 @@ func processGoSourceFile(content string, config *CloneConfig) string {
 	// Replace import paths
 	content = strings.ReplaceAll(content, "github.com/openshift-online/rh-trex/", fmt.Sprintf("%s/%s/", config.Repo, config.Name))
 
+	// Replace cmd/trex paths in import statements
+	binaryName := toBinaryName(config.Name)
+	content = strings.ReplaceAll(content, "cmd/trex/", fmt.Sprintf("cmd/%s/", binaryName))
+	content = strings.ReplaceAll(content, "cmd/trex", fmt.Sprintf("cmd/%s", binaryName))
+
 	// Replace package trex declaration
 	if strings.Contains(content, "package trex") {
-		binaryName := toBinaryName(config.Name)
 		content = strings.ReplaceAll(content, "package trex", fmt.Sprintf("package %s", binaryName))
 	}
+
+	// Replace operation IDs in test files
+	camelName := toCamelCase(config.Name)
+	content = strings.ReplaceAll(content, "ApiRhTrexV1", fmt.Sprintf("Api%sV1", camelName))
+
+	// Replace API paths in constants and other Go files
+	content = strings.ReplaceAll(content, "/api/rh-trex", fmt.Sprintf("/api/%s", config.Name))
+	content = strings.ReplaceAll(content, "\"rh-trex\"", fmt.Sprintf("\"%s\"", config.Name))
 
 	return content
 }
 
 func processOpenAPIFile(content string, config *CloneConfig) string {
-	// Replace API paths
+	// Replace API paths (handle both regular and URL-encoded paths)
+	// Order matters: handle more specific patterns first
+	content = strings.ReplaceAll(content, "/api/rh-trex/v1/", fmt.Sprintf("/api/%s/v1/", config.Name))
 	content = strings.ReplaceAll(content, "/api/rh-trex/", fmt.Sprintf("/api/%s/", config.Name))
+	
+	// Handle URL-encoded paths - more specific patterns first
+	content = strings.ReplaceAll(content, "~1api~1rh-trex~1v1~1", fmt.Sprintf("~1api~1%s~1v1~1", config.Name))
+	content = strings.ReplaceAll(content, "~1api~1rh-trex~1", fmt.Sprintf("~1api~1%s~1", config.Name))
+	
+	// Handle any remaining rh-trex references in URL-encoded paths
+	content = strings.ReplaceAll(content, "rh-trex", config.Name)
 
 	// Replace operation IDs
 	camelName := toCamelCase(config.Name)
@@ -292,7 +320,21 @@ func processInfrastructureFile(content string, config *CloneConfig) string {
 
 	// API path replacements
 	content = strings.ReplaceAll(content, "/api/rh-trex", fmt.Sprintf("/api/%s", config.Name))
+
+
+	// Makefile image_tag_prefix replacement
+	content = strings.ReplaceAll(content, "image_tag_prefix:=rh-trex", fmt.Sprintf("image_tag_prefix:=%s", config.Name))
+
+	// Makefile binary build path replacements
+	content = strings.ReplaceAll(content, "./cmd/trex", fmt.Sprintf("./cmd/%s", binaryName))
+	
+	// Dockerfile path replacements
+	content = strings.ReplaceAll(content, "/local/cmd/trex", fmt.Sprintf("/local/cmd/%s", binaryName))
 	content = strings.ReplaceAll(content, "cmd/trex/", fmt.Sprintf("cmd/%s/", binaryName))
+	content = strings.ReplaceAll(content, "cmd/trex", fmt.Sprintf("cmd/%s", binaryName))
+
+	// Makefile binary_name variable replacement
+	content = strings.ReplaceAll(content, "binary_name:=trex", fmt.Sprintf("binary_name:=%s", binaryName))
 
 	return content
 }
@@ -354,5 +396,25 @@ func toSqlSafeName(s string) string {
 }
 
 func toBinaryName(s string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(s, "-", ""), "_", "")
+	return strings.ReplaceAll(s, "-", "_")
+}
+
+// getCurrentExecutablePath returns the path of the current executable
+func getCurrentExecutablePath() (string, string, error) {
+	// Get the caller's file path (this main.go file)
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", "", fmt.Errorf("failed to get caller information")
+	}
+	
+	// Get the absolute path
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get absolute path: %v", err)
+	}
+	
+	// Get the directory
+	dir := filepath.Dir(absPath)
+	
+	return dir, absPath, nil
 }

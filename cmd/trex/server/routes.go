@@ -9,6 +9,7 @@ import (
 	"github.com/openshift-online/rh-trex/cmd/trex/server/logging"
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/auth"
+	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/db"
 	"github.com/openshift-online/rh-trex/pkg/handlers"
 	"github.com/openshift-online/rh-trex/pkg/logger"
@@ -71,7 +72,7 @@ func (s *apiServer) routes() *mux.Router {
 	mainRouter.Use(logging.RequestLoggingMiddleware)
 
 	//  /api/rh-trex
-	apiRouter := mainRouter.PathPrefix("/api/rh-trex").Subrouter()
+	apiRouter := mainRouter.PathPrefix(config.APIBasePath).Subrouter()
 	apiRouter.HandleFunc("", api.SendAPI).Methods(http.MethodGet)
 
 	//  /api/rh-trex/v1

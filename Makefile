@@ -33,6 +33,9 @@ external_apps_domain?=apps-crc.testing
 external_image_registry?=default-route-openshift-image-registry.$(external_apps_domain)
 internal_image_registry?=image-registry.openshift-image-registry.svc:5000
 
+# Binary name for the service (used in commands and database)
+binary_name:=trex
+
 # The name of the image repository needs to start with the name of an existing
 # namespace because when the image is pushed to the internal registry of a
 # cluster it will assume that that namespace exists and will try to create a
@@ -40,14 +43,16 @@ internal_image_registry?=image-registry.openshift-image-registry.svc:5000
 # exist the push fails. This doesn't apply when the image is pushed to a public
 # repository, like `docker.io` or `quay.io`.
 image_repository:=$(namespace)/rh-trex
+image_tag_prefix:=rh-trex
 
 # Database connection details
 db_name:=rhtrex
-db_host=trex-db.$(namespace)
+db_host=$(binary_name)-db.$(namespace)
 db_port=5432
-db_user:=trex
+db_user:=$(binary_name)
 db_password:=foobar-bizz-buzz
 db_password_file=${PWD}/secrets/db.password
+db_name_file=${PWD}/secrets/db.name
 db_sslmode:=disable
 db_image?=docker.io/library/postgres:14.2
 
@@ -147,12 +152,12 @@ lint:
 # Build binaries
 # NOTE it may be necessary to use CGO_ENABLED=0 for backwards compatibility with centos7 if not using centos7
 binary: check-gopath
-	${GO} build ./cmd/trex
+	${GO} build ./cmd/$(binary_name)
 .PHONY: binary
 
 # Install
 install: check-gopath
-	CGO_ENABLED=$(CGO_ENABLED) GOEXPERIMENT=boringcrypto ${GO} install -ldflags="$(ldflags)" ./cmd/trex
+	CGO_ENABLED=$(CGO_ENABLED) GOEXPERIMENT=boringcrypto ${GO} install -ldflags="$(ldflags)" ./cmd/$(binary_name)
 	@ ${GO} version | grep -q "$(GO_VERSION)" || \
 		( \
 			printf '\033[41m\033[97m\n'; \
@@ -225,21 +230,22 @@ test-integration: install
 # Regenerate openapi client and models
 generate:
 	rm -rf pkg/api/openapi
-	$(container_tool) build -t ams-openapi -f Dockerfile.openapi .
-	$(eval OPENAPI_IMAGE_ID=`$(container_tool) create -t ams-openapi -f Dockerfile.openapi .`)
+	$(container_tool) build -t $(image_tag_prefix)-openapi -f Dockerfile.openapi .
+	$(eval OPENAPI_IMAGE_ID=`$(container_tool) create -t $(image_tag_prefix)-openapi -f Dockerfile.openapi .`)
 	$(container_tool) cp $(OPENAPI_IMAGE_ID):/local/pkg/api/openapi ./pkg/api/openapi
 	$(container_tool) cp $(OPENAPI_IMAGE_ID):/local/data/generated/openapi/openapi.go ./data/generated/openapi/openapi.go
+	@echo "OpenAPI generation complete - method names should be correct from source"
 .PHONY: generate
 
 run: install
-	trex migrate
-	trex serve
+	$(binary_name) migrate
+	$(binary_name) serve
 .PHONY: run
 
 # Run Swagger and host the api docs
 run/docs:
 	@echo "Please open http://localhost/"
-	docker run -d -p 80:8080 -e SWAGGER_JSON=/trex.yaml -v $(PWD)/openapi/rh-trex.yaml:/trex.yaml swaggerapi/swagger-ui
+	docker run -d -p 80:8080 -e SWAGGER_JSON=/$(binary_name).yaml -v $(PWD)/openapi/rh-trex.yaml:/$(binary_name).yaml swaggerapi/swagger-ui
 .PHONY: run/docs
 
 # Delete temporary files
@@ -352,17 +358,18 @@ db/rude:
 
 .PHONY: db/setup
 db/setup:
+	@echo $(db_name) > $(db_name_file)
 	@echo $(db_password) > $(db_password_file)
-	$(container_tool) run --name psql-rhtrex -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
+	$(container_tool) run --name psql-$(binary_name) -e POSTGRES_DB=$(db_name) -e POSTGRES_USER=$(db_user) -e POSTGRES_PASSWORD=$(db_password) -p $(db_port):5432 -d $(db_image)
 
 .PHONY: db/login
 db/login:
-	$(container_tool) exec -it psql-rhtrex bash -c "psql -h localhost -U $(db_user) $(db_name)"
+	$(container_tool) exec -it psql-$(binary_name) bash -c "psql -h localhost -U $(db_user) $(db_name)"
 
 .PHONY: db/teardown
 db/teardown:
-	$(container_tool) stop psql-rhtrex
-	$(container_tool) rm psql-rhtrex
+	$(container_tool) stop psql-$(binary_name)
+	$(container_tool) rm psql-$(binary_name)
 
 crc/login:
 	@echo "Logging into CRC"

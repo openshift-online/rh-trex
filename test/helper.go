@@ -220,7 +220,7 @@ func (helper *Helper) RestURL(path string) string {
 	if helper.AppConfig.Server.EnableHTTPS {
 		protocol = "https"
 	}
-	return fmt.Sprintf("%s://%s/api/rh-trex/v1%s", protocol, helper.AppConfig.Server.BindAddress, path)
+	return fmt.Sprintf("%s://%s%s%s", protocol, helper.AppConfig.Server.BindAddress, config.APIV1Path, path)
 }
 
 func (helper *Helper) MetricsURL(path string) string {

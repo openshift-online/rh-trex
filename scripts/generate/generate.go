@@ -111,17 +111,21 @@ func generateFileFromTemplate(filename, tmplContent string, config *GeneratorCon
 	defer file.Close()
 	
 	data := struct {
-		Kind      string
-		LowerKind string
-		Repo      string
-		Project   string
-		Date      string
+		Kind              string
+		LowerKind         string
+		KindLowerPlural   string
+		KindLowerSingular string
+		Repo              string
+		Project           string
+		Date              string
 	}{
-		Kind:      config.Kind,
-		LowerKind: strings.ToLower(config.Kind),
-		Repo:      config.Repo,
-		Project:   config.Project,
-		Date:      time.Now().Format("2006-01-02"),
+		Kind:              config.Kind,
+		LowerKind:         strings.ToLower(config.Kind),
+		KindLowerPlural:   strings.ToLower(config.Kind) + "s",
+		KindLowerSingular: strings.ToLower(config.Kind),
+		Repo:              config.Repo,
+		Project:           config.Project,
+		Date:              time.Now().Format("2006-01-02"),
 	}
 	
 	return tmpl.Execute(file, data)
@@ -274,10 +278,20 @@ info:
   title: {{.Kind}} API
   version: 1.0.0
 paths:
-  /api/{{.Project}}/v1/{{.LowerKind}}s:
+  /api/{{.Project}}/v1/{{.KindLowerPlural}}:
     get:
-      summary: List {{.LowerKind}}s
+      summary: List {{.KindLowerPlural}}
       operationId: list{{.Kind}}s
+  /api/{{.Project}}/v1/{{.KindLowerPlural}}/{id}:
+    get:
+      summary: Get a {{.KindLowerSingular}} by id
+      operationId: get{{.Kind}}ById
+    patch:
+      summary: Update a {{.KindLowerSingular}}
+      operationId: update{{.Kind}}
+    delete:
+      summary: Delete a {{.KindLowerSingular}}
+      operationId: delete{{.Kind}}
 components:
   schemas:
     {{.Kind}}:
@@ -285,5 +299,21 @@ components:
       properties:
         id:
           type: string
+        name:
+          type: string
+    {{.Kind}}List:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/{{.Kind}}'
+        size:
+          type: integer
+        total:
+          type: integer
+    {{.Kind}}PatchRequest:
+      type: object
+      properties:
         name:
           type: string`

@@ -3,9 +3,10 @@ package examples
 import (
 	"context"
 
-	"github.com/openshift-online/rh-trex/pkg/api"
 	corecontrollers "github.com/openshift-online/rh-trex-core/controllers"
 	"github.com/openshift-online/rh-trex-core/generator"
+	coreservices "github.com/openshift-online/rh-trex-core/services"
+	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
 	"github.com/openshift-online/rh-trex/pkg/services"
@@ -17,13 +18,13 @@ import (
 func ExampleCoreMigration() {
 	// Assume we have a database connection
 	var gormDB *gorm.DB
-	var sessionFactory *db.SessionFactory
+	var sessionFactory *db.SessionFactory // In real usage, this would be properly initialized
 	
 	// Step 1: Create core-based DAO
 	dinosaurDAO := dao.NewDinosaurCoreDAO(sessionFactory)
 	
 	// Step 2: Create core-based service
-	eventService := services.NewEventService(nil, nil, nil) // existing event service
+	eventService := services.NewEventService(nil) // existing event service
 	lockFactory := db.NewAdvisoryLockFactory(*sessionFactory)
 	
 	dinosaurService := services.NewDinosaurCoreService(
@@ -81,25 +82,26 @@ func ExampleCoreMigration() {
 	_ = trexes
 }
 
+// Define a new resource type for the example
+type Planet struct {
+	api.Meta
+	Name     string `json:"name" gorm:"index"`
+	Type     string `json:"type" gorm:"index"`
+	HasLife  bool   `json:"has_life"`
+	Distance float64 `json:"distance"`
+}
+
+// Implement the MetaProvider interface
+func (p *Planet) GetMeta() *api.Meta {
+	return &p.Meta
+}
+
 // ExampleNewResourceWithCoreFramework shows how to create a new resource using the core framework
 func ExampleNewResourceWithCoreFramework() {
-	// Define a new resource type
-	type Planet struct {
-		api.Meta
-		Name     string `json:"name" gorm:"index"`
-		Type     string `json:"type" gorm:"index"`
-		HasLife  bool   `json:"has_life"`
-		Distance float64 `json:"distance"`
-	}
-	
-	// Implement the MetaProvider interface
-	func (p *Planet) GetMeta() *api.Meta {
-		return &p.Meta
-	}
 	
 	// With the core framework, this is all you need to do:
 	var gormDB *gorm.DB
-	var eventEmitter services.EventEmitter
+	var eventEmitter coreservices.EventEmitter
 	var controllerManager *corecontrollers.ControllerManager
 	
 	// Create resource factory
@@ -168,8 +170,8 @@ func ExampleGradualMigration() {
 	}
 	
 	// Core way (same result, but benefits from core framework)
-	coreDinosaur, err := coreDinosaurService.Get(ctx, "some-id")
-	if err != nil {
+	coreDinosaur, coreErr := coreDinosaurService.Get(ctx, "some-id")
+	if coreErr != nil {
 		// Handle error
 	}
 	
