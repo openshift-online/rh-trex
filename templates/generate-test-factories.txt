@@ -4,10 +4,11 @@ import (
 	"context"
 	"{{.Repo}}/{{.Project}}/cmd/trex/environments"
 	"{{.Repo}}/{{.Project}}/pkg/api"
+	"{{.Repo}}/{{.Project}}/plugins/{{.KindLowerSingular}}"
 )
 
 func (f *Factories) New{{.Kind}}(id string) (*api.{{.Kind}}, error) {
-	{{.Kind}}Service := environments.Environment().Services.{{.KindPlural}}()
+	{{.Kind}}Service := {{.KindLowerSingular}}.{{.Kind}}Service(&environments.Environment().Services)
 
 	{{.Kind}} := &api.{{.Kind}}{
 		Meta:       api.Meta{ID: id},
