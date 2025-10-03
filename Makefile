@@ -343,6 +343,13 @@ undeploy: \
 	undeploy-route \
 	$(NULL)
 
+.PHONY: db/rude
+db/rude:
+	@echo "🗡️ Stopping and removing ALL containers using port 5432..."
+	@$(container_tool) ps --format "{{.Names}} {{.Ports}}" | grep ":5432->" | awk '{print $$1}' | xargs -r $(container_tool) stop || true
+	@$(container_tool) ps -a --format "{{.Names}} {{.Ports}}" | grep ":5432->" | awk '{print $$1}' | xargs -r $(container_tool) rm || true
+	@echo "✅ Port 5432 is now free"
+
 .PHONY: db/setup
 db/setup:
 	@echo $(db_password) > $(db_password_file)

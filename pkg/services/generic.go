@@ -248,7 +248,7 @@ func (s *sqlGenericService) loadList(listCtx *listContext, d *dao.GenericDao) *e
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			listCtx.pagingMeta.Size = 0
 		} else {
-			return errors.GeneralError("Unable to list resources: %s", err)
+			return handleGetError("Resource", "list", "", err)
 		}
 	}
 	listCtx.pagingMeta.Size = int64(reflect.ValueOf(listCtx.resourceList).Elem().Len())

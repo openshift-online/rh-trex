@@ -6,10 +6,11 @@ import (
 
 	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/plugins/dinosaurs"
 )
 
 func (f *Factories) NewDinosaur(species string) (*api.Dinosaur, error) {
-	dinoService := environments.Environment().Services.Dinosaurs()
+	dinoService := dinosaurs.DinosaurService(&environments.Environment().Services)
 
 	dinosaur := &api.Dinosaur{
 		Species: species,

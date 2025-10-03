@@ -43,9 +43,28 @@ type Handlers struct {
 }
 
 type Services struct {
-	Dinosaurs DinosaurServiceLocator
-	Generic   GenericServiceLocator
-	Events    EventServiceLocator
+	Generic         GenericServiceLocator
+	Events          EventServiceLocator
+	serviceRegistry map[string]interface{}
+	mutex           sync.RWMutex
+}
+
+func (s *Services) GetService(name string) interface{} {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	if s.serviceRegistry == nil {
+		return nil
+	}
+	return s.serviceRegistry[name]
+}
+
+func (s *Services) SetService(name string, service interface{}) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if s.serviceRegistry == nil {
+		s.serviceRegistry = make(map[string]interface{})
+	}
+	s.serviceRegistry[name] = service
 }
 
 type Clients struct {

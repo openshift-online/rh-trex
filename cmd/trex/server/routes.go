@@ -14,6 +14,25 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/logger"
 )
 
+type ServicesInterface interface {
+	GetService(name string) interface{}
+}
+
+type RouteRegistrationFunc func(apiV1Router *mux.Router, services ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware)
+
+var routeRegistry = make(map[string]RouteRegistrationFunc)
+
+func RegisterRoutes(name string, registrationFunc RouteRegistrationFunc) {
+	routeRegistry[name] = registrationFunc
+}
+
+func LoadDiscoveredRoutes(apiV1Router *mux.Router, services ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware) {
+	for name, registrationFunc := range routeRegistry {
+		registrationFunc(apiV1Router, services, authMiddleware, authzMiddleware)
+		_ = name // prevent unused variable warning
+	}
+}
+
 func (s *apiServer) routes() *mux.Router {
 	services := &env().Services
 
@@ -22,7 +41,6 @@ func (s *apiServer) routes() *mux.Router {
 		check(err, "Can't load OpenAPI specification")
 	}
 
-	dinosaurHandler := handlers.NewDinosaurHandler(services.Dinosaurs(), services.Generic())
 	errorsHandler := handlers.NewErrorsHandler()
 
 	var authMiddleware auth.JWTMiddleware
@@ -70,15 +88,8 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1ErrorsRouter.HandleFunc("", errorsHandler.List).Methods(http.MethodGet)
 	apiV1ErrorsRouter.HandleFunc("/{id}", errorsHandler.Get).Methods(http.MethodGet)
 
-	//  /api/rh-trex/v1/dinosaurs
-	apiV1DinosaursRouter := apiV1Router.PathPrefix("/dinosaurs").Subrouter()
-	apiV1DinosaursRouter.HandleFunc("", dinosaurHandler.List).Methods(http.MethodGet)
-	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Get).Methods(http.MethodGet)
-	apiV1DinosaursRouter.HandleFunc("", dinosaurHandler.Create).Methods(http.MethodPost)
-	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Patch).Methods(http.MethodPatch)
-	apiV1DinosaursRouter.HandleFunc("/{id}", dinosaurHandler.Delete).Methods(http.MethodDelete)
-	apiV1DinosaursRouter.Use(authMiddleware.AuthenticateAccountJWT)
-	apiV1DinosaursRouter.Use(authzMiddleware.AuthorizeApi)
+	// Auto-discovered routes (no manual editing needed)
+	LoadDiscoveredRoutes(apiV1Router, services, authMiddleware, authzMiddleware)
 
 	return mainRouter
 }

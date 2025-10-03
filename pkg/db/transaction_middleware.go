@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/openshift-online/rh-trex/pkg/db/db_context"
+	"github.com/openshift-online/rh-trex-core/db/context"
 
 	"github.com/openshift-online/rh-trex/pkg/errors"
 	"github.com/openshift-online/rh-trex/pkg/logger"
@@ -34,7 +34,7 @@ func TransactionMiddleware(next http.Handler, connection SessionFactory) http.Ha
 
 		if hub := sentry.GetHubFromContext(ctx); hub != nil {
 			hub.ConfigureScope(func(scope *sentry.Scope) {
-				if txid, ok := db_context.TxID(ctx); ok {
+				if txid, ok := context.TxID(ctx); ok {
 					scope.SetTag("db_transaction_id", fmt.Sprintf("%d", txid))
 				}
 			})
