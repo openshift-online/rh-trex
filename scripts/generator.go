@@ -94,8 +94,10 @@ func main() {
 
 		kindLowerCamel := strings.ToLower(string(kind[0])) + kind[1:]
 		kindSnakeCase := toSnakeCase(kind)
+		projectCamelCase := toCamelCase(project)
 		k := myWriter{
 			Project:             project,
+			ProjectCamelCase:    projectCamelCase,
 			Repo:                repo,
 			Cmd:                 getCmdDir(),
 			Kind:                kind,
@@ -171,9 +173,23 @@ func toSnakeCase(s string) string {
 	return strings.ToLower(result.String())
 }
 
+func toCamelCase(s string) string {
+	parts := strings.Split(s, "-")
+	var result strings.Builder
+	
+	for _, part := range parts {
+		if len(part) > 0 {
+			result.WriteString(strings.ToUpper(string(part[0])) + part[1:])
+		}
+	}
+	
+	return result.String()
+}
+
 type myWriter struct {
 	Repo                     string
 	Project                  string
+	ProjectCamelCase         string
 	Cmd                      string
 	Kind                     string
 	KindPlural               string
