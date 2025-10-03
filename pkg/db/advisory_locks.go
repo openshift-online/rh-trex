@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,6 +39,7 @@ type LockFactory interface {
 type AdvisoryLockFactory struct {
 	connection SessionFactory
 	locks      advisoryLockMap
+	mutex      sync.RWMutex
 }
 
 // NewAdvisoryLockFactory returns a new factory with AdvisoryLock stored in it.
@@ -67,7 +69,9 @@ func (f *AdvisoryLockFactory) NewAdvisoryLock(ctx context.Context, id string, lo
 	}
 
 	log.V(4).Info(fmt.Sprintf("Locked advisory lock id=%s type=%s - owner=%s", id, lockType, *lock.uuid))
+	f.mutex.Lock()
 	f.locks[*lock.uuid] = lock
+	f.mutex.Unlock()
 	return *lock.uuid, nil
 }
 
@@ -91,7 +95,9 @@ func (f *AdvisoryLockFactory) NewNonBlockingLock(ctx context.Context, id string,
 	}
 
 	log.V(4).Info(fmt.Sprintf("Locked non blocking advisory lock id=%s type=%s - owner=%s", id, lockType, *lock.uuid))
+	f.mutex.Lock()
 	f.locks[*lock.uuid] = lock
+	f.mutex.Unlock()
 	return *lock.uuid, acquired, nil
 }
 
@@ -120,7 +126,9 @@ func (f *AdvisoryLockFactory) Unlock(ctx context.Context, uuid string) {
 		return
 	}
 
+	f.mutex.RLock()
 	lock, ok := f.locks[uuid]
+	f.mutex.RUnlock()
 	if !ok {
 		// the resolving UUID belongs to a service call that did *not* initiate the lock.
 		// we can safely ignore this, knowing the top-most func in the call stack
@@ -145,7 +153,9 @@ func (f *AdvisoryLockFactory) Unlock(ctx context.Context, uuid string) {
 
 	log.V(4).Info(fmt.Sprintf("Unlocked lock id=%s type=%s - owner=%s", lockID, lockType, uuid))
 
+	f.mutex.Lock()
 	delete(f.locks, uuid)
+	f.mutex.Unlock()
 }
 
 // AdvisoryLock represents a postgres advisory lock

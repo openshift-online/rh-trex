@@ -194,7 +194,7 @@ func (f *Test) New(ctx context.Context) *gorm.DB {
 
 	conn := f.g2.Session(&gorm.Session{
 		Context: ctx,
-		Logger:  f.g2.Logger.LogMode(logger.Silent),
+		Logger:  f.g2.Logger.LogMode(logger.Error),
 	})
 	if f.config.Debug {
 		conn = conn.Debug()

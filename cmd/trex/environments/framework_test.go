@@ -41,8 +41,14 @@ func TestLoadServices(t *testing.T) {
 	s := reflect.ValueOf(env.Services)
 
 	for i := 0; i < s.NumField(); i++ {
-		if s.Field(i).IsNil() {
-			t.Errorf("Service %v is nil", s)
+		field := s.Field(i)
+		// Skip non-pointer fields (like mutex)
+		if field.Kind() == reflect.Ptr || field.Kind() == reflect.Interface || 
+		   field.Kind() == reflect.Map || field.Kind() == reflect.Slice || 
+		   field.Kind() == reflect.Chan || field.Kind() == reflect.Func {
+			if field.IsNil() {
+				t.Errorf("Service field %d is nil", i)
+			}
 		}
 	}
 }
