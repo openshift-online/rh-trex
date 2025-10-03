@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
+	coreapi "github.com/openshift-online/rh-trex-core/api"
 	"github.com/openshift-online/rh-trex/pkg/db"
 )
 
@@ -58,7 +59,7 @@ func (d *sqlDinosaurDao) Replace(ctx context.Context, dinosaur *api.Dinosaur) (*
 
 func (d *sqlDinosaurDao) Delete(ctx context.Context, id string) error {
 	g2 := (*d.sessionFactory).New(ctx)
-	if err := g2.Omit(clause.Associations).Delete(&api.Dinosaur{Meta: api.Meta{ID: id}}).Error; err != nil {
+	if err := g2.Omit(clause.Associations).Delete(&api.Dinosaur{Meta: coreapi.Meta{ID: id}}).Error; err != nil {
 		db.MarkForRollback(ctx, err)
 		return err
 	}

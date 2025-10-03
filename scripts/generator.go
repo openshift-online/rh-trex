@@ -77,7 +77,7 @@ func main() {
 		"test-factories",
 		"handlers",
 		"openapi-kind",
-		"servicelocator",
+		"plugin",
 	}
 
 	for _, nm := range templates {
@@ -94,8 +94,10 @@ func main() {
 
 		kindLowerCamel := strings.ToLower(string(kind[0])) + kind[1:]
 		kindSnakeCase := toSnakeCase(kind)
+		projectCamelCase := toCamelCase(project)
 		k := myWriter{
 			Project:             project,
+			ProjectCamelCase:    projectCamelCase,
 			Repo:                repo,
 			Cmd:                 getCmdDir(),
 			Kind:                kind,
@@ -106,7 +108,8 @@ func main() {
 		}
 
 		now := time.Now()
-		k.ID = fmt.Sprintf("%d%s%s%s%s", now.Year(), datePad(int(now.Month())), datePad(now.Day()), datePad(now.Hour()), datePad(now.Minute()))
+		// Include seconds and microseconds to prevent timestamp collisions when generating multiple entities rapidly
+		k.ID = fmt.Sprintf("%d%s%s%s%s%s%06d", now.Year(), datePad(int(now.Month())), datePad(now.Day()), datePad(now.Hour()), datePad(now.Minute()), datePad(now.Second()), now.Nanosecond()/1000)
 
 		outputPaths := map[string]string{
 			"generate-api":            fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
@@ -119,12 +122,21 @@ func main() {
 			"generate-test-factories": fmt.Sprintf("test/factories/%s.go", k.KindLowerPlural),
 			"generate-test":           fmt.Sprintf("test/integration/%s_test.go", k.KindLowerPlural),
 			"generate-services":       fmt.Sprintf("pkg/%s/%s.go", nm, k.KindLowerSingular),
-			"generate-servicelocator": fmt.Sprintf("cmd/%s/environments/locator_%s.go", k.Cmd, k.KindLowerSingular),
+			"generate-plugin":         fmt.Sprintf("plugins/%s/plugin.go", k.KindLowerSingular),
 		}
 
 		outputPath, ok := outputPaths["generate-"+nm]
 		if !ok {
 			panic("expected to find outputPath for " + nm)
+		}
+
+		// Create directory if it doesn't exist (for plugin directory)
+		if nm == "plugin" {
+			dir := fmt.Sprintf("plugins/%s", k.KindLowerSingular)
+			err := os.MkdirAll(dir, 0755)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		f, err := os.Create(outputPath)
@@ -145,10 +157,9 @@ func main() {
 			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
 		}
 		
-		// Add controller registration and presenter mappings after all templates are processed
-		if nm == "services" {
-			addControllerRegistration(k)
-			addPresenterMappings(k)
+		// Add migration registration after migration is generated
+		if nm == "migration" {
+			addMigrationRegistration(k)
 		}
 	}
 }
@@ -171,9 +182,23 @@ func toSnakeCase(s string) string {
 	return strings.ToLower(result.String())
 }
 
+func toCamelCase(s string) string {
+	parts := strings.Split(s, "-")
+	var result strings.Builder
+	
+	for _, part := range parts {
+		if len(part) > 0 {
+			result.WriteString(strings.ToUpper(string(part[0])) + part[1:])
+		}
+	}
+	
+	return result.String()
+}
+
 type myWriter struct {
 	Repo                     string
 	Project                  string
+	ProjectCamelCase         string
 	Cmd                      string
 	Kind                     string
 	KindPlural               string
@@ -297,4 +322,69 @@ func writeBeforePattern(path string, matchingLine string, lineToWrite string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func addServiceLocatorToTypes(k myWriter) {
+	typesFile := fmt.Sprintf("cmd/%s/environments/types.go", k.Cmd)
+	
+	// Add service locator field to Services struct
+	serviceField := fmt.Sprintf("\t%s %sServiceLocator", k.KindPlural, k.Kind)
+	
+	// Insert after the "// ADD LOCATORS HERE" comment
+	matchingLine := "\t// ADD LOCATORS HERE"
+	writeAfterLine(typesFile, matchingLine, serviceField)
+}
+
+func addServiceLocatorToFramework(k myWriter) {
+	frameworkFile := fmt.Sprintf("cmd/%s/environments/framework.go", k.Cmd)
+	
+	// Add service locator initialization to LoadServices method
+	serviceInitialization := fmt.Sprintf("\te.Services.%s = New%sServiceLocator(e)", k.KindPlural, k.Kind)
+	
+	// Insert after the "// ADD SERVICES HERE" comment
+	matchingLine := "\t// ADD SERVICES HERE"
+	writeAfterLine(frameworkFile, matchingLine, serviceInitialization)
+}
+
+func addRouteRegistration(k myWriter) {
+	routesFile := fmt.Sprintf("cmd/%s/server/routes.go", k.Cmd)
+	
+	// Add handler creation and route registration
+	routeRegistration := fmt.Sprintf(`
+	%sHandler := handlers.New%sHandler(services.%s(), services.Generic())
+
+	//  /api/rh-trex/v1/%s
+	apiV1%sRouter := apiV1Router.PathPrefix("/%s").Subrouter()
+	apiV1%sRouter.HandleFunc("", %sHandler.List).Methods(http.MethodGet)
+	apiV1%sRouter.HandleFunc("/{id}", %sHandler.Get).Methods(http.MethodGet)
+	apiV1%sRouter.HandleFunc("", %sHandler.Create).Methods(http.MethodPost)
+	apiV1%sRouter.HandleFunc("/{id}", %sHandler.Patch).Methods(http.MethodPatch)
+	apiV1%sRouter.HandleFunc("/{id}", %sHandler.Delete).Methods(http.MethodDelete)
+	apiV1%sRouter.Use(authMiddleware.AuthenticateAccountJWT)
+	apiV1%sRouter.Use(authzMiddleware.AuthorizeApi)`, 
+		k.KindLowerSingular, k.Kind, k.KindPlural,
+		k.KindLowerPlural, 
+		k.KindPlural, k.KindLowerPlural,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural, k.KindLowerSingular,
+		k.KindPlural,
+		k.KindPlural)
+	
+	// Insert after the "// ADD ROUTES HERE" comment
+	matchingLine := "\t// ADD ROUTES HERE"
+	writeAfterLine(routesFile, matchingLine, routeRegistration)
+}
+
+func addMigrationRegistration(k myWriter) {
+	migrationFile := "pkg/db/migrations/migration_structs.go"
+	
+	// Add migration function call
+	migrationCall := fmt.Sprintf("\tadd%s(),", k.KindPlural)
+	
+	// Insert after the "// ADD MIGRATIONS HERE" comment
+	matchingLine := "\t// ADD MIGRATIONS HERE"
+	writeAfterLine(migrationFile, matchingLine, migrationCall)
 }

@@ -43,9 +43,23 @@ type Handlers struct {
 }
 
 type Services struct {
-	Dinosaurs DinosaurServiceLocator
-	Generic   GenericServiceLocator
-	Events    EventServiceLocator
+	Generic         GenericServiceLocator
+	Events          EventServiceLocator
+	serviceRegistry map[string]interface{}
+}
+
+func (s *Services) GetService(name string) interface{} {
+	if s.serviceRegistry == nil {
+		s.serviceRegistry = make(map[string]interface{})
+	}
+	return s.serviceRegistry[name]
+}
+
+func (s *Services) SetService(name string, service interface{}) {
+	if s.serviceRegistry == nil {
+		s.serviceRegistry = make(map[string]interface{})
+	}
+	s.serviceRegistry[name] = service
 }
 
 type Clients struct {
