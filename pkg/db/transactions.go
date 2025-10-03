@@ -2,8 +2,10 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/openshift-online/rh-trex/pkg/db/transaction"
+	"github.com/openshift-online/rh-trex-core/db"
+	"github.com/openshift-online/rh-trex-core/db/transaction"
 )
 
 // By default do no roll back transaction.
@@ -11,28 +13,40 @@ import (
 const defaultRollbackPolicy = false
 
 // newTransaction constructs a new Transaction object.
+// Deprecated: Use github.com/openshift-online/rh-trex-core/db.NewTransaction instead
 func newTransaction(ctx context.Context, connection SessionFactory) (*transaction.Transaction, error) {
-	if connection == nil {
-		// This happens in non-integration tests
-		return nil, nil
-	}
+	// Convert SessionFactory to core library interface
+	coreConnection := &sessionFactoryAdapter{connection}
+	return db.NewTransaction(ctx, coreConnection)
+}
 
-	dbx := connection.DirectDB()
-	tx, err := dbx.Begin()
-	if err != nil {
-		return nil, err
-	}
+// sessionFactoryAdapter adapts TRex SessionFactory to core library interface
+type sessionFactoryAdapter struct {
+	sf SessionFactory
+}
 
-	// current transaction ID set by postgres.  these are *not* distinct across time
-	// and do get reset after postgres performs "vacuuming" to reclaim used IDs.
-	var txid int64
-	row := tx.QueryRow("select txid_current()")
-	if row != nil {
-		err := row.Scan(&txid)
-		if err != nil {
-			return nil, err
-		}
-	}
+func (s *sessionFactoryAdapter) DirectDB() db.CoreDirectConnection {
+	return &directConnectionAdapter{s.sf.DirectDB()}
+}
 
-	return transaction.Build(tx, txid, defaultRollbackPolicy), nil
+// directConnectionAdapter adapts *sql.DB to CoreDirectConnection
+type directConnectionAdapter struct {
+	sqlDB *sql.DB
+}
+
+func (d *directConnectionAdapter) Begin() (*sql.Tx, error) {
+	return d.sqlDB.Begin()
+}
+
+func (d *directConnectionAdapter) QueryRow(query string, args ...interface{}) db.CoreRow {
+	return &rowAdapter{d.sqlDB.QueryRow(query, args...)}
+}
+
+// rowAdapter adapts *sql.Row to CoreRow  
+type rowAdapter struct {
+	sqlRow *sql.Row
+}
+
+func (r *rowAdapter) Scan(dest ...interface{}) error {
+	return r.sqlRow.Scan(dest...)
 }
