@@ -131,7 +131,7 @@ func (s *sqlDinosaurService) Replace(ctx context.Context, dinosaur *api.Dinosaur
 
 func (s *sqlDinosaurService) Delete(ctx context.Context, id string) *errors.ServiceError {
 	if err := s.dinosaurDao.Delete(ctx, id); err != nil {
-		return handleDeleteError("Dinosaur", errors.GeneralError("Unable to delete dinosaur: %s", err))
+		return handleDeleteError("Dinosaur", err)
 	}
 
 	_, err := s.events.Create(ctx, &api.Event{
@@ -149,7 +149,7 @@ func (s *sqlDinosaurService) Delete(ctx context.Context, id string) *errors.Serv
 func (s *sqlDinosaurService) FindByIDs(ctx context.Context, ids []string) (api.DinosaurList, *errors.ServiceError) {
 	dinosaurs, err := s.dinosaurDao.FindByIDs(ctx, ids)
 	if err != nil {
-		return nil, errors.GeneralError("Unable to get all dinosaurs: %s", err)
+		return nil, handleGetError("Dinosaur", "list", "", err)
 	}
 	return dinosaurs, nil
 }
@@ -165,7 +165,7 @@ func (s *sqlDinosaurService) FindBySpecies(ctx context.Context, species string) 
 func (s *sqlDinosaurService) All(ctx context.Context) (api.DinosaurList, *errors.ServiceError) {
 	dinosaurs, err := s.dinosaurDao.All(ctx)
 	if err != nil {
-		return nil, errors.GeneralError("Unable to get all dinosaurs: %s", err)
+		return nil, handleGetError("Dinosaur", "list", "", err)
 	}
 	return dinosaurs, nil
 }

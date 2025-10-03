@@ -43,3 +43,6 @@
 
 # Don't push the testing password file
 secrets/db.password
+
+# Ignore local settings
+.claude/settings.local.json

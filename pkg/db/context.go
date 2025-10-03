@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	dbContext "github.com/openshift-online/rh-trex/pkg/db/db_context"
+	dbContext "github.com/openshift-online/rh-trex-core/db/context"
 	"github.com/openshift-online/rh-trex/pkg/logger"
 )
 

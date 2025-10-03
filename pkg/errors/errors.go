@@ -8,6 +8,7 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
+	"github.com/openshift-online/rh-trex/pkg/config"
 )
 
 const (
@@ -15,10 +16,10 @@ const (
 	// Example:
 	//   ERROR_CODE_PREFIX = "rh-text"
 	//   results in: rh-trex-1
-	ERROR_CODE_PREFIX = "rh-trex"
+	ERROR_CODE_PREFIX = config.ServiceName
 
 	// HREF for API errors
-	ERROR_HREF = "/api/rh-trex/v1/errors/"
+	ERROR_HREF = config.APIErrorsPath + "/"
 
 	// InvalidToken occurs when a token is invalid (generally, not found in the database)
 	ErrorInvalidToken ServiceErrorCode = 1

@@ -1,20 +1,22 @@
-FROM openapitools/openapi-generator-cli:v6.6.0
+FROM openapitools/openapi-generator-cli:latest
+
+# Enable strict error handling - exit on any command failure
+SHELL ["/bin/bash", "-o", "errexit", "-o", "pipefail", "-c"]
 
 RUN apt-get update
-RUN apt-get install -y make sudo git
+RUN apt-get install -y make sudo git wget
 
-# Add sources to get golang 1.21 and skip time related release not valid until failures
-RUN echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free\ndeb-src http://deb.debian.org/debian bookworm-backports main contrib non-free" >> /etc/apt/sources.list
-RUN echo "Acquire::Check-Valid-Until \"false\";\nAcquire::Check-Date \"false\";" | cat > /etc/apt/apt.conf.d/10no--check-valid-until
-RUN apt-get update
-RUN apt-get install -y golang-1.21
+# Install Go 1.21 directly from the official Go repository
+RUN wget https://go.dev/dl/go1.21.6.linux-arm64.tar.gz
+RUN tar -C /usr/local -xzf go1.21.6.linux-arm64.tar.gz
+RUN rm go1.21.6.linux-arm64.tar.gz
 
 RUN mkdir -p /local
 COPY . /local
 
-ENV PATH="/uhc/bin:/usr/lib/go-1.21/bin/:${PATH}"
+ENV PATH="/uhc/bin:/usr/local/go/bin:${PATH}"
 ENV GOPATH="/uhc"
-ENV GOBIN /usr/lib/go-1.21/bin/
+ENV GOBIN /usr/local/go/bin/
 ENV CGO_ENABLED=0
 
 # these git and go flags to avoid self signed certificate errors

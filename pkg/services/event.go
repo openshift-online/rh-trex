@@ -56,7 +56,7 @@ func (s *sqlEventService) Replace(ctx context.Context, event *api.Event) (*api.E
 
 func (s *sqlEventService) Delete(ctx context.Context, id string) *errors.ServiceError {
 	if err := s.eventDao.Delete(ctx, id); err != nil {
-		return handleDeleteError("Event", errors.GeneralError("Unable to delete event: %s", err))
+		return handleDeleteError("Event", err)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func (s *sqlEventService) Delete(ctx context.Context, id string) *errors.Service
 func (s *sqlEventService) FindByIDs(ctx context.Context, ids []string) (api.EventList, *errors.ServiceError) {
 	events, err := s.eventDao.FindByIDs(ctx, ids)
 	if err != nil {
-		return nil, errors.GeneralError("Unable to get all events: %s", err)
+		return nil, handleGetError("Event", "list", "", err)
 	}
 	return events, nil
 }
@@ -72,7 +72,7 @@ func (s *sqlEventService) FindByIDs(ctx context.Context, ids []string) (api.Even
 func (s *sqlEventService) All(ctx context.Context) (api.EventList, *errors.ServiceError) {
 	events, err := s.eventDao.All(ctx)
 	if err != nil {
-		return nil, errors.GeneralError("Unable to get all events: %s", err)
+		return nil, handleGetError("Event", "list", "", err)
 	}
 	return events, nil
 }
