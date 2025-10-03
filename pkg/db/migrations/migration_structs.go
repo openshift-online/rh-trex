@@ -1,12 +1,8 @@
 package migrations
 
 import (
-	"fmt"
-	"time"
-
-	"gorm.io/gorm"
-
 	"github.com/go-gormigrate/gormigrate/v2"
+	coredb "github.com/openshift-online/rh-trex-core/db"
 )
 
 // gormigrate is a wrapper for gorm's migration functions that adds schema versioning and rollback capabilities.
@@ -28,34 +24,17 @@ import (
 var MigrationList = []*gormigrate.Migration{
 	addDinosaurs(),
 	addEvents(),
+	// ADD MIGRATIONS HERE
 }
 
 // Model represents the base model struct. All entities will have this struct embedded.
-type Model struct {
-	ID        string `gorm:"primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-}
+// This is now defined in the core framework but aliased here for backwards compatibility
+type Model = coredb.Model
 
-type fkMigration struct {
-	Model     string
-	Dest      string
-	Field     string
-	Reference string
-}
+// fkMigration represents a foreign key relationship for database migrations
+// This is now defined in the core framework but aliased here for backwards compatibility
+type fkMigration = coredb.FKMigration
 
-func CreateFK(g2 *gorm.DB, fks ...fkMigration) error {
-	var query = `ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s ON DELETE RESTRICT ON UPDATE RESTRICT;`
-	var drop = `ALTER TABLE %s DROP CONSTRAINT IF EXISTS %s;`
-
-	for _, fk := range fks {
-		name := fmt.Sprintf("fk_%s_%s", fk.Model, fk.Dest)
-
-		g2.Exec(fmt.Sprintf(drop, fk.Model, name))
-		if err := g2.Exec(fmt.Sprintf(query, fk.Model, name, fk.Field, fk.Reference)).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// CreateFK creates foreign key constraints for database migrations
+// This is now implemented in the core framework but aliased here for backwards compatibility
+var CreateFK = coredb.CreateFK
