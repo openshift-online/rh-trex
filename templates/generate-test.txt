@@ -20,18 +20,18 @@ func Test{{.Kind}}Get(t *testing.T) {
 	ctx := h.NewAuthenticatedContext(account)
 
 	// 401 using no JWT token
-	_, _, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}IdGet(context.Background(), "foo").Execute()
+	_, _, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}IdGet(context.Background(), "foo").Execute()
 	Expect(err).To(HaveOccurred(), "Expected 401 but got nil error")
 
 	// GET responses per openapi spec: 200 and 404,
-	_, resp, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}IdGet(ctx, "foo").Execute()
+	_, resp, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}IdGet(ctx, "foo").Execute()
 	Expect(err).To(HaveOccurred(), "Expected 404")
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
 	{{.KindLowerSingular}}Model, err := h.Factories.New{{.KindPlural}}(h.NewID())
     Expect(err).NotTo(HaveOccurred())
 
-	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}IdGet(ctx, {{.KindLowerSingular}}Model.ID).Execute()
+	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}IdGet(ctx, {{.KindLowerSingular}}Model.ID).Execute()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -54,7 +54,7 @@ func Test{{.Kind}}Post(t *testing.T) {
 	}
 
 	// 201 Created
-	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}Post(ctx).{{.Kind}}({{.KindLowerSingular}}Input).Execute()
+	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}Post(ctx).{{.Kind}}({{.KindLowerSingular}}Input).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	Expect(*{{.KindLowerSingular}}Output.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
@@ -84,7 +84,7 @@ func Test{{.Kind}}Patch(t *testing.T) {
     Expect(err).NotTo(HaveOccurred())
 
 	// 200 OK
-	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}IdPatch(ctx, {{.KindLowerSingular}}Model.ID).{{.Kind}}PatchRequest(openapi.{{.Kind}}PatchRequest{}).Execute()
+	{{.KindLowerSingular}}Output, resp, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}IdPatch(ctx, {{.KindLowerSingular}}Model.ID).{{.Kind}}PatchRequest(openapi.{{.Kind}}PatchRequest{}).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	Expect(*{{.KindLowerSingular}}Output.Id).To(Equal({{.KindLowerSingular}}Model.ID))
@@ -113,14 +113,14 @@ func Test{{.Kind}}Paging(t *testing.T) {
 	_, err := h.Factories.New{{.KindPlural}}List("Bronto", 20)
     Expect(err).NotTo(HaveOccurred())
 
-	list, _, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}Get(ctx).Execute()
+	list, _, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}Get(ctx).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting {{.KindLowerSingular}} list: %v", err)
 	Expect(len(list.Items)).To(Equal(20))
 	Expect(list.Size).To(Equal(int32(20)))
 	Expect(list.Total).To(Equal(int32(20)))
 	Expect(list.Page).To(Equal(int32(1)))
 
-	list, _, err = client.DefaultApi.ApiRhTrexV1{{.KindPlural}}Get(ctx).Page(2).Size(5).Execute()
+	list, _, err = client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}Get(ctx).Page(2).Size(5).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting {{.KindLowerSingular}} list: %v", err)
 	Expect(len(list.Items)).To(Equal(5))
 	Expect(list.Size).To(Equal(int32(5)))
@@ -137,7 +137,7 @@ func Test{{.Kind}}ListSearch(t *testing.T) {
 	{{.KindLowerPlural}}, _ := h.Factories.New{{.KindPlural}}List("bronto", 20)
 
 	search := fmt.Sprintf("id in ('%s')", {{.KindLowerPlural}}[0].ID)
-	list, _, err := client.DefaultApi.ApiRhTrexV1{{.KindPlural}}Get(ctx).Search(search).Execute()
+	list, _, err := client.DefaultApi.Api{{.ProjectCamelCase}}V1{{.KindPlural}}Get(ctx).Search(search).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting {{.KindLowerSingular}} list: %v", err)
 	Expect(len(list.Items)).To(Equal(1))
 	Expect(list.Total).To(Equal(int32(1)))

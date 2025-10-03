@@ -12,6 +12,7 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/client/ocm"
 	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/errors"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments/registry"
 )
 
 func init() {
@@ -129,9 +130,15 @@ func (e *Env) Seed() *errors.ServiceError {
 }
 
 func (e *Env) LoadServices() {
+	// Initialize the service registry map
+	e.Services.serviceRegistry = make(map[string]interface{})
+	
+	// Built-in services (never changes)
 	e.Services.Generic = NewGenericServiceLocator(e)
-	e.Services.Dinosaurs = NewDinosaurServiceLocator(e)
 	e.Services.Events = NewEventServiceLocator(e)
+	
+	// Auto-discovered services (no manual editing needed)
+	registry.LoadDiscoveredServices(&e.Services, e)
 }
 
 func (e *Env) LoadClients() error {

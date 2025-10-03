@@ -3,6 +3,7 @@ package integration
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -26,6 +27,7 @@ func TestControllerRacing(t *testing.T) {
 	// the event with create type. Due to the event lock, each create event
 	// should be only processed once.
 	var proccessedEvent []string
+	var mu sync.Mutex
 	onUpsert := func(ctx context.Context, id string) error {
 		events, err := dao.All(authCtx)
 		if err != nil {
@@ -43,7 +45,9 @@ func TestControllerRacing(t *testing.T) {
 			if evt.ReconciledDate != nil {
 				continue
 			}
+			mu.Lock()
 			proccessedEvent = append(proccessedEvent, id)
+			mu.Unlock()
 		}
 
 		return nil
@@ -78,8 +82,11 @@ func TestControllerRacing(t *testing.T) {
 	// This is to check only two create events is processed. It waits for 5 seconds to ensure all events have been
 	// processed by the controllers.
 	Eventually(func() error {
-		if len(proccessedEvent) != 50 {
-			return fmt.Errorf("should have only 2 create events but got %d", len(proccessedEvent))
+		mu.Lock()
+		eventCount := len(proccessedEvent)
+		mu.Unlock()
+		if eventCount != 50 {
+			return fmt.Errorf("should have only 50 create events but got %d", eventCount)
 		}
 		return nil
 	}, 5*time.Second, 1*time.Second).Should(Succeed())
