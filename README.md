@@ -35,9 +35,10 @@ Before running TRex for the first time, ensure the prerequisites are installed. 
 
 ```sh
 
-# 1. build the project
+# 1. create the openapi types and build the project
 
 $ go install gotest.tools/gotestsum@latest
+$ make generate
 $ make binary
 
 # 2. run a postgres database locally in docker
