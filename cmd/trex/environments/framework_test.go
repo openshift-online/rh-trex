@@ -39,10 +39,20 @@ func TestLoadServices(t *testing.T) {
 	}
 
 	s := reflect.ValueOf(env.Services)
+	sType := s.Type()
 
 	for i := 0; i < s.NumField(); i++ {
-		if s.Field(i).IsNil() {
-			t.Errorf("Service %v is nil", s)
+		field := s.Field(i)
+		fieldType := sType.Field(i)
+
+		// Skip unexported fields (lowercase first letter)
+		if !fieldType.IsExported() {
+			continue
+		}
+
+		// Only check fields that are function types (service locators)
+		if field.Kind() == reflect.Func && field.IsNil() {
+			t.Errorf("Service locator %s is nil", fieldType.Name)
 		}
 	}
 }

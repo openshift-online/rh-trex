@@ -9,6 +9,9 @@ import (
 	"github.com/openshift-online/rh-trex/cmd/trex/clone"
 	"github.com/openshift-online/rh-trex/cmd/trex/migrate"
 	"github.com/openshift-online/rh-trex/cmd/trex/servecmd"
+
+	// Import plugins to trigger their init() functions
+	_ "github.com/openshift-online/rh-trex/plugins/dinosaurs"
 )
 
 // nolint

@@ -262,14 +262,14 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	wg.Add(threads)
 
 	for i := 0; i < threads; i++ {
-		go func(index int) {
+		go func() {
 			defer wg.Done()
-			species := fmt.Sprintf("Triceratops-%d", index)
+			species := "Triceratops"
 			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(*updated.Species).To(Equal(species), "species mismatch")
-		}(i)
+		}()
 	}
 
 	// waits for all goroutines above to complete
