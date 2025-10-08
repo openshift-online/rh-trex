@@ -1,13 +1,7 @@
-FROM openapitools/openapi-generator-cli:v6.6.0
+FROM openapitools/openapi-generator-cli:v7.16.0
 
 RUN apt-get update
-RUN apt-get install -y make sudo git
-
-# Add sources to get golang 1.21 and skip time related release not valid until failures
-RUN echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free\ndeb-src http://deb.debian.org/debian bookworm-backports main contrib non-free" >> /etc/apt/sources.list
-RUN echo "Acquire::Check-Valid-Until \"false\";\nAcquire::Check-Date \"false\";" | cat > /etc/apt/apt.conf.d/10no--check-valid-until
-RUN apt-get update
-RUN apt-get install -y golang-1.21
+RUN apt-get install -y make sudo git golang-1.21
 
 RUN mkdir -p /local
 COPY . /local

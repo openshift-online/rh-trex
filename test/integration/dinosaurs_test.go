@@ -26,18 +26,18 @@ func TestDinosaurGet(t *testing.T) {
 	ctx := h.NewAuthenticatedContext(account)
 
 	// 401 using no JWT token
-	_, _, err := client.DefaultApi.ApiRhTrexV1DinosaursIdGet(context.Background(), "foo").Execute()
+	_, _, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdGet(context.Background(), "foo").Execute()
 	Expect(err).To(HaveOccurred(), "Expected 401 but got nil error")
 
 	// GET responses per openapi spec: 200 and 404,
-	_, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursIdGet(ctx, "foo").Execute()
+	_, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdGet(ctx, "foo").Execute()
 	Expect(err).To(HaveOccurred(), "Expected 404")
 	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
 
 	dino, err := h.Factories.NewDinosaur(h.NewID())
 	Expect(err).NotTo(HaveOccurred())
 
-	dinosaur, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursIdGet(ctx, dino.ID).Execute()
+	dinosaur, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdGet(ctx, dino.ID).Execute()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -61,7 +61,7 @@ func TestDinosaurPost(t *testing.T) {
 	}
 
 	// 201 Created
-	dinosaur, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursPost(ctx).Dinosaur(dino).Execute()
+	dinosaur, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursPost(ctx).Dinosaur(dino).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	Expect(*dinosaur.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
@@ -94,7 +94,7 @@ func TestDinosaurPatch(t *testing.T) {
 
 	// 200 OK
 	species := "Dodo"
-	dinosaur, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+	dinosaur, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	Expect(*dinosaur.Id).To(Equal(dino.ID))
@@ -151,14 +151,14 @@ func TestDinosaurPaging(t *testing.T) {
 	_, err := h.Factories.NewDinosaurList("Bronto", 20)
 	Expect(err).NotTo(HaveOccurred())
 
-	list, _, err := client.DefaultApi.ApiRhTrexV1DinosaursGet(ctx).Execute()
+	list, _, err := client.DefaultAPI.ApiRhTrexV1DinosaursGet(ctx).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
 	Expect(len(list.Items)).To(Equal(20))
 	Expect(list.Size).To(Equal(int32(20)))
 	Expect(list.Total).To(Equal(int32(20)))
 	Expect(list.Page).To(Equal(int32(1)))
 
-	list, _, err = client.DefaultApi.ApiRhTrexV1DinosaursGet(ctx).Page(2).Size(5).Execute()
+	list, _, err = client.DefaultAPI.ApiRhTrexV1DinosaursGet(ctx).Page(2).Size(5).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
 	Expect(len(list.Items)).To(Equal(5))
 	Expect(list.Size).To(Equal(int32(5)))
@@ -176,7 +176,7 @@ func TestDinosaurListSearch(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 
 	search := fmt.Sprintf("id in ('%s')", dinosaurs[0].ID)
-	list, _, err := client.DefaultApi.ApiRhTrexV1DinosaursGet(ctx).Search(search).Execute()
+	list, _, err := client.DefaultAPI.ApiRhTrexV1DinosaursGet(ctx).Search(search).Execute()
 	Expect(err).NotTo(HaveOccurred(), "Error getting dinosaur list: %v", err)
 	Expect(len(list.Items)).To(Equal(1))
 	Expect(list.Total).To(Equal(int32(1)))
@@ -201,7 +201,7 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			species := "Pterosaur"
-			updated, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(*updated.Species).To(Equal(species), "species mismatch")
@@ -262,14 +262,14 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	wg.Add(threads)
 
 	for i := 0; i < threads; i++ {
-		go func() {
+		go func(index int) {
 			defer wg.Done()
-			species := "Triceratops"
-			updated, resp, err := client.DefaultApi.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
+			species := fmt.Sprintf("Triceratops-%d", index)
+			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(*updated.Species).To(Equal(species), "species mismatch")
-		}()
+		}(i)
 	}
 
 	// waits for all goroutines above to complete
