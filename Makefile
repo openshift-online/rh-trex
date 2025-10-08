@@ -225,6 +225,7 @@ test-integration: install
 # Regenerate openapi client and models
 generate:
 	rm -rf pkg/api/openapi
+	mkdir -p data/generated/openapi
 	$(container_tool) build -t ams-openapi -f Dockerfile.openapi .
 	$(eval OPENAPI_IMAGE_ID=`$(container_tool) create -t ams-openapi -f Dockerfile.openapi .`)
 	$(container_tool) cp $(OPENAPI_IMAGE_ID):/local/pkg/api/openapi ./pkg/api/openapi
