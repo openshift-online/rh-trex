@@ -3,12 +3,27 @@ package server
 import (
 	"context"
 
-	"github.com/openshift-online/rh-trex/pkg/api"
+	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 	"github.com/openshift-online/rh-trex/pkg/controllers"
 	"github.com/openshift-online/rh-trex/pkg/db"
 
 	"github.com/openshift-online/rh-trex/pkg/logger"
 )
+
+type ControllerRegistrationFunc func(manager *controllers.KindControllerManager, services *environments.Services)
+
+var controllerRegistry = make(map[string]ControllerRegistrationFunc)
+
+func RegisterController(name string, registrationFunc ControllerRegistrationFunc) {
+	controllerRegistry[name] = registrationFunc
+}
+
+func LoadDiscoveredControllers(manager *controllers.KindControllerManager, services *environments.Services) {
+	for name, registrationFunc := range controllerRegistry {
+		registrationFunc(manager, services)
+		_ = name // prevent unused variable warning
+	}
+}
 
 func NewControllersServer() *ControllersServer {
 
@@ -19,16 +34,8 @@ func NewControllersServer() *ControllersServer {
 		),
 	}
 
-	dinoServices := env().Services.Dinosaurs()
-
-	s.KindControllerManager.Add(&controllers.ControllerConfig{
-		Source: "Dinosaurs",
-		Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
-			api.CreateEventType: {dinoServices.OnUpsert},
-			api.UpdateEventType: {dinoServices.OnUpsert},
-			api.DeleteEventType: {dinoServices.OnDelete},
-		},
-	})
+	// Auto-discovered controllers (no manual editing needed)
+	LoadDiscoveredControllers(s.KindControllerManager, &env().Services)
 
 	return s
 }
