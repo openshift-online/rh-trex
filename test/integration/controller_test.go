@@ -12,6 +12,7 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/controllers"
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
+	"github.com/openshift-online/rh-trex/plugins/events"
 	"github.com/openshift-online/rh-trex/test"
 )
 
@@ -56,7 +57,7 @@ func TestControllerRacing(t *testing.T) {
 			s := &server.ControllersServer{
 				KindControllerManager: controllers.NewKindControllerManager(
 					db.NewAdvisoryLockFactory(h.Env().Database.SessionFactory),
-					h.Env().Services.Events(),
+					events.EventService(&h.Env().Services),
 				),
 			}
 

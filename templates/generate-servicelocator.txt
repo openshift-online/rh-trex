@@ -1,19 +1,42 @@
-package environments
+package {{.KindLowerPlural}}
 
 import (
+	"{{.Repo}}/{{.Project}}/cmd/trex/environments"
+	"{{.Repo}}/{{.Project}}/cmd/trex/environments/registry"
 	"{{.Repo}}/{{.Project}}/pkg/dao"
 	"{{.Repo}}/{{.Project}}/pkg/db"
 	"{{.Repo}}/{{.Project}}/pkg/services"
+	"{{.Repo}}/{{.Project}}/plugins/events"
 )
 
+// Service Locator
 type {{.Kind}}ServiceLocator func() services.{{.Kind}}Service
 
-func New{{.Kind}}ServiceLocator(env *Env) {{.Kind}}ServiceLocator {
+func New{{.Kind}}ServiceLocator(env *environments.Env) {{.Kind}}ServiceLocator {
 	return func() services.{{.Kind}}Service {
 		return services.New{{.Kind}}Service(
 			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
 			dao.New{{.Kind}}Dao(&env.Database.SessionFactory),
-			env.Services.Events(),
+			events.EventService(&env.Services),
 		)
 	}
+}
+
+// {{.Kind}}Service helper function to get the {{.KindLowerSingular}} service from the registry
+func {{.Kind}}Service(s *environments.Services) services.{{.Kind}}Service {
+	if s == nil {
+		return nil
+	}
+	if obj := s.GetService("{{.KindPlural}}"); obj != nil {
+		locator := obj.({{.Kind}}ServiceLocator)
+		return locator()
+	}
+	return nil
+}
+
+func init() {
+	// Service registration
+	registry.RegisterService("{{.KindPlural}}", func(env interface{}) interface{} {
+		return New{{.Kind}}ServiceLocator(env.(*environments.Env))
+	})
 }

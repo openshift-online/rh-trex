@@ -133,10 +133,6 @@ func (e *Env) LoadServices() {
 	// Initialize the service registry map
 	e.Services.serviceRegistry = make(map[string]interface{})
 
-	// Built-in services (never changes)
-	e.Services.Generic = NewGenericServiceLocator(e)
-	e.Services.Events = NewEventServiceLocator(e)
-
 	// Auto-discovered services (no manual editing needed)
 	registry.LoadDiscoveredServices(&e.Services, e)
 }

@@ -12,6 +12,8 @@ import (
 
 	// Import plugins to trigger their init() functions
 	_ "github.com/openshift-online/rh-trex/plugins/dinosaurs"
+	_ "github.com/openshift-online/rh-trex/plugins/events"
+	_ "github.com/openshift-online/rh-trex/plugins/generic"
 )
 
 // nolint

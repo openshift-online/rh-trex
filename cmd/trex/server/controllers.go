@@ -6,6 +6,7 @@ import (
 	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 	"github.com/openshift-online/rh-trex/pkg/controllers"
 	"github.com/openshift-online/rh-trex/pkg/db"
+	"github.com/openshift-online/rh-trex/plugins/events"
 
 	"github.com/openshift-online/rh-trex/pkg/logger"
 )
@@ -30,7 +31,7 @@ func NewControllersServer() *ControllersServer {
 	s := &ControllersServer{
 		KindControllerManager: controllers.NewKindControllerManager(
 			db.NewAdvisoryLockFactory(env().Database.SessionFactory),
-			env().Services.Events(),
+			events.EventService(&env().Services),
 		),
 	}
 

@@ -11,7 +11,9 @@ API version: 0.0.1
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // checks if the DinosaurList type satisfies the MappedNullable interface at compile time
@@ -25,6 +27,8 @@ type DinosaurList struct {
 	Total int32      `json:"total"`
 	Items []Dinosaur `json:"items"`
 }
+
+type _DinosaurList DinosaurList
 
 // NewDinosaurList instantiates a new DinosaurList object
 // This constructor will assign default values to properties that have it defined,
@@ -184,6 +188,47 @@ func (o DinosaurList) ToMap() (map[string]interface{}, error) {
 	toSerialize["total"] = o.Total
 	toSerialize["items"] = o.Items
 	return toSerialize, nil
+}
+
+func (o *DinosaurList) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"kind",
+		"page",
+		"size",
+		"total",
+		"items",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varDinosaurList := _DinosaurList{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varDinosaurList)
+
+	if err != nil {
+		return err
+	}
+
+	*o = DinosaurList(varDinosaurList)
+
+	return err
 }
 
 type NullableDinosaurList struct {

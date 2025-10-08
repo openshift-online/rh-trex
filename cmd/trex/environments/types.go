@@ -43,8 +43,6 @@ type Handlers struct {
 }
 
 type Services struct {
-	Generic         GenericServiceLocator
-	Events          EventServiceLocator
 	serviceRegistry map[string]interface{}
 	mutex           sync.RWMutex
 }

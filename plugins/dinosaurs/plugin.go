@@ -15,6 +15,8 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/db"
 	"github.com/openshift-online/rh-trex/pkg/handlers"
 	"github.com/openshift-online/rh-trex/pkg/services"
+	"github.com/openshift-online/rh-trex/plugins/events"
+	"github.com/openshift-online/rh-trex/plugins/generic"
 )
 
 // Service Locator
@@ -25,7 +27,7 @@ func NewDinosaurServiceLocator(env *environments.Env) DinosaurServiceLocator {
 		return services.NewDinosaurService(
 			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
 			dao.NewDinosaurDao(&env.Database.SessionFactory),
-			env.Services.Events(),
+			events.EventService(&env.Services),
 		)
 	}
 }
@@ -51,7 +53,7 @@ func init() {
 	// Routes registration
 	server.RegisterRoutes("dinosaurs", func(apiV1Router *mux.Router, services server.ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware) {
 		envServices := services.(*environments.Services)
-		dinosaurHandler := handlers.NewDinosaurHandler(DinosaurService(envServices), envServices.Generic())
+		dinosaurHandler := handlers.NewDinosaurHandler(DinosaurService(envServices), generic.GenericService(envServices))
 
 		dinosaursRouter := apiV1Router.PathPrefix("/dinosaurs").Subrouter()
 		dinosaursRouter.HandleFunc("", dinosaurHandler.List).Methods(http.MethodGet)
