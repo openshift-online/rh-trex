@@ -52,13 +52,13 @@ func getCmdDir() string {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			return entry.Name()
 		}
 	}
-	
+
 	panic("No command directory found in cmd/")
 }
 
@@ -144,7 +144,7 @@ func main() {
 		if strings.EqualFold("generate-"+nm, "generate-openapi-kind") {
 			modifyOpenapi("openapi/openapi.yaml", fmt.Sprintf("openapi/openapi.%s.yaml", k.KindLowerPlural))
 		}
-		
+
 		// Add controller registration and presenter mappings after all templates are processed
 		if nm == "services" {
 			addControllerRegistration(k)
@@ -172,15 +172,15 @@ func toSnakeCase(s string) string {
 }
 
 type myWriter struct {
-	Repo                     string
-	Project                  string
-	Cmd                      string
-	Kind                     string
-	KindPlural               string
-	KindLowerPlural          string
-	KindLowerSingular        string
-	KindSnakeCasePlural      string
-	ID                       string
+	Repo                string
+	Project             string
+	Cmd                 string
+	Kind                string
+	KindPlural          string
+	KindLowerPlural     string
+	KindLowerSingular   string
+	KindSnakeCasePlural string
+	ID                  string
 }
 
 func modifyOpenapi(mainPath string, kindPath string) {
@@ -245,7 +245,7 @@ func writeAfterLine(path string, matchingLine string, lineToWrite string) {
 
 func addControllerRegistration(k myWriter) {
 	controllerFile := fmt.Sprintf("cmd/%s/server/controllers.go", k.Cmd)
-	
+
 	// Add controller registration
 	controllerRegistration := fmt.Sprintf(`
 	%sServices := env().Services.%s()
@@ -259,7 +259,7 @@ func addControllerRegistration(k myWriter) {
 		},
 	})
 `, k.KindLowerSingular, k.KindPlural, k.KindPlural, k.KindLowerSingular, k.KindLowerSingular, k.KindLowerSingular)
-	
+
 	// Insert before the return statement
 	matchingLine := `	return s`
 	writeBeforePattern(controllerFile, matchingLine, controllerRegistration)
@@ -270,17 +270,17 @@ func addPresenterMappings(k myWriter) {
 	kindFile := "pkg/api/presenters/kind.go"
 	kindMapping := fmt.Sprintf(`	case api.%s, *api.%s:
 		result = "%s"`, k.Kind, k.Kind, k.Kind)
-	
+
 	// Insert before the errors case
 	kindMatchingLine := `	case errors.ServiceError, *errors.ServiceError:
 		result = "Error"`
 	writeBeforePattern(kindFile, kindMatchingLine, kindMapping)
-	
-	// Add path mapping to presenters/path.go  
+
+	// Add path mapping to presenters/path.go
 	pathFile := "pkg/api/presenters/path.go"
 	pathMapping := fmt.Sprintf(`	case api.%s, *api.%s:
 		return "%s"`, k.Kind, k.Kind, k.KindSnakeCasePlural)
-	
+
 	// Insert before the errors case
 	pathMatchingLine := `	case errors.ServiceError, *errors.ServiceError:
 		return "errors"`
