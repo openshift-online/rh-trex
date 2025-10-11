@@ -256,21 +256,30 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	dino, err := h.Factories.NewDinosaur("Tyrannosaurus")
 	Expect(err).NotTo(HaveOccurred())
 
-	// starts 20 threads to update this dinosaur at the same time
-	threads := 20
+	// Use a barrier to ensure all threads start at the same time to maximize race conditions
+	threads := 50 // Increased from 20 to make race conditions more likely
 	var wg sync.WaitGroup
+	startBarrier := make(chan struct{})
+
 	wg.Add(threads)
 
 	for i := 0; i < threads; i++ {
-		go func() {
+		go func(index int) {
 			defer wg.Done()
+			// Wait for all goroutines to be ready before starting
+			<-startBarrier
 			species := "Triceratops"
 			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(*updated.Species).To(Equal(species), "species mismatch")
-		}()
+		}(i)
 	}
+
+	// Give goroutines time to reach the barrier
+	time.Sleep(100 * time.Millisecond)
+	// Release all goroutines simultaneously to maximize race conditions
+	close(startBarrier)
 
 	// waits for all goroutines above to complete
 	wg.Wait()
