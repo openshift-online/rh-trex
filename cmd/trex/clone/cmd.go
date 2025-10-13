@@ -3,13 +3,14 @@ package clone
 import (
 	"flag"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 type provisionCfgFlags struct {
@@ -62,9 +63,7 @@ func clone(_ *cobra.Command, _ []string) {
 		}
 
 		dest := provisionCfg.Destination + "/" + path
-		if strings.Contains(dest, "trex") {
-			dest = strings.Replace(dest, "trex", strings.ToLower(provisionCfg.Name), -1)
-		}
+		dest = strings.Replace(dest, "trex", strings.ToLower(provisionCfg.Name), -1)
 
 		if info.IsDir() {
 			// does this path exist in the destination?
@@ -83,36 +82,13 @@ func clone(_ *cobra.Command, _ []string) {
 				return err
 			}
 
-			if strings.Contains(content, "github.com/openshift-online/rh-trex") {
-				glog.Infof("find/replace required for file: %s", path)
-				replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
-				content = strings.Replace(content, "github.com/openshift-online/rh-trex", replacement, -1)
-			}
-
-			if strings.Contains(content, "RHTrex") {
-				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "RHTrex", provisionCfg.Name, -1)
-			}
-
-			if strings.Contains(content, "rh-trex") {
-				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
-			}
-
-			if strings.Contains(content, "rhtrex") {
-				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "rhtrex", strings.ToLower(provisionCfg.Name), -1)
-			}
-
-			if strings.Contains(content, "trex") {
-				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "trex", strings.ToLower(provisionCfg.Name), -1)
-			}
-
-			if strings.Contains(content, "TRex") {
-				glog.Infof("find/replace required for file: %s", path)
-				content = strings.Replace(content, "TRex", provisionCfg.Name, -1)
-			}
+			replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
+			content = strings.Replace(content, "github.com/openshift-online/rh-trex", replacement, -1)
+			content = strings.Replace(content, "RHTrex", provisionCfg.Name, -1)
+			content = strings.Replace(content, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
+			content = strings.Replace(content, "rhtrex", strings.ToLower(provisionCfg.Name), -1)
+			content = strings.Replace(content, "trex", strings.ToLower(provisionCfg.Name), -1)
+			content = strings.Replace(content, "TRex", provisionCfg.Name, -1)
 
 			if exists(dest) {
 				e := os.Remove(dest)
@@ -141,14 +117,60 @@ func clone(_ *cobra.Command, _ []string) {
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
+	// Print next steps for the customer
+	serviceName := strings.ToLower(provisionCfg.Name)
+	msg := fmt.Sprintf(`
+✅ Clone completed successfully!
+
+📋 Next steps to run your new service:
+
+1. Navigate to your new service directory:
+	cd %s
+
+2. Install dependencies:
+	go mod tidy
+
+3. Build the project:
+	go install gotest.tools/gotestsum@latest
+	make binary
+
+4. Set up the database:
+	make db/setup
+
+5. Run database migrations:
+	./%s migrate
+
+6. Test the application:
+	make test
+	make test-integration
+
+7. Run your service (choose one option):
+
+	Option A: Without authentication (recommended for local development):
+	make run-no-auth
+
+	Option B: With authentication (production-like):
+	make run
+
+8. Verify the service is running:
+
+	If using Option A (no auth):
+	curl http://localhost:8000/api/%s/v1/dinosaurs | jq
+
+	If using Option B (with auth):
+	ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
+	ocm get /api/%s/v1/dinosaurs
+
+For more detailed information, refer to the README.md in your new service directory.
+`, provisionCfg.Destination, serviceName, serviceName, serviceName)
+
+	fmt.Println(msg)
 }
 
 func exists(path string) bool {
 	_, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }

@@ -93,49 +93,60 @@ make test-integration
 
 ### Running the Service
 
+The service will be available at `http://localhost:8000`
+
+#### Option 1: Run Without Authentication (Recommended for Local Development)
+
+For quick testing and development, you can run the service with authentication disabled:
+
 ```shell
-
-make run
-
+make run-no-auth
 ```
 
-To verify that the server is working use the curl command:
+This starts the service with `--enable-authz=false --enable-jwt=false`, allowing you to test the API without tokens.
+
+**Test the API:**
 
 ```shell
-
+# List all dinosaurs
 curl http://localhost:8000/api/rh-trex/v1/dinosaurs | jq
 
+# Create a new dinosaur
+curl -X POST http://localhost:8000/api/rh-trex/v1/dinosaurs \
+  -H "Content-Type: application/json" \
+  -d '{"species": "Tyrannosaurus"}' | jq
+
+# Get a specific dinosaur (replace {id} with actual ID)
+curl http://localhost:8000/api/rh-trex/v1/dinosaurs/{id} | jq
 ```
 
-That should return a 401 response like this, because it needs authentication:
+#### Option 2: Run With Authentication (Production-like)
 
-```
-{
-  "kind": "Error",
-  "id": "401",
-  "href": "/api/rh-trex/errors/401",
-  "code": "API-401",
-  "reason": "Request doesn't contain the 'Authorization' header or the 'cs_jwt' cookie"
-}
+Start the service with authentication enabled:
+
+```shell
+make run
 ```
 
+Authentication in the default configuration is done through the RedHat SSO. You need:
+- A Red Hat customer portal user in the right account (created as part of the onboarding doc)
+- An access token from https://console.redhat.com/openshift/token
+- The `ocm` CLI tool available at https://console.redhat.com/openshift/downloads
 
-Authentication in the default configuration is done through the RedHat SSO, so you need to login with a Red Hat customer portal user in the right account (created as part of the onboarding doc) and then you can retrieve the token to use below on https://console.redhat.com/openshift/token
-To authenticate, use the ocm tool against your local service. The ocm tool is available on https://console.redhat.com/openshift/downloads
+**Step 1: Login to your local service**
 
-#### Login to your local service
-```
+```shell
 ocm login --token=${OCM_ACCESS_TOKEN} --url=http://localhost:8000
-
 ```
 
-#### Confirm login worked by getting all the Dinosaurs
-This will be empty if no Dinosaurs exist yet.
+**Step 2: List all Dinosaurs**
 
-Note that we do not use 'curl' here but instead use 'ocm' which passes the user credentials to the API.
-
-```
+```shell
 ocm get /api/rh-trex/v1/dinosaurs
+```
+
+Response (empty if no dinosaurs exist yet):
+```json
 {
   "items": [],
   "kind": "DinosaurList",
@@ -145,43 +156,47 @@ ocm get /api/rh-trex/v1/dinosaurs
 }
 ```
 
-#### Post a new Dinosaur
+**Step 3: Create a new Dinosaur**
 
 ```shell
-
 ocm post /api/rh-trex/v1/dinosaurs << EOF
 {
     "species": "foo"
 }
 EOF
-
 ```
 
-#### Get your Dinosaur
+**Step 4: Get your Dinosaur**
 
 ```shell
 ocm get /api/rh-trex/v1/dinosaurs
+```
+
+Response:
+```json
 {
   "items": [
     {
-      "created_at":"2023-10-26T08:15:54.509653Z",
-      "href":"/api/rh-trex/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
-      "id":"2XIENcJIi9t2eBblhWVCtWLdbDZ",
-      "kind":"Dinosaur",
-      "species":"foo",
-      "updated_at":"2023-10-26T08:15:54.509653Z"
+      "created_at": "2023-10-26T08:15:54.509653Z",
+      "href": "/api/rh-trex/v1/dinosaurs/2XIENcJIi9t2eBblhWVCtWLdbDZ",
+      "id": "2XIENcJIi9t2eBblhWVCtWLdbDZ",
+      "kind": "Dinosaur",
+      "species": "foo",
+      "updated_at": "2023-10-26T08:15:54.509653Z"
     }
   ],
-  "kind":"DinosaurList",
-  "page":1,
-  "size":1,
-  "total":1
+  "kind": "DinosaurList",
+  "page": 1,
+  "size": 1,
+  "total": 1
 }
 ```
 
-#### Run in CRC
+#### Option 3: Deploy to OpenShift Local (CRC)
 
-Use OpenShift Local to deploy to a local openshift cluster. Be sure to have CRC running locally:
+Use OpenShift Local (CRC) to deploy to a local OpenShift cluster.
+
+**Prerequisites:** Ensure CRC is running locally:
 
 ```shell
 $ crc status
@@ -193,10 +208,10 @@ Cache Usage:     37.62GB
 Cache Directory: /home/mturansk/.crc/cache
 ```
 
-Log into CRC and try a deployment:
+**Deploy to CRC:**
 
 ```shell
-
+# 1. Login to CRC
 $ make crc/login
 Logging into CRC
 Logged into "https://api.crc.testing:6443" as "kubeadmin" using existing credentials.
@@ -206,10 +221,13 @@ You have access to 66 projects, the list has been suppressed. You can list all p
 Using project "ocm-mturansk".
 Login Succeeded!
 
+# 2. Deploy the service
 $ make deploy
 
+# 3. Login with OCM
 $ ocm login --token=${OCM_ACCESS_TOKEN} --url=https://trex.apps-crc.testing --insecure
 
+# 4. Test the deployment
 $ ocm post /api/rh-trex/v1/dinosaurs << EOF
 {
     "species": "foo"
@@ -217,7 +235,72 @@ $ ocm post /api/rh-trex/v1/dinosaurs << EOF
 EOF
 ```
 
+## Run your own service
 
+To create your own service based on TRex, you can use the `clone` command to copy and customize the entire codebase with your service name.
+
+### Clone the code
+
+The clone command will:
+- Copy the entire TRex project to a new destination directory
+- Replace all occurrences of "trex", "rh-trex", and "TRex" with your new service name
+- Update import paths to point to your new repository
+
+```shell
+# Build the trex binary first if you haven't built
+make binary
+
+# Clone the codebase to create a new service
+./trex clone --name my-service --destination /path/to/my-service --repo github.com/my-org
+
+# Example:
+./trex clone --name rh-birds --destination /tmp/rh-birds --repo github.com/openshift-online
+```
+
+**Parameters:**
+- `--name`: Name of your new service (e.g., "rh-birds", "my-service")
+- `--destination`: Directory where the new service code will be created
+- `--repo`: Your git repository organization path (e.g., "github.com/my-org")
+
+After the clone completes, you'll see a checklist of next steps. Follow these commands to get your new service running:
+
+```shell
+# 1. Navigate to your new service directory
+cd /path/to/your/new-service
+
+# 2. Install dependencies
+go mod tidy
+
+# 3. Build the project
+go install gotest.tools/gotestsum@latest
+make binary
+
+# 4. Set up the database
+make db/setup
+
+# 5. Run database migrations
+./your-service-name migrate
+
+# 6. Test the application
+make test
+make test-integration
+
+# 7. Run your service without authentication required
+make run-no-auth
+
+# 8. Verify the service is running
+curl http://localhost:8000/api/your-service-name/v1/dinosaurs | jq
+
+# OR 
+# 9. Run your service with authentication required
+make run
+
+# 10. Verify your application is running with authentication required
+curl http://localhost:8000/api/your-service-name/v1/dinosaurs | jq
+```
+
+
+The clone command will output these steps with the correct paths and service names for your convenience.
 
 ### Make a new Kind
 

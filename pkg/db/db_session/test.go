@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/lib/pq"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -91,11 +92,11 @@ func resetDB(config *config.DatabaseConfig) error {
 	}
 
 	// Rebuild AMS DB
-	query := fmt.Sprintf("DROP DATABASE IF EXISTS %s", config.Name)
+	query := fmt.Sprintf("DROP DATABASE IF EXISTS %s", pq.QuoteIdentifier(config.Name))
 	if _, err := dbx.Exec(query); err != nil {
 		return fmt.Errorf("SQL failed to DROP database %s: %s", config.Name, err.Error())
 	}
-	query = fmt.Sprintf("CREATE DATABASE %s TEMPLATE template1", config.Name)
+	query = fmt.Sprintf("CREATE DATABASE %s TEMPLATE template1", pq.QuoteIdentifier(config.Name))
 	if _, err := dbx.Exec(query); err != nil {
 		return fmt.Errorf("SQL failed to CREATE database %s: %s", config.Name, err.Error())
 	}
