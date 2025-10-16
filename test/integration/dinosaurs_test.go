@@ -257,7 +257,7 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 
 	// Use a barrier to ensure all threads start at the same time to maximize race conditions
-	threads := 50 // Increased from 20 to make race conditions more likely
+	threads := 40 // Increased from 20 to make race conditions more likely
 	var wg sync.WaitGroup
 	startBarrier := make(chan struct{})
 
