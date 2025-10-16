@@ -445,6 +445,8 @@ components:
           updated_at:
             format: date-time
             type: string
+        required:
+        - species
         type: object
       example:
         updated_at: 2000-01-23T04:56:07.000+00:00

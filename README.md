@@ -304,20 +304,78 @@ The clone command will output these steps with the correct paths and service nam
 
 ### Make a new Kind
 
-Generator scripts can be used to auto generate a new Kind. Run the following command to generate a new kind:
+The generator script creates a complete CRUD entity with plugin-based architecture. This automates most of the boilerplate code needed for a new resource type.
+
+**Generate a new entity:**
 ```shell
+# Basic entity with no custom fields
 go run ./scripts/generator.go --kind KindName
+
+# Entity with custom fields (nullable by default)
+go run ./scripts/generator.go --kind KindName --fields "name:string,count:int,active:bool"
+
+# Entity with required (non-nullable) and optional (nullable) fields
+go run ./scripts/generator.go --kind Rocket --fields "name:string:required,fuel_type:string,max_speed:int:optional"
 ```
 
-Following manual changes are required to run the application successfully:
-- `pkg/api/presenters/kind.go` : Add case statement for the kind
-- `pkg/api/presenters/path.go` : Add case statement for the kind
-- `pkg/api/presenters/` : Add presenters file (if missing)
-- `cmd/trex/environments/service_types.go` : Add new service locator for the kind
-- `cmd/trex/environments/types.go` : Add service locator and use `cmd/trex/environments/framework.go` to instantiate
-- `cmd/trex/server/routes.go` : Add service routes (if missing)
-- Add validation methods in handler if required
-- `pkg/db/migrations/migration_structs.go` : Add migration name
-- `test/factories.go` : Add helper functions
+**Supported field types:**
+- `string` - Text fields
+- `int` - 32-bit integers
+- `int64` - 64-bit integers
+- `bool` - Boolean values
+- `float` - Floating-point numbers
+- `time` - Timestamp fields
 
-Here's a reference MR for the same : https://github.com/openshift-online/rh-trex/pull/25
+**Field nullability:**
+- Fields are **nullable** (pointer types) by default
+- Add `:required` to make a field non-nullable (e.g., `name:string:required`)
+- Add `:optional` to explicitly mark as nullable (e.g., `count:int:optional`)
+- Required fields appear in the OpenAPI `required` array
+
+**What the generator creates automatically:**
+- API model (`pkg/api/{kind}.go`)
+- DAO layer (`pkg/dao/{kind}.go` and `pkg/dao/mocks/{kind}.go`)
+- Service layer with event handlers (`pkg/services/{kind}.go`)
+- HTTP handlers (`pkg/handlers/{kind}.go`)
+- Presenters (`pkg/api/presenters/{kind}.go`)
+- Database migration (`pkg/db/migrations/YYYYMMDDHHMM_add_{kinds}.go`)
+- OpenAPI specification (`openapi/openapi.{kinds}.yaml`)
+- Integration tests (`test/integration/{kinds}_test.go`)
+- Test factories (`test/factories/{kinds}.go`)
+- Plugin registration (`plugins/{kinds}/plugin.go`) - auto-registers routes, controllers, and presenters
+- Automatic updates:
+  - Adds plugin import to `cmd/trex/main.go`
+  - Adds migration to `pkg/db/migrations/migration_structs.go`
+  - Updates `openapi/openapi.yaml` with new entity references
+  - Runs `make generate` to create OpenAPI client code
+
+**After generation, build and test:**
+```shell
+# 1. Build the binary
+make binary
+
+# 2. Set up the database
+make db/teardown
+make db/setup
+
+# 3. Run migrations
+./trex migrate
+
+# 4. Run the server
+make run-no-auth
+
+# 5. Test the new entity
+curl -X POST http://localhost:8000/api/rh-trex/v1/{kinds} \
+  -H "Content-Type: application/json" \
+  -d '{"species": "example"}' | jq
+
+curl http://localhost:8000/api/rh-trex/v1/{kinds} | jq
+```
+
+**Plugin Architecture Benefits:**
+- Reduction in manual steps - no need to manually edit routes, controllers, or service locators
+- Self-contained entities - all wiring for an entity lives in its plugin file
+- Auto-discovery - plugins register themselves via init() functions
+- Type-safe - compile-time checks for service access
+
+For more detailed information about the generator and plugin system, see [CLAUDE.md](./CLAUDE.md).
