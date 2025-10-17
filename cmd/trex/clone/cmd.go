@@ -15,19 +15,19 @@ import (
 
 type provisionCfgFlags struct {
 	Name        string
-	Repo        string
+	RepoBase    string
 	Destination string
 }
 
 func (c *provisionCfgFlags) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.Name, "name", c.Name, "Name of the new service being provisioned")
 	fs.StringVar(&c.Destination, "destination", c.Destination, "Target directory for the newly provisioned instance")
-	fs.StringVar(&c.Repo, "repo", c.Repo, "git repo of project")
+	fs.StringVar(&c.RepoBase, "repo-base", c.RepoBase, "Repository base URL (e.g., 'github.com/openshift-online')")
 }
 
 var provisionCfg = &provisionCfgFlags{
 	Name:        "rh-trex",
-	Repo:        "github.com/openshift-online",
+	RepoBase:    "github.com/openshift-online",
 	Destination: "/tmp/clone-test",
 }
 
@@ -51,6 +51,8 @@ func clone(_ *cobra.Command, _ []string) {
 
 	glog.Infof("creating new TRex instance as %s in directory %s", provisionCfg.Name, provisionCfg.Destination)
 
+	originalDestination := provisionCfg.Destination
+
 	// walk the filesystem, starting at the root of the project
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -62,8 +64,9 @@ func clone(_ *cobra.Command, _ []string) {
 			return nil
 		}
 
-		dest := provisionCfg.Destination + "/" + path
-		dest = strings.Replace(dest, "trex", strings.ToLower(provisionCfg.Name), -1)
+		// Replace "trex" only in the relative path
+		modifiedPath := strings.ReplaceAll(path, "trex", strings.ToLower(provisionCfg.Name))
+		dest := filepath.Join(originalDestination, modifiedPath)
 
 		if info.IsDir() {
 			// does this path exist in the destination?
@@ -82,18 +85,25 @@ func clone(_ *cobra.Command, _ []string) {
 				return err
 			}
 
-			replacement := fmt.Sprintf("%s/%s", provisionCfg.Repo, strings.ToLower(provisionCfg.Name))
-			content = strings.Replace(content, "github.com/openshift-online/rh-trex", replacement, -1)
-			content = strings.Replace(content, "RHTrex", provisionCfg.Name, -1)
-			content = strings.Replace(content, "rh-trex", strings.ToLower(provisionCfg.Name), -1)
-			content = strings.Replace(content, "rhtrex", strings.ToLower(provisionCfg.Name), -1)
-			content = strings.Replace(content, "trex", strings.ToLower(provisionCfg.Name), -1)
-			content = strings.Replace(content, "TRex", provisionCfg.Name, -1)
+			content = strings.ReplaceAll(content, "github.com/openshift-online/rh-trex", "__PLACEHOLDER_IMPORT__")
+			content = strings.ReplaceAll(content, "RHTrex", "__PLACEHOLDER_RHTREX__")
+			content = strings.ReplaceAll(content, "rh-trex", "__PLACEHOLDER_RH_TREX__")
+			content = strings.ReplaceAll(content, "rhtrex", "__PLACEHOLDER_RHTREX_LOW__")
+			content = strings.ReplaceAll(content, "trex", "__PLACEHOLDER_TREX__")
+			content = strings.ReplaceAll(content, "TRex", "__PLACEHOLDER_TREX_CAP__")
+
+			replacement := fmt.Sprintf("%s/%s", provisionCfg.RepoBase, strings.ToLower(provisionCfg.Name))
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_IMPORT__", replacement)
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_RHTREX__", provisionCfg.Name)
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_TREX_CAP__", provisionCfg.Name)
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_RH_TREX__", strings.ToLower(provisionCfg.Name))
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_RHTREX_LOW__", strings.ToLower(provisionCfg.Name))
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_TREX__", strings.ToLower(provisionCfg.Name))
 
 			if exists(dest) {
 				e := os.Remove(dest)
 				if e != nil {
-					return err
+					return e
 				}
 			}
 

@@ -251,16 +251,16 @@ The clone command will:
 make binary
 
 # Clone the codebase to create a new service
-./trex clone --name my-service --destination /path/to/my-service --repo github.com/my-org
+./trex clone --name my-service --destination /path/to/my-service --repo-base github.com/my-org
 
 # Example:
-./trex clone --name rh-birds --destination /tmp/rh-birds --repo github.com/openshift-online
+./trex clone --name rh-birds --destination /tmp/rh-birds --repo-base github.com/openshift-online
 ```
 
 **Parameters:**
 - `--name`: Name of your new service (e.g., "rh-birds", "my-service")
 - `--destination`: Directory where the new service code will be created
-- `--repo`: Your git repository organization path (e.g., "github.com/my-org")
+- `--repo-base`: Your git repository base URL (e.g., "github.com/my-org")
 
 After the clone completes, you'll see a checklist of next steps. Follow these commands to get your new service running:
 
