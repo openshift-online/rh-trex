@@ -39,8 +39,10 @@ const (
 	jwkAlg     = "RS256"
 )
 
-var helper *Helper
-var once sync.Once
+var (
+	helper *Helper
+	once   sync.Once
+)
 
 // TODO jwk mock server needs to be refactored out of the helper and into the testing environment
 var jwkURL string
@@ -73,8 +75,6 @@ func NewHelper(t *testing.T) *Helper {
 		}
 
 		env := environments.Environment()
-		// Manually set environment name, ignoring environment variables
-		env.Name = environments.TestingEnv
 		err = env.AddFlags(pflag.CommandLine)
 		if err != nil {
 			glog.Fatalf("Unable to add environment flags: %s", err.Error())
@@ -103,6 +103,7 @@ func NewHelper(t *testing.T) *Helper {
 			helper.CleanDB,
 			jwkMockTeardown,
 			helper.stopAPIServer,
+			helper.teardownEnv,
 		}
 		helper.startAPIServer()
 		helper.startMetricsServer()
@@ -114,6 +115,11 @@ func NewHelper(t *testing.T) *Helper {
 
 func (helper *Helper) Env() *environments.Env {
 	return environments.Environment()
+}
+
+func (helper *Helper) teardownEnv() error {
+	helper.Env().Teardown()
+	return nil
 }
 
 func (helper *Helper) Teardown() {
@@ -415,14 +421,14 @@ func (helper *Helper) OpenapiError(err error) openapi.Error {
 }
 
 func parseJWTKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	//projectRootDir := getProjectRootDir()
-	//privateBytes, err := os.ReadFile(filepath.Join(projectRootDir, jwtKeyFile))
+	// projectRootDir := getProjectRootDir()
+	// privateBytes, err := os.ReadFile(filepath.Join(projectRootDir, jwtKeyFile))
 	privateBytes, err := privatebytes()
 	if err != nil {
 		err = fmt.Errorf("unable to read JWT key file %s: %s", jwtKeyFile, err)
 		return nil, nil, err
 	}
-	//pubBytes, err := ioutil.ReadFile(filepath.Join(projectRootDir, jwtCAFile))
+	// pubBytes, err := ioutil.ReadFile(filepath.Join(projectRootDir, jwtCAFile))
 	pubBytes, err := publicbytes()
 	if err != nil {
 		err = fmt.Errorf("unable to read JWT ca file %s: %s", jwtKeyFile, err)

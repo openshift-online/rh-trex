@@ -3,22 +3,22 @@ package environments
 import (
 	"os"
 
-	dbmocks "github.com/openshift-online/rh-trex/pkg/db/mocks"
+	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 )
 
-var _ EnvironmentImpl = &testingEnvImpl{}
+var _ EnvironmentImpl = &integrationTestingEnvImpl{}
 
-// testingEnvImpl is configuration for local integration tests
-type testingEnvImpl struct {
+// integrationTestingEnvImpl is configuration for integration tests using testcontainers
+type integrationTestingEnvImpl struct {
 	env *Env
 }
 
-func (e *testingEnvImpl) VisitDatabase(c *Database) error {
-	c.SessionFactory = dbmocks.NewMockSessionFactory()
+func (e *integrationTestingEnvImpl) VisitDatabase(c *Database) error {
+	c.SessionFactory = db_session.NewTestcontainerFactory(e.env.Config.Database)
 	return nil
 }
 
-func (e *testingEnvImpl) VisitConfig(c *ApplicationConfig) error {
+func (e *integrationTestingEnvImpl) VisitConfig(c *ApplicationConfig) error {
 	// Support a one-off env to allow enabling db debug in testing
 	if os.Getenv("DB_DEBUG") == "true" {
 		c.ApplicationConfig.Database.Debug = true
@@ -26,19 +26,19 @@ func (e *testingEnvImpl) VisitConfig(c *ApplicationConfig) error {
 	return nil
 }
 
-func (e *testingEnvImpl) VisitServices(s *Services) error {
+func (e *integrationTestingEnvImpl) VisitServices(s *Services) error {
 	return nil
 }
 
-func (e *testingEnvImpl) VisitHandlers(h *Handlers) error {
+func (e *integrationTestingEnvImpl) VisitHandlers(h *Handlers) error {
 	return nil
 }
 
-func (e *testingEnvImpl) VisitClients(c *Clients) error {
+func (e *integrationTestingEnvImpl) VisitClients(c *Clients) error {
 	return nil
 }
 
-func (e *testingEnvImpl) Flags() map[string]string {
+func (e *integrationTestingEnvImpl) Flags() map[string]string {
 	return map[string]string{
 		"v":                    "0",
 		"logtostderr":          "true",
