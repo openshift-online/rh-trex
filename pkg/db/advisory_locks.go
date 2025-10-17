@@ -65,7 +65,7 @@ func (f *AdvisoryLockFactory) NewAdvisoryLock(ctx context.Context, id string, lo
 		log.Error(errMsg)
 		// the lock transaction is already started, if error happens, we return the transaction id, so that the caller
 		// can end this transaction.
-		return *lock.uuid, fmt.Errorf(errMsg)
+		return *lock.uuid, fmt.Errorf("%s", errMsg)
 	}
 
 	log.V(4).Info(fmt.Sprintf("Locked advisory lock id=%s type=%s - owner=%s", id, lockType, *lock.uuid))
@@ -91,7 +91,7 @@ func (f *AdvisoryLockFactory) NewNonBlockingLock(ctx context.Context, id string,
 		log.Error(errMsg)
 		// the lock transaction is already started, if error happens, we return the transaction id, so that the caller
 		// can end this transaction.
-		return *lock.uuid, false, fmt.Errorf(errMsg)
+		return *lock.uuid, false, fmt.Errorf("%s", errMsg)
 	}
 
 	log.V(4).Info(fmt.Sprintf("Locked non blocking advisory lock id=%s type=%s - owner=%s", id, lockType, *lock.uuid))

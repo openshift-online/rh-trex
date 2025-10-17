@@ -180,7 +180,7 @@ func (s *sqlGenericService) buildSearchValues(listCtx *listContext, d *dao.Gener
 	// parse the search string to SQL WHERE
 	sql, values, err := sqlizer.ToSql()
 	if err != nil {
-		return "", nil, errors.GeneralError(err.Error())
+		return "", nil, errors.GeneralError("%s", err.Error())
 	}
 	return sql, values, nil
 }
@@ -300,7 +300,7 @@ func (s *sqlGenericService) treeWalkForRelatedTables(listCtx *listContext, tslTr
 
 	tslTree, err := ident.Walk(tslTree, walkFn)
 	if err != nil {
-		return tslTree, errors.BadRequest(err.Error())
+		return tslTree, errors.BadRequest("%s", err.Error())
 	}
 
 	return tslTree, nil
@@ -323,7 +323,7 @@ func (s *sqlGenericService) treeWalkForAddingTableName(listCtx *listContext, tsl
 
 	tslTree, err := ident.Walk(tslTree, walkFn)
 	if err != nil {
-		return tslTree, errors.BadRequest(err.Error())
+		return tslTree, errors.BadRequest("%s", err.Error())
 	}
 
 	return tslTree, nil
@@ -339,7 +339,7 @@ func (s *sqlGenericService) treeWalkForSqlizer(listCtx *listContext, tslTree tsl
 	// Convert the search tree into SQL [Squirrel] filter
 	sqlizer, err := sqlFilter.Walk(tslTree)
 	if err != nil {
-		return tslTree, nil, errors.BadRequest(err.Error())
+		return tslTree, nil, errors.BadRequest("%s", err.Error())
 	}
 
 	return tslTree, sqlizer, nil

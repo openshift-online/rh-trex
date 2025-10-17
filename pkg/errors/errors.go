@@ -123,7 +123,7 @@ func (e *ServiceError) Error() string {
 }
 
 func (e *ServiceError) AsError() error {
-	return fmt.Errorf(e.Error())
+	return fmt.Errorf("%s", e.Error())
 }
 
 func (e *ServiceError) Is404() bool {
