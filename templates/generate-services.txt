@@ -4,7 +4,7 @@ import (
 	"context"
 	"{{.Repo}}/{{.Project}}/pkg/dao"
 	"{{.Repo}}/{{.Project}}/pkg/db"
-	logger "{{.Repo}}/{{.Project}}/pkg/logger"
+	"{{.Repo}}/{{.Project}}/pkg/logger"
 
 	"{{.Repo}}/{{.Project}}/pkg/api"
 	"{{.Repo}}/{{.Project}}/pkg/errors"

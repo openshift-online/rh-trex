@@ -240,7 +240,7 @@ import (
 )
 
 func main() {
-	dinosaur := *openapiclient.NewDinosaur() // Dinosaur | Dinosaur data
+	dinosaur := *openapiclient.NewDinosaur("Species_example") // Dinosaur | Dinosaur data
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)

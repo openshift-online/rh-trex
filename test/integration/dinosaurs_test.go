@@ -42,7 +42,7 @@ func TestDinosaurGet(t *testing.T) {
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	Expect(*dinosaur.Id).To(Equal(dino.ID), "found object does not match test object")
-	Expect(*dinosaur.Species).To(Equal(dino.Species), "species mismatch")
+	Expect(dinosaur.Species).To(Equal(dino.Species), "species mismatch")
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
 	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", dino.ID)))
 	Expect(*dinosaur.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
@@ -57,7 +57,7 @@ func TestDinosaurPost(t *testing.T) {
 
 	// POST responses per openapi spec: 201, 409, 500
 	dino := openapi.Dinosaur{
-		Species: openapi.PtrString(time.Now().String()),
+		Species: time.Now().String(),
 	}
 
 	// 201 Created
@@ -65,7 +65,7 @@ func TestDinosaurPost(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	Expect(*dinosaur.Id).NotTo(BeEmpty(), "Expected ID assigned on creation")
-	Expect(*dinosaur.Species).To(Equal(*dino.Species), "species mismatch")
+	Expect(dinosaur.Species).To(Equal(dino.Species), "species mismatch")
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
 	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", *dinosaur.Id)))
 
@@ -98,7 +98,7 @@ func TestDinosaurPatch(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	Expect(*dinosaur.Id).To(Equal(dino.ID))
-	Expect(*dinosaur.Species).To(Equal(species), "species mismatch")
+	Expect(dinosaur.Species).To(Equal(species), "species mismatch")
 	Expect(*dinosaur.CreatedAt).To(BeTemporally("~", dino.CreatedAt))
 	Expect(*dinosaur.Kind).To(Equal("Dinosaur"))
 	Expect(*dinosaur.Href).To(Equal(fmt.Sprintf("/api/rh-trex/v1/dinosaurs/%s", *dinosaur.Id)))
@@ -204,7 +204,7 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			Expect(*updated.Species).To(Equal(species), "species mismatch")
+			Expect(updated.Species).To(Equal(species), "species mismatch")
 		}()
 	}
 
@@ -272,7 +272,7 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
 			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			Expect(*updated.Species).To(Equal(species), "species mismatch")
+			Expect(updated.Species).To(Equal(species), "species mismatch")
 		}(i)
 	}
 

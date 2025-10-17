@@ -251,7 +251,7 @@ The generator automatically creates and configures:
 
 1. **Generated Files** (no manual editing needed):
    - `pkg/api/fizzbuzz.go` - API model
-   - `pkg/api/presenters/fizzbuzz.go` - Presenter conversion functions  
+   - `pkg/api/presenters/fizzbuzz.go` - Presenter conversion functions
    - `pkg/handlers/fizzbuzz.go` - HTTP handlers
    - `pkg/services/fizzbuzz.go` - Business logic with event handlers
    - `pkg/dao/fizzbuzz.go` - Data access layer
@@ -260,21 +260,14 @@ The generator automatically creates and configures:
    - `test/integration/fizzbuzzs_test.go` - Integration tests
    - `test/factories/fizzbuzzs.go` - Test data factories
    - `openapi/openapi.fizzbuzzs.yaml` - OpenAPI specification
-   - `cmd/trex/environments/locator_fizzbuzz.go` - Service locator
+   - `plugins/fizzbuzzs/plugin.go` - Plugin with routes, controllers, presenters, and service locator
 
 2. **Updated Files** (automatically modified by generator):
-   - `pkg/api/presenters/kind.go` - Adds Kind mapping for ObjectKind function
-   - `pkg/api/presenters/path.go` - Adds snake_case path mapping for ObjectPath function  
-   - `cmd/trex/server/controllers.go` - Adds event handler registration with proper syntax
+   - `cmd/trex/main.go` - Adds plugin import to trigger auto-registration
+   - `pkg/db/migrations/migration_structs.go` - Adds migration to MigrationList automatically
    - `openapi/openapi.yaml` - Adds API references
 
-3. **Files Requiring Manual Updates** (generator creates templates but doesn't modify existing):
-   - `cmd/trex/environments/types.go` - Add service field to Services struct
-   - `cmd/trex/environments/framework.go` - Add service initialization in LoadServices
-   - `cmd/trex/server/routes.go` - Register API routes and handlers
-   - `pkg/db/migrations/migration_structs.go` - Add migration to MigrationList
-
-4. **Regenerated OpenAPI Client** (via `make generate`):
+3. **Regenerated OpenAPI Client** (via `make generate`):
    - `pkg/api/openapi/model_fizzbuzz.go` - Go model structs
    - `pkg/api/openapi/model_fizzbuzz_all_of.go` - Composite model  
    - `pkg/api/openapi/model_fizzbuzz_list.go` - List model
@@ -408,65 +401,221 @@ s.KindControllerManager.Add(&controllers.ControllerConfig{
 ### Key Improvements
 
 The generator has been enhanced to:
-1. **Dynamically detect** command directory structure
-2. **Automatically handle** all service registrations
-3. **Generate correct** snake_case API paths
-4. **Use proper** service locator patterns with lock factories
-5. **Create complete** test suites with proper factory methods
-6. **Maintain consistency** with existing codebase patterns
-7. **Generate event-driven controllers** with idempotent handlers
-8. **Automatically register** event handlers in controller system
+1. **Plugin-based architecture** - entities are self-contained with auto-registration
+2. **Automatic migration registration** - adds migrations to migration_structs.go automatically
+3. **Auto-discovery** - plugins register routes, controllers, and presenters via init() functions
+4. **Dynamically detect** command directory structure
+5. **Generate correct** snake_case API paths
+6. **Use proper** service locator patterns with lock factories
+7. **Create complete** test suites with proper factory methods
+8. **Maintain consistency** with existing codebase patterns
+9. **Generate event-driven controllers** with idempotent handlers
 
-**Minimal manual steps required** - the generator automates most of the process, with only 4 files requiring manual updates!
+**Zero manual steps required** - the generator is fully automated!
 
-### Required Manual Steps
+### Post-Generation Workflow
 
-After running the generator, you must manually update these 4 files:
+After running the generator, simply build and test:
 
-1. **Add service to Services struct** in `cmd/trex/environments/types.go`:
-   ```go
-   type Services struct {
-       Dinosaurs    DinosaurServiceLocator
-       YourKinds    YourKindServiceLocator  // <- Add this line
-       Generic      GenericServiceLocator
-       Events       EventServiceLocator
-   }
-   ```
+```bash
+# 1. Build the binary
+make binary
 
-2. **Add service initialization** in `cmd/trex/environments/framework.go`:
-   ```go
-   func (e *Env) LoadServices() {
-       e.Services.Generic = NewGenericServiceLocator(e)
-       e.Services.Dinosaurs = NewDinosaurServiceLocator(e)
-       e.Services.YourKinds = NewYourKindServiceLocator(e)  // <- Add this line
-       e.Services.Events = NewEventServiceLocator(e)
-   }
-   ```
+# 2. Set up the database
+make db/teardown
+make db/setup
 
-3. **Register API routes** in `cmd/trex/server/routes.go`:
-   ```go
-   // Add handler initialization
-   yourKindHandler := handlers.NewYourKindHandler(services.YourKinds(), services.Generic())
-   
-   // Add route registration 
-   apiV1YourKindsRouter := apiV1Router.PathPrefix("/your_kinds").Subrouter()
-   apiV1YourKindsRouter.HandleFunc("", yourKindHandler.List).Methods(http.MethodGet)
-   apiV1YourKindsRouter.HandleFunc("/{id}", yourKindHandler.Get).Methods(http.MethodGet)
-   apiV1YourKindsRouter.HandleFunc("", yourKindHandler.Create).Methods(http.MethodPost)
-   apiV1YourKindsRouter.HandleFunc("/{id}", yourKindHandler.Patch).Methods(http.MethodPatch)
-   apiV1YourKindsRouter.HandleFunc("/{id}", yourKindHandler.Delete).Methods(http.MethodDelete)
-   apiV1YourKindsRouter.Use(authMiddleware.AuthenticateAccountJWT)
-   apiV1YourKindsRouter.Use(authzMiddleware.AuthorizeApi)
-   ```
+# 3. Run migrations (your new migration is already registered)
+./trex migrate
 
-4. **Add migration to list** in `pkg/db/migrations/migration_structs.go`:
-   ```go
-   var MigrationList = []*gormigrate.Migration{
-       addDinosaurs(),
-       addEvents(),
-       addYourKinds(),  // <- Add this line
-   }
-   ```
+# 4. Run the server (routes and controllers are auto-registered via plugin)
+make run-no-auth
+
+# 5. Test the new entity
+curl -X POST http://localhost:8000/api/rh-trex/v1/{kinds} \
+  -H "Content-Type: application/json" \
+  -d '{"species": "example"}' | jq
+
+curl http://localhost:8000/api/rh-trex/v1/{kinds} | jq
+```
+
+No manual file edits required - everything is wired up automatically through the plugin system.
+
+### Adding Custom Fields to Entities
+
+The generator supports two approaches for adding custom fields to entities:
+
+#### Option 1: Specify Fields at Generation Time (Recommended)
+
+Use the `--fields` flag to specify custom fields when generating the entity:
+
+```bash
+# All fields nullable by default
+go run ./scripts/generator.go --kind Rocket \
+  --fields "name:string,fuel_type:string,max_speed:int,active:bool"
+
+# Mix of required and nullable fields
+go run ./scripts/generator.go --kind Rocket \
+  --fields "name:string:required,fuel_type:string,max_speed:int:optional,active:bool"
+```
+
+**Supported Field Types:**
+- `string` - Text data
+- `int` - 32-bit integer
+- `int64` - 64-bit integer
+- `bool` - Boolean true/false
+- `float` or `float64` - Floating point numbers
+- `time` - Timestamp (time.Time)
+
+**Field Nullability:**
+- **Default**: Fields are nullable (pointer types like `*string`, `*int`)
+- **`:required`**: Makes field non-nullable (base types like `string`, `int`)
+- **`:optional`**: Explicitly marks as nullable (same as default)
+- Required fields are added to OpenAPI `required` array
+- Nullable fields use pointer types in Go structs
+- All fields in PatchRequest are pointers (for partial updates)
+
+**Examples:**
+```bash
+# name is required (string), others nullable (*string, *int)
+--fields "name:string:required,description:string,count:int"
+
+# All required (no pointers)
+--fields "name:string:required,count:int:required,active:bool:required"
+
+# All nullable (default, with pointers)
+--fields "name:string,count:int,active:bool"
+```
+
+**Field Naming:**
+- Use snake_case when specifying field names (e.g., `fuel_type`, `max_speed`)
+- Generator automatically converts to proper casing:
+  - Go struct fields: PascalCase (`FuelType`, `MaxSpeed`)
+  - JSON/API fields: snake_case (`fuel_type`, `max_speed`)
+  - Database columns: snake_case (`fuel_type`, `max_speed`)
+
+The generator automatically adds these fields to:
+- API model struct (with correct pointer/non-pointer types)
+- Database migration
+- OpenAPI specification (with `required` array for non-nullable fields)
+- Presenter conversion functions (with proper nil handling)
+- Test factories (with pointer helpers for nullable fields)
+- Integration tests (with appropriate test values)
+- PatchRequest struct (all fields as optional pointers)
+
+#### Option 2: Add Fields Manually Post-Generation
+
+If you need to add fields after the entity is generated, update these 5 files:
+
+**1. API Model** (`pkg/api/{kind}.go`):
+```go
+type Rocket struct {
+    Meta
+    Name      string    `json:"name"`
+    FuelType  string    `json:"fuel_type"`
+    MaxSpeed  int       `json:"max_speed"`
+    Active    bool      `json:"active"`
+    LaunchDate time.Time `json:"launch_date"`
+}
+
+type RocketPatchRequest struct {
+    Name       *string    `json:"name,omitempty"`
+    FuelType   *string    `json:"fuel_type,omitempty"`
+    MaxSpeed   *int       `json:"max_speed,omitempty"`
+    Active     *bool      `json:"active,omitempty"`
+    LaunchDate *time.Time `json:"launch_date,omitempty"`
+}
+```
+
+**2. Database Migration** (`pkg/db/migrations/xxx_add_rockets.go`):
+```go
+func addRockets() *gormigrate.Migration {
+    type Rocket struct {
+        Model
+        Name       string
+        FuelType   string
+        MaxSpeed   int
+        Active     bool
+        LaunchDate time.Time
+    }
+    // ... rest of migration
+}
+```
+
+**3. OpenAPI Specification** (`openapi/openapi.rockets.yaml`):
+```yaml
+components:
+  schemas:
+    Rocket:
+      allOf:
+        - $ref: 'openapi.yaml#/components/schemas/ObjectReference'
+        - type: object
+          properties:
+            name:
+              type: string
+            fuel_type:
+              type: string
+            max_speed:
+              type: integer
+              format: int32
+            active:
+              type: boolean
+            launch_date:
+              type: string
+              format: date-time
+
+    RocketPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        fuel_type:
+          type: string
+        max_speed:
+          type: integer
+          format: int32
+        active:
+          type: boolean
+        launch_date:
+          type: string
+          format: date-time
+```
+
+**4. Regenerate OpenAPI Client:**
+```bash
+make generate
+```
+
+**5. Add Validation (Optional)** in `pkg/handlers/{kind}.go`:
+```go
+func (h RocketHandler) Create(w http.ResponseWriter, r *http.Request) {
+    // ... existing code ...
+
+    // Add custom validation
+    if rocket.Name == "" {
+        errors.GeneralError(r, w, errors.ErrorBadRequest, "name cannot be empty")
+        return
+    }
+
+    if rocket.MaxSpeed < 0 {
+        errors.GeneralError(r, w, errors.ErrorBadRequest, "max_speed must be positive")
+        return
+    }
+
+    // ... rest of handler ...
+}
+```
+
+**Important Notes:**
+- Always use PascalCase for Go struct field names
+- Use snake_case for JSON tags and database columns
+- Use pointer types (*string, *int, etc.) in PatchRequest for optional updates
+- After adding fields manually, recreate the database for integration tests:
+  ```bash
+  make db/teardown
+  make db/setup
+  ./trex migrate
+  ```
 
 ### Generator Troubleshooting
 
@@ -474,77 +623,22 @@ If you encounter issues after running the generator, check these common problems
 
 #### Compilation Errors
 
-**Issue**: Syntax errors in `cmd/trex/server/controllers.go`
+**Issue**: Build fails with compilation errors
+**Solution**: Verify the generator completed successfully and run:
 ```bash
-# Error: unexpected := in composite literal; possibly missing comma or }
-```
-**Root Cause**: Missing closing brace in controller registration
-**Fix**: The generator should properly close controller configurations. Manual fix:
-```go
-s.KindControllerManager.Add(&controllers.ControllerConfig{
-    Source: "Dinosaurs",
-    Handlers: map[api.EventType][]controllers.ControllerHandlerFunc{
-        api.CreateEventType: {dinoServices.OnUpsert},
-        api.UpdateEventType: {dinoServices.OnUpsert},
-        api.DeleteEventType: {dinoServices.OnDelete},
-    },
-}) // <- Ensure this closing brace exists
+make binary
 ```
 
-**Issue**: Service method not found
-```bash
-# Error: env().Services.KindName undefined
-```
-**Root Cause**: Service not added to environment framework
-**Fix**: Verify these files are updated:
-- `cmd/trex/environments/types.go` - Service field in Services struct
-- `cmd/trex/environments/framework.go` - Service initialization in LoadServices()
-
-#### Test Failures
-
-**Issue**: Integration tests fail with "404 Not Found" or "relation does not exist"
-**Root Causes**:
-1. Database migration not registered
-2. API routes not registered  
-3. Presenter mappings missing
-
-**Fixes**:
-1. **Migration**: Add to `pkg/db/migrations/migration_structs.go`:
-   ```go
-   var MigrationList = []*gormigrate.Migration{
-       addDinosaurs(),
-       addEvents(),
-       addKindName(), // <- Add your migration
-   }
-   ```
-
-2. **Routes**: Add to `cmd/trex/server/routes.go`:
-   ```go
-   kindHandler := handlers.NewKindHandler(services.Kinds(), services.Generic())
-   
-   apiV1KindsRouter := apiV1Router.PathPrefix("/kind_names").Subrouter()
-   apiV1KindsRouter.HandleFunc("", kindHandler.List).Methods(http.MethodGet)
-   // ... other routes
-   ```
-
-3. **Presenters**: Add to both presenter files:
-   ```go
-   // pkg/api/presenters/kind.go
-   case api.KindName, *api.KindName:
-       result = "KindName"
-   
-   // pkg/api/presenters/path.go  
-   case api.KindName, *api.KindName:
-       return "kind_names"  // snake_case plural
-   ```
+If errors persist, check that the plugin import was added correctly to `cmd/trex/main.go`.
 
 #### Database Issues
 
-**Issue**: Tests fail with database connection errors
-**Solution**: Recreate the database to run new migrations:
+**Issue**: Migration fails or tests fail with "relation does not exist"
+**Solution**: Recreate the database to apply new migrations:
 ```bash
 make db/teardown  # Stop and remove PostgreSQL container
-make db/setup     # Start fresh PostgreSQL container  
+make db/setup     # Start fresh PostgreSQL container
+./trex migrate    # Apply all migrations
 make test-integration  # Run tests with new schema
 ```
 
@@ -552,7 +646,7 @@ make test-integration  # Run tests with new schema
 
 #### Cleaning Up Test Generations
 
-When experimenting with the generator, you may need to completely remove a generated Kind. Here's the comprehensive cleanup process:
+When experimenting with the generator, you may need to completely remove a generated Kind. Here's the cleanup process:
 
 **Complete Kind Removal** (e.g., for TestWidget):
 ```bash
@@ -568,7 +662,7 @@ rm -rf \
   test/integration/testWidgets_test.go \
   test/factories/testWidgets.go \
   openapi/openapi.testWidgets.yaml \
-  cmd/trex/environments/locator_testWidget.go
+  plugins/testWidgets/
 
 # Remove OpenAPI client files (generated by make generate)
 rm -rf \
@@ -577,23 +671,12 @@ rm -rf \
 
 # Reset modified files to clean state
 git checkout HEAD -- \
-  cmd/trex/server/controllers.go \
-  cmd/trex/server/routes.go \
-  cmd/trex/environments/types.go \
-  cmd/trex/environments/framework.go \
-  pkg/api/presenters/kind.go \
-  pkg/api/presenters/path.go \
+  cmd/trex/main.go \
   pkg/db/migrations/migration_structs.go \
   openapi/openapi.yaml
 
 # Regenerate OpenAPI client to remove traces
 make generate
-```
-
-**Quick Test Cleanup** (for temporary testing):
-```bash
-# For a Kind called "TestWidget", run this one-liner:
-rm -rf pkg/api/testWidget.go pkg/api/presenters/testWidget.go pkg/handlers/testWidget.go pkg/services/testWidget.go pkg/dao/testWidget.go pkg/dao/mocks/testWidget.go pkg/db/migrations/*testWidget* test/integration/testWidgets_test.go test/factories/testWidgets.go openapi/openapi.testWidgets.yaml cmd/trex/environments/locator_testWidget.go pkg/api/openapi/model_test_widget*.go pkg/api/openapi/docs/TestWidget*.md && git checkout HEAD -- cmd/trex/server/controllers.go cmd/trex/server/routes.go cmd/trex/environments/types.go cmd/trex/environments/framework.go pkg/api/presenters/kind.go pkg/api/presenters/path.go pkg/db/migrations/migration_structs.go openapi/openapi.yaml && make generate
 ```
 
 ## Authentication

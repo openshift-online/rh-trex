@@ -187,6 +187,8 @@ components:
       allOf:
         - $ref: 'openapi.yaml#/components/schemas/ObjectReference'
         - type: object
+          required:
+            - species
           properties:
             species:
               type: string

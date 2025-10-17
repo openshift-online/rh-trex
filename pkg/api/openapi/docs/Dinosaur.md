@@ -9,13 +9,13 @@ Name | Type | Description | Notes
 **Href** | Pointer to **string** |  | [optional] 
 **CreatedAt** | Pointer to **time.Time** |  | [optional] 
 **UpdatedAt** | Pointer to **time.Time** |  | [optional] 
-**Species** | Pointer to **string** |  | [optional] 
+**Species** | **string** |  | 
 
 ## Methods
 
 ### NewDinosaur
 
-`func NewDinosaur() *Dinosaur`
+`func NewDinosaur(species string, ) *Dinosaur`
 
 NewDinosaur instantiates a new Dinosaur object
 This constructor will assign default values to properties that have it defined,
@@ -174,11 +174,6 @@ and a boolean to check if the value has been set.
 
 SetSpecies sets Species field to given value.
 
-### HasSpecies
-
-`func (o *Dinosaur) HasSpecies() bool`
-
-HasSpecies returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

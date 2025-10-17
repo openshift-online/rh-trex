@@ -11,7 +11,7 @@ func ConvertDinosaur(dinosaur openapi.Dinosaur) *api.Dinosaur {
 		Meta: api.Meta{
 			ID: util.NilToEmptyString(dinosaur.Id),
 		},
-		Species: util.NilToEmptyString(dinosaur.Species),
+		Species: dinosaur.Species,
 	}
 }
 
@@ -21,7 +21,7 @@ func PresentDinosaur(dinosaur *api.Dinosaur) openapi.Dinosaur {
 		Id:        reference.Id,
 		Kind:      reference.Kind,
 		Href:      reference.Href,
-		Species:   openapi.PtrString(dinosaur.Species),
+		Species:   dinosaur.Species,
 		CreatedAt: openapi.PtrTime(dinosaur.CreatedAt),
 		UpdatedAt: openapi.PtrTime(dinosaur.UpdatedAt),
 	}

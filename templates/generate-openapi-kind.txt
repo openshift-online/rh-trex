@@ -187,9 +187,28 @@ components:
       allOf:
         - $ref: 'openapi.yaml#/components/schemas/ObjectReference'
         - type: object
+{{- $hasRequired := false}}
+{{- range .Fields}}
+{{- if .Required}}
+{{- $hasRequired = true}}
+{{- end}}
+{{- end}}
+{{- if $hasRequired}}
+          required:
+{{- range .Fields}}
+{{- if .Required}}
+            - {{.NameSnakeCase}}
+{{- end}}
+{{- end}}
+{{- end}}
           properties:
-            foo:
-              type: string
+{{- range .Fields}}
+            {{.NameSnakeCase}}:
+              type: {{.OpenAPIType}}
+{{- if .OpenAPIFormat}}
+              format: {{.OpenAPIFormat}}
+{{- end}}
+{{- end}}
     # NEW SCHEMA START
     {{.Kind}}List:
     # NEW SCHEMA END
@@ -206,8 +225,13 @@ components:
     # NEW SCHEMA END
       type: object
       properties:
-        foo:
-            type: string
+{{- range .Fields}}
+        {{.NameSnakeCase}}:
+          type: {{.OpenAPIType}}
+{{- if .OpenAPIFormat}}
+          format: {{.OpenAPIFormat}}
+{{- end}}
+{{- end}}
   parameters:
       id:
         name: id

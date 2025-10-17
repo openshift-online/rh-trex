@@ -11,7 +11,9 @@ API version: 0.0.1
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -25,15 +27,18 @@ type Dinosaur struct {
 	Href      *string    `json:"href,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	Species   *string    `json:"species,omitempty"`
+	Species   string     `json:"species"`
 }
+
+type _Dinosaur Dinosaur
 
 // NewDinosaur instantiates a new Dinosaur object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewDinosaur() *Dinosaur {
+func NewDinosaur(species string) *Dinosaur {
 	this := Dinosaur{}
+	this.Species = species
 	return &this
 }
 
@@ -205,36 +210,28 @@ func (o *Dinosaur) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = &v
 }
 
-// GetSpecies returns the Species field value if set, zero value otherwise.
+// GetSpecies returns the Species field value
 func (o *Dinosaur) GetSpecies() string {
-	if o == nil || IsNil(o.Species) {
+	if o == nil {
 		var ret string
 		return ret
 	}
-	return *o.Species
+
+	return o.Species
 }
 
-// GetSpeciesOk returns a tuple with the Species field value if set, nil otherwise
+// GetSpeciesOk returns a tuple with the Species field value
 // and a boolean to check if the value has been set.
 func (o *Dinosaur) GetSpeciesOk() (*string, bool) {
-	if o == nil || IsNil(o.Species) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Species, true
+	return &o.Species, true
 }
 
-// HasSpecies returns a boolean if a field has been set.
-func (o *Dinosaur) HasSpecies() bool {
-	if o != nil && !IsNil(o.Species) {
-		return true
-	}
-
-	return false
-}
-
-// SetSpecies gets a reference to the given string and assigns it to the Species field.
+// SetSpecies sets field value
 func (o *Dinosaur) SetSpecies(v string) {
-	o.Species = &v
+	o.Species = v
 }
 
 func (o Dinosaur) MarshalJSON() ([]byte, error) {
@@ -262,10 +259,45 @@ func (o Dinosaur) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.UpdatedAt) {
 		toSerialize["updated_at"] = o.UpdatedAt
 	}
-	if !IsNil(o.Species) {
-		toSerialize["species"] = o.Species
-	}
+	toSerialize["species"] = o.Species
 	return toSerialize, nil
+}
+
+func (o *Dinosaur) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"species",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varDinosaur := _Dinosaur{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varDinosaur)
+
+	if err != nil {
+		return err
+	}
+
+	*o = Dinosaur(varDinosaur)
+
+	return err
 }
 
 type NullableDinosaur struct {
