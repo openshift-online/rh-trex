@@ -15,7 +15,7 @@ const (
 	ProductionEnv  string = "production"
 
 	EnvironmentStringKey string = "OCM_ENV"
-	EnvironmentDefault   string = DevelopmentEnv
+	EnvironmentDefault          = DevelopmentEnv
 )
 
 type Env struct {

@@ -9,10 +9,10 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 
+	"github.com/openshift-online/rh-trex/cmd/trex/environments/registry"
 	"github.com/openshift-online/rh-trex/pkg/client/ocm"
 	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/errors"
-	"github.com/openshift-online/rh-trex/cmd/trex/environments/registry"
 )
 
 func init() {

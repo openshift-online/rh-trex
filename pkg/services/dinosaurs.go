@@ -5,7 +5,7 @@ import (
 
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
-	logger "github.com/openshift-online/rh-trex/pkg/logger"
+	"github.com/openshift-online/rh-trex/pkg/logger"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/errors"

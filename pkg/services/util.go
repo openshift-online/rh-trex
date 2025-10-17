@@ -10,7 +10,7 @@ import (
 )
 
 // Field names suspected to contain personally identifiable information
-var piiFields []string = []string{
+var piiFields = []string{
 	"username",
 	"first_name",
 	"last_name",
