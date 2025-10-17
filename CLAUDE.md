@@ -123,13 +123,13 @@ Creates a new microservice project based on the TRex template, replacing templat
 ```bash
 ./trex clone --name my-service                           # Clone with custom name
 ./trex clone --name my-service --destination ./my-proj   # Custom destination
-./trex clone --repo github.com/myorg --name my-service   # Custom git repo
+./trex clone --repo-base github.com/myorg --name my-service   # Custom git repo
 ```
 
 **Configuration Options:**
 - `--name` - Name of the new service (default: "rh-trex")
 - `--destination` - Target directory for new instance (default: "/tmp/clone-test")
-- `--repo` - Git repository path (default: "github.com/openshift-online")
+- `--repo-base` - Git Repository base URL (default: "github.com/openshift-online")
 
 **Clone Process:**
 - Creates new directory structure
