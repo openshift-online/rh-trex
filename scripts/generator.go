@@ -28,16 +28,16 @@ TODO: all of it can be better
 */
 
 var (
-	kind                        string = "Asteroid"
-	repo                        string = "github.com/openshift-online"
-	project                     string = "rh-trex"
-	fields                      string = ""
-	openapiEndpointStart        string = "# NEW ENDPOINT START"
-	openapiEndpointEnd          string = "# NEW ENDPOINT END"
-	openApiSchemaStart          string = "# NEW SCHEMA START"
-	openApiSchemaEnd            string = "# NEW SCHEMA END"
-	openApiEndpointMatchingLine string = "  # AUTO-ADD NEW PATHS"
-	openApiSchemaMatchingLine   string = "    # AUTO-ADD NEW SCHEMAS"
+	kind                        = "Asteroid"
+	repo                        = "github.com/openshift-online"
+	project                     = "rh-trex"
+	fields                      = ""
+	openapiEndpointStart        = "# NEW ENDPOINT START"
+	openapiEndpointEnd          = "# NEW ENDPOINT END"
+	openApiSchemaStart          = "# NEW SCHEMA START"
+	openApiSchemaEnd            = "# NEW SCHEMA END"
+	openApiEndpointMatchingLine = "  # AUTO-ADD NEW PATHS"
+	openApiSchemaMatchingLine   = "    # AUTO-ADD NEW SCHEMAS"
 )
 
 func init() {
@@ -342,19 +342,19 @@ func mapFieldType(name, fieldType string, nullable bool) (Field, error) {
 }
 
 type Field struct {
-	Name              string
-	Type              string
-	GoType            string
-	DBType            string
-	OpenAPIType       string
-	OpenAPIFormat     string
-	NameSnakeCase     string
-	NameCamelCase     string
-	JSONTag           string
-	GormTag           string
-	Required          bool
-	Nullable          bool
-	PointerType       string
+	Name          string
+	Type          string
+	GoType        string
+	DBType        string
+	OpenAPIType   string
+	OpenAPIFormat string
+	NameSnakeCase string
+	NameCamelCase string
+	JSONTag       string
+	GormTag       string
+	Required      bool
+	Nullable      bool
+	PointerType   string
 }
 
 type myWriter struct {

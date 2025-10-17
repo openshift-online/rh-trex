@@ -54,7 +54,7 @@ func (c *ApplicationConfig) ReadFiles() []string {
 		{c.HealthCheck.ReadFiles, "HealthCheck"},
 		{c.Sentry.ReadFiles, "Sentry"},
 	}
-	messages := []string{}
+	var messages []string
 	for _, rf := range readFiles {
 		if err := rf.f(); err != nil {
 			msg := fmt.Sprintf("%s %s", rf.name, err.Error())

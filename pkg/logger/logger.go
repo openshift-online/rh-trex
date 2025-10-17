@@ -61,7 +61,7 @@ func (l *logger) prepareLogPrefix(message string, extra extra) string {
 		prefix = fmt.Sprintf("[opid=%s]%s", opid, prefix)
 	}
 
-	args := []string{}
+	var args []string
 	for k, v := range extra {
 		args = append(args, fmt.Sprintf("%s=%v", k, v))
 	}

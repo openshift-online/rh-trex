@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"github.com/golang/glog"
 	"net/http"
+
+	"github.com/golang/glog"
 )
 
 type authzMiddlewareMock struct{}
