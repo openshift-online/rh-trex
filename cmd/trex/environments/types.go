@@ -12,7 +12,6 @@ import (
 const (
 	UnitTestingEnv        string = "unit_testing"
 	IntegrationTestingEnv string = "integration_testing"
-	TestingEnv            string = "testing" // Deprecated: use UnitTestingEnv or IntegrationTestingEnv
 	DevelopmentEnv        string = "development"
 	ProductionEnv         string = "production"
 
@@ -79,9 +78,11 @@ type ConfigDefaults struct {
 	Options  map[string]interface{}
 }
 
-var environment *Env
-var once sync.Once
-var environments map[string]EnvironmentImpl
+var (
+	environment  *Env
+	once         sync.Once
+	environments map[string]EnvironmentImpl
+)
 
 // ApplicationConfig visitor
 var _ ConfigVisitable = &ApplicationConfig{}

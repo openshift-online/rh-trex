@@ -95,7 +95,7 @@ GOLANGCI_LINT_BIN:=$(shell go env GOPATH)/bin/golangci-lint
 ### Envrionment-sourced variables with defaults
 # Can be overriden by setting environment var before running
 # Example:
-#   OCM_ENV=testing make run
+#   OCM_ENV=unit_testing make run
 #   export OCM_ENV=testing; make run
 # Set the environment to development by default
 ifndef OCM_ENV

@@ -28,7 +28,6 @@ func init() {
 			DevelopmentEnv:        &devEnvImpl{environment},
 			UnitTestingEnv:        &unitTestingEnvImpl{environment},
 			IntegrationTestingEnv: &integrationTestingEnvImpl{environment},
-			TestingEnv:            &unitTestingEnvImpl{environment}, // Deprecated: defaults to unit testing
 			ProductionEnv:         &productionEnvImpl{environment},
 		}
 	})
