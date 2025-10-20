@@ -41,6 +41,7 @@ func (s *apiServer) routes() *mux.Router {
 		check(err, "Can't load OpenAPI specification")
 	}
 
+	metadataHandler := handlers.NewMetadataHandler()
 	errorsHandler := handlers.NewErrorsHandler()
 
 	var authMiddleware auth.JWTMiddleware
@@ -72,12 +73,12 @@ func (s *apiServer) routes() *mux.Router {
 
 	//  /api/rh-trex
 	apiRouter := mainRouter.PathPrefix("/api/rh-trex").Subrouter()
-	apiRouter.HandleFunc("", api.SendAPI).Methods(http.MethodGet)
+	apiRouter.HandleFunc("", metadataHandler.Get).Methods(http.MethodGet)
 
 	//  /api/rh-trex/v1
 	apiV1Router := apiRouter.PathPrefix("/v1").Subrouter()
-	apiV1Router.HandleFunc("", api.SendAPIV1).Methods(http.MethodGet)
-	apiV1Router.HandleFunc("/", api.SendAPIV1).Methods(http.MethodGet)
+	apiV1Router.HandleFunc("", metadataHandler.GetV1).Methods(http.MethodGet)
+	apiV1Router.HandleFunc("/", metadataHandler.GetV1).Methods(http.MethodGet)
 
 	//  /api/rh-trex/v1/openapi
 	apiV1Router.HandleFunc("/openapi", handlers.NewOpenAPIHandler(openAPIDefinitions).Get).Methods(http.MethodGet)

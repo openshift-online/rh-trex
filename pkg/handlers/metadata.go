@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This file contains functions that simplify generation of API metadata.
-
-package api
+package handlers
 
 import (
 	"encoding/json"
@@ -25,29 +23,37 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
+	"github.com/openshift-online/rh-trex/pkg/api"
 )
 
-// SendAPI sends API documentation response.
-func SendAPI(w http.ResponseWriter, r *http.Request) {
+type metadataHandler struct{}
+
+func NewMetadataHandler() *metadataHandler {
+	return &metadataHandler{}
+}
+
+// Get sends API documentation response.
+func (h metadataHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Set the content type:
 	w.Header().Set("Content-Type", "application/json")
 
 	// Prepare the body:
-	versions := []VersionMetadata{
+	versions := []api.VersionMetadata{
 		{
 			ID:   "v1",
 			HREF: r.URL.Path + "/v1",
 		},
 	}
-	body := Metadata{
+	body := api.Metadata{
 		ID:       "trex",
 		Kind:     "API",
 		HREF:     r.URL.Path,
 		Versions: versions,
+		Version:  api.Version,
 	}
 	data, err := json.Marshal(body)
 	if err != nil {
-		SendPanic(w, r)
+		api.SendPanic(w, r)
 		return
 	}
 
@@ -61,21 +67,21 @@ func SendAPI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SendAPIV1 sends API version v1 documentation response.
-func SendAPIV1(w http.ResponseWriter, r *http.Request) {
+// GetV1 sends API version v1 documentation response.
+func (h metadataHandler) GetV1(w http.ResponseWriter, r *http.Request) {
 	// Set the content type:
 	w.Header().Set("Content-Type", "application/json")
 
 	// Prepare the body:
 	id := "v1"
-	collections := []CollectionMetadata{
+	collections := []api.CollectionMetadata{
 		{
 			ID:   "dinosaurs",
 			Kind: "DinosaurList",
 			HREF: r.URL.Path + "/dinosaurs",
 		},
 	}
-	body := VersionMetadata{
+	body := api.VersionMetadata{
 		ID:          id,
 		Kind:        "APIVersion",
 		HREF:        r.URL.Path,
@@ -83,7 +89,7 @@ func SendAPIV1(w http.ResponseWriter, r *http.Request) {
 	}
 	data, err := json.Marshal(body)
 	if err != nil {
-		SendPanic(w, r)
+		api.SendPanic(w, r)
 		return
 	}
 
