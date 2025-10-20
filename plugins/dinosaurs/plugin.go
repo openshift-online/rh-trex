@@ -19,26 +19,26 @@ import (
 	"github.com/openshift-online/rh-trex/plugins/generic"
 )
 
-// Service Locator
-type DinosaurServiceLocator func() services.DinosaurService
+// ServiceLocator Service Locator
+type ServiceLocator func() services.DinosaurService
 
-func NewDinosaurServiceLocator(env *environments.Env) DinosaurServiceLocator {
+func NewServiceLocator(env *environments.Env) ServiceLocator {
 	return func() services.DinosaurService {
 		return services.NewDinosaurService(
 			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
 			dao.NewDinosaurDao(&env.Database.SessionFactory),
-			events.EventService(&env.Services),
+			events.Service(&env.Services),
 		)
 	}
 }
 
-// DinosaurService helper function to get the dinosaur service from the registry
-func DinosaurService(s *environments.Services) services.DinosaurService {
+// Service helper function to get the dinosaur service from the registry
+func Service(s *environments.Services) services.DinosaurService {
 	if s == nil {
 		return nil
 	}
 	if obj := s.GetService("Dinosaurs"); obj != nil {
-		locator := obj.(DinosaurServiceLocator)
+		locator := obj.(ServiceLocator)
 		return locator()
 	}
 	return nil
@@ -47,13 +47,13 @@ func DinosaurService(s *environments.Services) services.DinosaurService {
 func init() {
 	// Service registration
 	registry.RegisterService("Dinosaurs", func(env interface{}) interface{} {
-		return NewDinosaurServiceLocator(env.(*environments.Env))
+		return NewServiceLocator(env.(*environments.Env))
 	})
 
 	// Routes registration
 	server.RegisterRoutes("dinosaurs", func(apiV1Router *mux.Router, services server.ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware) {
 		envServices := services.(*environments.Services)
-		dinosaurHandler := handlers.NewDinosaurHandler(DinosaurService(envServices), generic.GenericService(envServices))
+		dinosaurHandler := handlers.NewDinosaurHandler(Service(envServices), generic.Service(envServices))
 
 		dinosaursRouter := apiV1Router.PathPrefix("/dinosaurs").Subrouter()
 		dinosaursRouter.HandleFunc("", dinosaurHandler.List).Methods(http.MethodGet)
@@ -67,7 +67,7 @@ func init() {
 
 	// Controller registration
 	server.RegisterController("Dinosaurs", func(manager *controllers.KindControllerManager, services *environments.Services) {
-		dinoServices := DinosaurService(services)
+		dinoServices := Service(services)
 
 		manager.Add(&controllers.ControllerConfig{
 			Source: "Dinosaurs",

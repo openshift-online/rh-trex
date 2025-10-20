@@ -30,7 +30,7 @@ Use:
 	authzMock.Reset()
 */
 
-var _ ocm.OCMAuthorization = &OCMAuthzValidatorMock{}
+var _ ocm.Authorization = &OCMAuthzValidatorMock{}
 
 type OCMAuthzValidatorMock struct {
 	Action       string

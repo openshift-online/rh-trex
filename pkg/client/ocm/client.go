@@ -11,7 +11,7 @@ type Client struct {
 	logger     sdkClient.Logger
 	connection *sdkClient.Connection
 
-	Authorization OCMAuthorization
+	Authorization Authorization
 }
 
 type Config struct {
@@ -29,7 +29,7 @@ func NewClient(config Config) (*Client, error) {
 		Debug(config.Debug).
 		Build()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to build OCM logger: %s", err.Error())
+		return nil, fmt.Errorf("unable to build OCM logger: %s", err.Error())
 	}
 
 	client := &Client{
@@ -38,7 +38,7 @@ func NewClient(config Config) (*Client, error) {
 	}
 	err = client.newConnection()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to build OCM connection: %s", err.Error())
+		return nil, fmt.Errorf("unable to build OCM connection: %s", err.Error())
 	}
 	client.Authorization = &authorization{client: client}
 	return client, nil
@@ -63,13 +63,13 @@ func (c *Client) newConnection() error {
 	} else if c.config.SelfToken != "" {
 		builder = builder.Tokens(c.config.SelfToken)
 	} else {
-		return fmt.Errorf("Can't build OCM client connection. No Client/Secret or Token has been provided.")
+		return fmt.Errorf("can't build OCM client connection: no Client/Secret or Token has been provided")
 	}
 
 	connection, err := builder.Build()
 
 	if err != nil {
-		return fmt.Errorf("Can't build OCM client connection: %s", err.Error())
+		return fmt.Errorf("can't build OCM client connection: %s", err.Error())
 	}
 	c.connection = connection
 	return nil

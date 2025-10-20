@@ -13,17 +13,17 @@ type JWTMiddleware interface {
 	AuthenticateAccountJWT(next http.Handler) http.Handler
 }
 
-type AuthMiddleware struct{}
+type Middleware struct{}
 
-var _ JWTMiddleware = &AuthMiddleware{}
+var _ JWTMiddleware = &Middleware{}
 
-func NewAuthMiddleware() (*AuthMiddleware, error) {
-	middleware := AuthMiddleware{}
+func NewAuthMiddleware() (*Middleware, error) {
+	middleware := Middleware{}
 	return &middleware, nil
 }
 
-// Middleware handler to validate JWT tokens and authenticate users
-func (a *AuthMiddleware) AuthenticateAccountJWT(next http.Handler) http.Handler {
+// AuthenticateAccountJWT Middleware handler to validate JWT tokens and authenticate users
+func (a *Middleware) AuthenticateAccountJWT(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		payload, err := GetAuthPayload(r)

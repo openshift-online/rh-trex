@@ -55,7 +55,7 @@ type Meta struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-// List Paging metadata
+// PagingMeta List Paging metadata
 type PagingMeta struct {
 	Page  int
 	Size  int64

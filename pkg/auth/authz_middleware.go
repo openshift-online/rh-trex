@@ -44,7 +44,7 @@ func (a authzMiddleware) AuthorizeApi(next http.Handler) http.Handler {
 		// Get username from context
 		username := GetUsernameFromContext(ctx)
 		if username == "" {
-			_ = fmt.Errorf("Authenticated username not present in request context")
+			_ = fmt.Errorf("authenticated username not present in request context")
 			// TODO
 			//body := api.E500.Format(r, "Authentication details not present in context")
 			//api.SendError(w, r, &body)
@@ -54,7 +54,7 @@ func (a authzMiddleware) AuthorizeApi(next http.Handler) http.Handler {
 		allowed, err := a.ocmClient.Authorization.AccessReview(
 			ctx, username, a.action, a.resourceType, "", "", "")
 		if err != nil {
-			_ = fmt.Errorf("Unable to make authorization request: %s", err)
+			_ = fmt.Errorf("unable to make authorization request: %s", err)
 			// TODO
 			//body := api.E500.Format(r, "Unable to make authorization request")
 			//api.SendError(w, r, &body)

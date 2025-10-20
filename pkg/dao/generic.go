@@ -45,7 +45,7 @@ type sqlGenericDao struct {
 	g2             *gorm.DB
 }
 
-// represents a relationship between two tables. They can be joined,
+// TableRelation represents a relationship between two tables. They can be joined,
 // ON TableName.ColumnName = ForeignTableName.ForeignColumnName
 type TableRelation struct {
 	TableName         string

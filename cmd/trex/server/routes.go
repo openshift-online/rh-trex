@@ -44,7 +44,7 @@ func (s *apiServer) routes() *mux.Router {
 	errorsHandler := handlers.NewErrorsHandler()
 
 	var authMiddleware auth.JWTMiddleware
-	authMiddleware = &auth.AuthMiddlewareMock{}
+	authMiddleware = &auth.MiddlewareMock{}
 	if env().Config.Server.EnableJWT {
 		var err error
 		authMiddleware, err = auth.NewAuthMiddleware()

@@ -10,7 +10,7 @@ import (
 )
 
 func (f *Factories) NewDinosaur(species string) (*api.Dinosaur, error) {
-	dinoService := dinosaurs.DinosaurService(&environments.Environment().Services)
+	dinoService := dinosaurs.Service(&environments.Environment().Services)
 
 	dinosaur := &api.Dinosaur{
 		Species: species,

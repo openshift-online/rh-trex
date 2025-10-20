@@ -57,7 +57,7 @@ func TestControllerRacing(t *testing.T) {
 			s := &server.ControllersServer{
 				KindControllerManager: controllers.NewKindControllerManager(
 					db.NewAdvisoryLockFactory(h.Env().Database.SessionFactory),
-					events.EventService(&h.Env().Services),
+					events.Service(&h.Env().Services),
 				),
 			}
 

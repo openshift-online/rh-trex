@@ -1,3 +1,3 @@
 package logging
 
-const LoggingThreshold int32 = 1
+const Threshold int32 = 1

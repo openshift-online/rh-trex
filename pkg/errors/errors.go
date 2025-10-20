@@ -13,12 +13,12 @@ import (
 const (
 	// Prefix used for error code strings
 	// Example:
-	//   ERROR_CODE_PREFIX = "rh-text"
+	//   ErrorCodePrefix = "rh-text"
 	//   results in: rh-trex-1
-	ERROR_CODE_PREFIX = "rh-trex"
+	ErrorCodePrefix = "rh-trex"
 
 	// HREF for API errors
-	ERROR_HREF = "/api/rh-trex/v1/errors/"
+	ErrorHref = "/api/rh-trex/v1/errors/"
 
 	// InvalidToken occurs when a token is invalid (generally, not found in the database)
 	ErrorInvalidToken ServiceErrorCode = 1
@@ -100,7 +100,7 @@ type ServiceError struct {
 	HttpCode int
 }
 
-// Reason can be a string with format verbs, which will be replace by the specified values
+// New Reason can be a string with format verbs, which will be replace by the specified values
 func New(code ServiceErrorCode, reason string, values ...interface{}) *ServiceError {
 	// If the code isn't defined, use the general error code
 	var err *ServiceError
@@ -150,11 +150,11 @@ func (e *ServiceError) AsOpenapiError(operationID string) openapi.Error {
 }
 
 func CodeStr(code ServiceErrorCode) *string {
-	return openapi.PtrString(fmt.Sprintf("%s-%d", ERROR_CODE_PREFIX, code))
+	return openapi.PtrString(fmt.Sprintf("%s-%d", ErrorCodePrefix, code))
 }
 
 func Href(code ServiceErrorCode) *string {
-	return openapi.PtrString(fmt.Sprintf("%s%d", ERROR_HREF, code))
+	return openapi.PtrString(fmt.Sprintf("%s%d", ErrorHref, code))
 }
 
 func NotFound(reason string, values ...interface{}) *ServiceError {

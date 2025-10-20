@@ -79,7 +79,7 @@ func (s *sqlGenericService) newListContext(ctx context.Context, username string,
 	}, reflect.New(resourceModel).Interface(), nil
 }
 
-// resourceList must be a pointer to a slice of database resource objects
+// List resourceList must be a pointer to a slice of database resource objects
 func (s *sqlGenericService) List(ctx context.Context, username string, args *ListArguments, resourceList interface{}) (*api.PagingMeta, *errors.ServiceError) {
 	listCtx, model, err := s.newListContext(ctx, username, args, resourceList)
 	if err != nil {
@@ -231,7 +231,7 @@ func (s *sqlGenericService) loadList(listCtx *listContext, d *dao.GenericDao) *e
 	}
 
 	switch {
-	case args.Size > MAX_LIST_SIZE:
+	case args.Size > MaxListSize:
 		ulog.Warning("A query with a size greater than the maximum was requested.")
 	case args.Size < 0:
 		ulog.Warning("A query with an unbound size was requested.")

@@ -51,7 +51,7 @@ func (tx *Transaction) Commit() error {
 	return err
 }
 
-// rollback ends the transaction by rolling back
+// Rollback ends the transaction by rolling back
 func (tx *Transaction) Rollback() error {
 	// tx must exist
 	if tx.tx == nil {

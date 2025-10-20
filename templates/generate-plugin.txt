@@ -19,26 +19,26 @@ import (
 	"{{.Repo}}/{{.Project}}/plugins/generic"
 )
 
-// Service Locator
-type {{.Kind}}ServiceLocator func() services.{{.Kind}}Service
+// ServiceLocator Service Locator
+type ServiceLocator func() services.{{.Kind}}Service
 
-func New{{.Kind}}ServiceLocator(env *environments.Env) {{.Kind}}ServiceLocator {
+func NewServiceLocator(env *environments.Env) ServiceLocator {
 	return func() services.{{.Kind}}Service {
 		return services.New{{.Kind}}Service(
 			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
 			dao.New{{.Kind}}Dao(&env.Database.SessionFactory),
-			events.EventService(&env.Services),
+			events.Service(&env.Services),
 		)
 	}
 }
 
-// {{.Kind}}Service helper function to get the {{.KindLowerSingular}} service from the registry
-func {{.Kind}}Service(s *environments.Services) services.{{.Kind}}Service {
+// Service helper function to get the {{.KindLowerSingular}} service from the registry
+func Service(s *environments.Services) services.{{.Kind}}Service {
 	if s == nil {
 		return nil
 	}
 	if obj := s.GetService("{{.KindPlural}}"); obj != nil {
-		locator := obj.({{.Kind}}ServiceLocator)
+		locator := obj.(ServiceLocator)
 		return locator()
 	}
 	return nil
@@ -47,13 +47,13 @@ func {{.Kind}}Service(s *environments.Services) services.{{.Kind}}Service {
 func init() {
 	// Service registration
 	registry.RegisterService("{{.KindPlural}}", func(env interface{}) interface{} {
-		return New{{.Kind}}ServiceLocator(env.(*environments.Env))
+		return NewServiceLocator(env.(*environments.Env))
 	})
 
 	// Routes registration
 	server.RegisterRoutes("{{.KindLowerPlural}}", func(apiV1Router *mux.Router, services server.ServicesInterface, authMiddleware auth.JWTMiddleware, authzMiddleware auth.AuthorizationMiddleware) {
 		envServices := services.(*environments.Services)
-		{{.KindLowerSingular}}Handler := handlers.New{{.Kind}}Handler({{.Kind}}Service(envServices), generic.GenericService(envServices))
+		{{.KindLowerSingular}}Handler := handlers.New{{.Kind}}Handler(Service(envServices), generic.Service(envServices))
 
 		{{.KindLowerPlural}}Router := apiV1Router.PathPrefix("/{{.KindSnakeCasePlural}}").Subrouter()
 		{{.KindLowerPlural}}Router.HandleFunc("", {{.KindLowerSingular}}Handler.List).Methods(http.MethodGet)
@@ -67,7 +67,7 @@ func init() {
 
 	// Controller registration
 	server.RegisterController("{{.KindPlural}}", func(manager *controllers.KindControllerManager, services *environments.Services) {
-		{{.KindLowerSingular}}Services := {{.Kind}}Service(services)
+		{{.KindLowerSingular}}Services := Service(services)
 
 		manager.Add(&controllers.ControllerConfig{
 			Source: "{{.KindPlural}}",
