@@ -45,6 +45,7 @@ type Metadata struct {
 	HREF     string            `json:"href"`
 	Kind     string            `json:"kind"`
 	Versions []VersionMetadata `json:"versions"`
+	Version  string            `json:"version"`
 }
 
 // Meta is base model definition, embedded in all kinds
