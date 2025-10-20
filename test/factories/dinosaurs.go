@@ -25,7 +25,7 @@ func (f *Factories) NewDinosaur(species string) (*api.Dinosaur, error) {
 }
 
 func (f *Factories) NewDinosaurList(namePrefix string, count int) ([]*api.Dinosaur, error) {
-	dinosaurs := []*api.Dinosaur{}
+	var dinosaurs []*api.Dinosaur
 	for i := 1; i <= count; i++ {
 		name := fmt.Sprintf("%s_%d", namePrefix, i)
 		c, _ := f.NewDinosaur(name)

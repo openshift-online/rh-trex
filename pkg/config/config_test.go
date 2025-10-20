@@ -47,7 +47,7 @@ func TestConfigReadBoolFile(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	var boolConfig bool = false
+	var boolConfig = false
 	err = readFileValueBool(boolFile.Name(), &boolConfig)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(boolConfig).To(Equal(true))
