@@ -32,7 +32,7 @@ func (writer *loggingWriter) log(logMsg string, err error) {
 	log := logger.NewOCMLogger(writer.request.Context())
 	switch err {
 	case nil:
-		log.V(LoggingThreshold).Infof(logMsg)
+		log.V(Threshold).Infof(logMsg)
 	default:
 		log.Extra("error", err.Error()).Error("Unable to format request/response for log.")
 	}

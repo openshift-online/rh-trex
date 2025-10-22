@@ -64,19 +64,19 @@ var advisoryLockDurationMetric = prometheus.NewHistogramVec(
 	MetricsLabels,
 )
 
-// Register the metrics:
+// RegisterAdvisoryLockMetrics Register the metrics:
 func RegisterAdvisoryLockMetrics() {
 	prometheus.MustRegister(advisoryLockCountMetric)
 	prometheus.MustRegister(advisoryLockDurationMetric)
 }
 
-// Unregister the metrics:
+// UnregisterAdvisoryLockMetrics Unregister the metrics:
 func UnregisterAdvisoryLockMetrics() {
 	prometheus.Unregister(advisoryLockCountMetric)
 	prometheus.Unregister(advisoryLockDurationMetric)
 }
 
-// ResetMetricCollectors resets all collectors
+// ResetAdvisoryLockMetricsCollectors resets all collectors
 func ResetAdvisoryLockMetricsCollectors() {
 	advisoryLockCountMetric.Reset()
 	advisoryLockDurationMetric.Reset()

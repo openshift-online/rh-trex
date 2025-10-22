@@ -142,7 +142,7 @@ func (helper *Helper) startAPIServer() {
 
 func (helper *Helper) stopAPIServer() error {
 	if err := helper.APIServer.Stop(); err != nil {
-		return fmt.Errorf("Unable to stop api server: %s", err.Error())
+		return fmt.Errorf("unable to stop api server: %s", err.Error())
 	}
 	return nil
 }
@@ -403,7 +403,7 @@ func (helper *Helper) CreateJWTToken(account *amv1.Account) *jwt.Token {
 	return token
 }
 
-// Convert an error response from the openapi client to an openapi error struct
+// OpenapiError Convert an error response from the openapi client to an openapi error struct
 func (helper *Helper) OpenapiError(err error) openapi.Error {
 	generic := err.(openapi.GenericOpenAPIError)
 	var exErr openapi.Error
@@ -419,25 +419,25 @@ func parseJWTKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	//privateBytes, err := os.ReadFile(filepath.Join(projectRootDir, jwtKeyFile))
 	privateBytes, err := privatebytes()
 	if err != nil {
-		err = fmt.Errorf("Unable to read JWT key file %s: %s", jwtKeyFile, err)
+		err = fmt.Errorf("unable to read JWT key file %s: %s", jwtKeyFile, err)
 		return nil, nil, err
 	}
 	//pubBytes, err := ioutil.ReadFile(filepath.Join(projectRootDir, jwtCAFile))
 	pubBytes, err := publicbytes()
 	if err != nil {
-		err = fmt.Errorf("Unable to read JWT ca file %s: %s", jwtKeyFile, err)
+		err = fmt.Errorf("unable to read JWT ca file %s: %s", jwtKeyFile, err)
 		return nil, nil, err
 	}
 
 	// Parse keys
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEMWithPassword(privateBytes, "passwd")
 	if err != nil {
-		err = fmt.Errorf("Unable to parse JWT private key: %s", err)
+		err = fmt.Errorf("unable to parse JWT private key: %s", err)
 		return nil, nil, err
 	}
 	pubKey, err := jwt.ParseRSAPublicKeyFromPEM(pubBytes)
 	if err != nil {
-		err = fmt.Errorf("Unable to parse JWT ca: %s", err)
+		err = fmt.Errorf("unable to parse JWT ca: %s", err)
 		return nil, nil, err
 	}
 

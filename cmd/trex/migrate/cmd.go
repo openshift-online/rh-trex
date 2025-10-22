@@ -14,7 +14,7 @@ import (
 
 var dbConfig = config.NewDatabaseConfig()
 
-// migrate sub-command handles running migrations
+// NewMigrateCommand migrate sub-command handles running migrations
 func NewMigrateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "migrate",

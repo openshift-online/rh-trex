@@ -24,7 +24,7 @@ const (
 
 // AuthPayload defines the structure of the JWT payload we expect from
 // RHD JWT tokens
-type AuthPayload struct {
+type Payload struct {
 	Username  string `json:"username"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -45,22 +45,22 @@ func GetUsernameFromContext(ctx context.Context) string {
 	return username.(string)
 }
 
-// Get authorization payload api object from context
-func GetAuthPayloadFromContext(ctx context.Context) (*AuthPayload, error) {
+// GetAuthPayloadFromContext Get authorization payload api object from context
+func GetAuthPayloadFromContext(ctx context.Context) (*Payload, error) {
 	// Get user token from request context and validate
 	userToken, err := authentication.TokenFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve JWT token from request context: %v", err)
+		return nil, fmt.Errorf("unable to retrieve JWT token from request context: %v", err)
 	}
 
 	if userToken == nil {
-		return nil, fmt.Errorf("JWT token in context is nil. Unauthorized.")
+		return nil, fmt.Errorf("JWT token in context is nil, unauthorized")
 	}
 
 	// Username is stored in token claim with key 'sub'
 	claims, ok := userToken.Claims.(jwt.MapClaims)
 	if !ok {
-		err := fmt.Errorf("Unable to parse JWT token claims.  %#v", userToken.Claims)
+		err := fmt.Errorf("unable to parse JWT token claims: %#v", userToken.Claims)
 		return nil, err
 	}
 
@@ -74,7 +74,7 @@ func GetAuthPayloadFromContext(ctx context.Context) (*AuthPayload, error) {
 	//	return nil, err
 	//}
 
-	payload := &AuthPayload{}
+	payload := &Payload{}
 	// default to the values we expect from RHSSO
 	payload.Username, _ = claims["username"].(string)
 	payload.FirstName, _ = claims["first_name"].(string)
@@ -110,6 +110,6 @@ func GetAuthPayloadFromContext(ctx context.Context) (*AuthPayload, error) {
 	return payload, nil
 }
 
-func GetAuthPayload(r *http.Request) (*AuthPayload, error) {
+func GetAuthPayload(r *http.Request) (*Payload, error) {
 	return GetAuthPayloadFromContext(r.Context())
 }

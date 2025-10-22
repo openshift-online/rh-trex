@@ -7,14 +7,14 @@ import (
 	azv1 "github.com/openshift-online/ocm-sdk-go/authorizations/v1"
 )
 
-type OCMAuthorization interface {
+type Authorization interface {
 	SelfAccessReview(ctx context.Context, action, resourceType, organizationID, subscriptionID, clusterID string) (allowed bool, err error)
 	AccessReview(ctx context.Context, username, action, resourceType, organizationID, subscriptionID, clusterID string) (allowed bool, err error)
 }
 
 type authorization service
 
-var _ OCMAuthorization = &authorization{}
+var _ Authorization = &authorization{}
 
 func (a authorization) SelfAccessReview(ctx context.Context, action, resourceType, organizationID, subscriptionID, clusterID string) (allowed bool, err error) {
 	con := a.client.connection
@@ -39,7 +39,7 @@ func (a authorization) SelfAccessReview(ctx context.Context, action, resourceTyp
 	}
 	response, ok := postResp.GetResponse()
 	if !ok {
-		return false, fmt.Errorf("Empty response from authorization post request")
+		return false, fmt.Errorf("empty response from authorization post request")
 	}
 
 	return response.Allowed(), nil
@@ -70,7 +70,7 @@ func (a authorization) AccessReview(ctx context.Context, username, action, resou
 
 	response, ok := postResp.GetResponse()
 	if !ok {
-		return false, fmt.Errorf("Empty response from authorization post request")
+		return false, fmt.Errorf("empty response from authorization post request")
 	}
 
 	return response.Allowed(), nil

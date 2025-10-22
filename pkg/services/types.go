@@ -19,9 +19,9 @@ type ListArguments struct {
 
 // ~65500 is the maximum number of parameters that can be provided to a postgres WHERE IN clause
 // Use it as a sane max
-const MAX_LIST_SIZE = 65500
+const MaxListSize = 65500
 
-// Create ListArguments from url query parameters with sane defaults
+// NewListArguments Create ListArguments from url query parameters with sane defaults
 func NewListArguments(params url.Values) *ListArguments {
 	listArgs := &ListArguments{
 		Page:   1,
@@ -34,10 +34,10 @@ func NewListArguments(params url.Values) *ListArguments {
 	if v := strings.Trim(params.Get("size"), " "); v != "" {
 		listArgs.Size, _ = strconv.ParseInt(v, 10, 0)
 	}
-	if listArgs.Size > MAX_LIST_SIZE || listArgs.Size < 0 {
-		// MAX_LIST_SIZE is the maximum number of *parameters* that can be provided to a postgres WHERE IN clause
+	if listArgs.Size > MaxListSize || listArgs.Size < 0 {
+		// MaxListSize is the maximum number of *parameters* that can be provided to a postgres WHERE IN clause
 		// Use it as a sane max
-		listArgs.Size = MAX_LIST_SIZE
+		listArgs.Size = MaxListSize
 	}
 	if v := strings.Trim(params.Get("search"), " "); v != "" {
 		listArgs.Search = v

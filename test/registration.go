@@ -8,7 +8,7 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/api/openapi"
 )
 
-// Register a test
+// RegisterIntegration Register a test
 // This should be run before every integration test
 func RegisterIntegration(t *testing.T) (*Helper, *openapi.APIClient) {
 	// Register the test with gomega

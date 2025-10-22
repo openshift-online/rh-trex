@@ -60,7 +60,7 @@ func Environment() *Env {
 	return environment
 }
 
-// Adds environment flags, using the environment's config struct, to the flagset 'flags'
+// AddFlags Adds environment flags, using the environment's config struct, to the flagset 'flags'
 func (e *Env) AddFlags(flags *pflag.FlagSet) error {
 	e.Config.AddFlags(flags)
 	return setConfigDefaults(flags, environments[e.Name].Flags())
@@ -83,9 +83,9 @@ func (e *Env) Initialize() error {
 
 	messages := environment.Config.ReadFiles()
 	if len(messages) != 0 {
-		err := fmt.Errorf("Unable to read configuration files:\n%s", strings.Join(messages, "\n"))
+		err := fmt.Errorf("unable to read configuration files:\n%s", strings.Join(messages, "\n"))
 		sentry.CaptureException(err)
-		glog.Fatalf("Unable to read configuration files:\n%s", strings.Join(messages, "\n"))
+		glog.Fatalf("unable to read configuration files:\n%s", strings.Join(messages, "\n"))
 	}
 
 	// each env will set db explicitly because the DB impl has a `once` init section

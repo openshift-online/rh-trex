@@ -31,7 +31,7 @@ func NewControllersServer() *ControllersServer {
 	s := &ControllersServer{
 		KindControllerManager: controllers.NewKindControllerManager(
 			db.NewAdvisoryLockFactory(env().Database.SessionFactory),
-			events.EventService(&env().Services),
+			events.Service(&env().Services),
 		),
 	}
 

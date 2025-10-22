@@ -7,22 +7,22 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/services"
 )
 
-// Service Locator
-type GenericServiceLocator func() services.GenericService
+// ServiceLocator Service Locator
+type ServiceLocator func() services.GenericService
 
-func NewGenericServiceLocator(env *environments.Env) GenericServiceLocator {
+func NewServiceLocator(env *environments.Env) ServiceLocator {
 	return func() services.GenericService {
 		return services.NewGenericService(dao.NewGenericDao(&env.Database.SessionFactory))
 	}
 }
 
-// GenericService helper function to get the generic service from the registry
-func GenericService(s *environments.Services) services.GenericService {
+// Service helper function to get the generic service from the registry
+func Service(s *environments.Services) services.GenericService {
 	if s == nil {
 		return nil
 	}
 	if obj := s.GetService("Generic"); obj != nil {
-		locator := obj.(GenericServiceLocator)
+		locator := obj.(ServiceLocator)
 		return locator()
 	}
 	return nil
@@ -31,6 +31,6 @@ func GenericService(s *environments.Services) services.GenericService {
 func init() {
 	// Service registration
 	registry.RegisterService("Generic", func(env interface{}) interface{} {
-		return NewGenericServiceLocator(env.(*environments.Env))
+		return NewServiceLocator(env.(*environments.Env))
 	})
 }

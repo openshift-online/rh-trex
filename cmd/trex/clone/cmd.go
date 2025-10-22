@@ -31,7 +31,7 @@ var provisionCfg = &provisionCfgFlags{
 	Destination: "/tmp/clone-test",
 }
 
-// migrate sub-command handles running migrations
+// NewCloneCommand sub-command handles cloning a new TRex instance
 func NewCloneCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "clone",

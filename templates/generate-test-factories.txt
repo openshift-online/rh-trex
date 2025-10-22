@@ -56,7 +56,7 @@ func timePtr(t time.Time) *time.Time   { return &t }
 {{- end}}
 
 func (f *Factories) New{{.Kind}}(id string) (*api.{{.Kind}}, error) {
-	{{.KindLowerSingular}}Service := {{.KindLowerPlural}}.{{.Kind}}Service(&environments.Environment().Services)
+	{{.KindLowerSingular}}Service := {{.KindLowerPlural}}.Service(&environments.Environment().Services)
 
 	{{.KindLowerSingular}} := &api.{{.Kind}}{
 		Meta:       api.Meta{ID: id},

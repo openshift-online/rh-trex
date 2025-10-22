@@ -124,7 +124,7 @@ func ReadFile(file string) (string, error) {
 	return string(buf), nil
 }
 
-// Return project root path based on the relative path of this file
+// GetProjectRootDir Return project root path based on the relative path of this file
 func GetProjectRootDir() string {
 	_, b, _, _ := runtime.Caller(0)
 	basepath := filepath.Dir(filepath.Join(b, "..", ".."))

@@ -54,7 +54,7 @@ func SendAPI(w http.ResponseWriter, r *http.Request) {
 	// Send the response:
 	_, err = w.Write(data)
 	if err != nil {
-		err = fmt.Errorf("Can't send response body for request '%s'", r.URL.Path)
+		err = fmt.Errorf("can't send response body for request '%s'", r.URL.Path)
 		glog.Error(err)
 		sentry.CaptureException(err)
 		return
@@ -90,7 +90,7 @@ func SendAPIV1(w http.ResponseWriter, r *http.Request) {
 	// Send the response:
 	_, err = w.Write(data)
 	if err != nil {
-		glog.Errorf("Can't send response body for request '%s'", r.URL.Path)
+		glog.Errorf("can't send response body for request '%s'", r.URL.Path)
 		return
 	}
 }
