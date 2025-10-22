@@ -45,11 +45,12 @@ func (h metadataHandler) Get(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	body := api.Metadata{
-		ID:       "trex",
-		Kind:     "API",
-		HREF:     r.URL.Path,
-		Versions: versions,
-		Version:  api.Version,
+		ID:        "trex",
+		Kind:      "API",
+		HREF:      r.URL.Path,
+		Versions:  versions,
+		Version:   api.Version,
+		BuildTime: api.BuildTime,
 	}
 	data, err := json.Marshal(body)
 	if err != nil {
