@@ -26,8 +26,9 @@ import (
 )
 
 func TestMetadataHandler_Get_IncludesVersion(t *testing.T) {
-	// Set a test version
+	// Set a test version and build time
 	api.Version = "test-version-123"
+	api.BuildTime = "2024-01-15 10:30:45 UTC"
 
 	// Create a test request
 	req := httptest.NewRequest("GET", "/api/rh-trex", nil)
@@ -52,6 +53,11 @@ func TestMetadataHandler_Get_IncludesVersion(t *testing.T) {
 	// Verify the version is included
 	if metadata.Version != "test-version-123" {
 		t.Errorf("Expected version 'test-version-123', got '%s'", metadata.Version)
+	}
+
+	// Verify the build time is included
+	if metadata.BuildTime != "2024-01-15 10:30:45 UTC" {
+		t.Errorf("Expected build time '2024-01-15 10:30:45 UTC', got '%s'", metadata.BuildTime)
 	}
 
 	// Verify other fields are still present

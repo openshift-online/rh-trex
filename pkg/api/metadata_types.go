@@ -41,11 +41,12 @@ type VersionMetadata struct {
 
 // Metadata api metadata.
 type Metadata struct {
-	ID       string            `json:"id"`
-	HREF     string            `json:"href"`
-	Kind     string            `json:"kind"`
-	Versions []VersionMetadata `json:"versions"`
-	Version  string            `json:"version"`
+	ID        string            `json:"id"`
+	HREF      string            `json:"href"`
+	Kind      string            `json:"kind"`
+	Versions  []VersionMetadata `json:"versions"`
+	Version   string            `json:"version"`
+	BuildTime string            `json:"build_time"`
 }
 
 // Meta is base model definition, embedded in all kinds
