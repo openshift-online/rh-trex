@@ -24,8 +24,6 @@ func BenchmarkGetDynos(b *testing.B) {
 
 func TestLoadServices(t *testing.T) {
 	env := Environment()
-	// Override environment name
-	env.Name = "testing"
 	err := env.AddFlags(pflag.CommandLine)
 	if err != nil {
 		t.Errorf("Unable to add flags for testing environment: %s", err.Error())

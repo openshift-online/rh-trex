@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
@@ -11,8 +12,11 @@ import (
 	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
-// This flag will only be used in integration test to prove that the advisory lock works
-var DisableAdvisoryLock = false
+// These flag will only be used in integration test to prove that the advisory lock works
+var (
+	DisableAdvisoryLock     = false
+	UseBlockingAdvisoryLock = true
+)
 
 type DinosaurService interface {
 	Get(ctx context.Context, id string) (*api.Dinosaur, *errors.ServiceError)
@@ -95,16 +99,33 @@ func (s *sqlDinosaurService) Replace(ctx context.Context, dinosaur *api.Dinosaur
 		// Updates the dinosaur species only when its species changes.
 		// If there are multiple requests at the same time, it will cause the race conditions among these
 		// requests (read–modify–write), the advisory lock is used here to prevent the race conditions.
-		lockOwnerID, err := s.lockFactory.NewAdvisoryLock(ctx, dinosaur.ID, db.Dinosaurs)
-		if err != nil {
-			return nil, errors.DatabaseAdvisoryLock(err)
+		if UseBlockingAdvisoryLock {
+			lockOwnerID, err := s.lockFactory.NewAdvisoryLock(ctx, dinosaur.ID, db.Dinosaurs)
+			if err != nil {
+				return nil, errors.DatabaseAdvisoryLock(err)
+			}
+			defer s.lockFactory.Unlock(ctx, lockOwnerID)
+
+		} else {
+			lockOwnerID, locked, err := s.lockFactory.NewNonBlockingLock(ctx, dinosaur.ID, db.Dinosaurs)
+			if err != nil {
+				return nil, errors.DatabaseAdvisoryLock(err)
+			}
+			if !locked {
+				return nil, handleCreateError("Dinosaur", errors.New(errors.ErrorConflict, "row locked"))
+			}
+			defer s.lockFactory.Unlock(ctx, lockOwnerID)
 		}
-		defer s.lockFactory.Unlock(ctx, lockOwnerID)
 	}
 
 	found, err := s.dinosaurDao.Get(ctx, dinosaur.ID)
 	if err != nil {
 		return nil, handleGetError("Dinosaur", "id", dinosaur.ID, err)
+	}
+
+	// this is for integration tests that use Advisory Locks
+	if dinosaur.Species == "AdvisoryLockosaurus" {
+		time.Sleep(1 * time.Second)
 	}
 
 	// New species is no change, the update action is not needed.

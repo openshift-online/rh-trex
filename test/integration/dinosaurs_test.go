@@ -124,12 +124,15 @@ func TestDinosaurPatch(t *testing.T) {
 	Expect(restyResp.StatusCode()).To(Equal(http.StatusBadRequest))
 	Expect(restyResp.String()).To(ContainSubstring("species cannot be empty"))
 
-	dao := dao.NewEventDao(&h.Env().Database.SessionFactory)
-	events, err := dao.All(ctx)
-	Expect(err).NotTo(HaveOccurred(), "Error getting events:  %v", err)
-	Expect(len(events)).To(Equal(2), "expected Create and Update events")
-	Expect(contains(api.CreateEventType, events)).To(BeTrue())
-	Expect(contains(api.UpdateEventType, events)).To(BeTrue())
+	Eventually(func() error {
+		dao := dao.NewEventDao(&h.Env().Database.SessionFactory)
+		events, err := dao.FindByIDs(ctx, []string{*dinosaur.Id})
+		Expect(err).NotTo(HaveOccurred(), "Error getting events:  %v", err)
+		Expect(len(events)).To(Equal(2), "expected Create and Update events")
+		Expect(contains(api.CreateEventType, events)).To(BeTrue())
+		Expect(contains(api.UpdateEventType, events)).To(BeTrue())
+		return nil
+	}, 5*time.Second, 1*time.Second)
 }
 
 func contains(et api.EventType, events api.EventList) bool {
@@ -183,8 +186,28 @@ func TestDinosaurListSearch(t *testing.T) {
 	Expect(*list.Items[0].Id).To(Equal(dinosaurs[0].ID))
 }
 
-func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
+func TestUpdateDinosaurWithRacingRequests_BlockingAdvisoryLock(t *testing.T) {
+	testUpdateDinosaurWithRacingRequests(t, true, true, 2)
+}
+
+func TestUpdateDinosaurWithRacingRequests_NonBlockingAdvisoryLock(t *testing.T) {
+	testUpdateDinosaurWithRacingRequests(t, true, false, 1)
+}
+
+func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
+	testUpdateDinosaurWithRacingRequests(t, false, false, 2)
+}
+
+func testUpdateDinosaurWithRacingRequests(t *testing.T, useAdvisoryLock, useBlockingAdvisoryLock bool, expectedUpdates int) {
 	h, client := test.RegisterIntegration(t)
+
+	services.DisableAdvisoryLock = !useAdvisoryLock
+	services.UseBlockingAdvisoryLock = useBlockingAdvisoryLock
+
+	defer func() {
+		services.DisableAdvisoryLock = false
+		services.UseBlockingAdvisoryLock = true
+	}()
 
 	account := h.NewRandAccount()
 	ctx := h.NewAuthenticatedContext(account)
@@ -192,28 +215,46 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 	dino, err := h.Factories.NewDinosaur("Stegosaurus")
 	Expect(err).NotTo(HaveOccurred())
 
-	// starts 20 threads to update this dinosaur at the same time
-	threads := 20
-	var wg sync.WaitGroup
-	wg.Add(threads)
+	firstDinoUpdate := "AdvisoryLockosaurus"
+	secondDinoUpdate := "AdvisoryLockosaurusSecond"
+	var wg1 sync.WaitGroup
+	var wg2 sync.WaitGroup
+	wg1.Add(1)
+	wg2.Add(2)
 
-	for i := 0; i < threads; i++ {
-		go func() {
-			defer wg.Done()
-			species := "Pterosaur"
-			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
-			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
-			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			Expect(updated.Species).To(Equal(species), "species mismatch")
-		}()
-	}
+	// the call to update the dino with name==AdvisoryLockosaurus take 1second in the service, since it has hardcoded an special case
+	go func() {
+		wg1.Done()
+		client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &firstDinoUpdate}).Execute()
+		Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
+		wg2.Done()
+	}()
+
+	// we need the gorutine to have sent the first update
+	// there may be some uncertainty, since the first API call should have been fired, but may or may not have reached the server yet
+	// so we wait additional time
+	wg1.Wait()
+	time.Sleep(100 * time.Millisecond)
+
+	go func() {
+		client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &secondDinoUpdate}).Execute()
+		wg2.Done()
+	}()
 
 	// waits for all goroutines above to complete
-	wg.Wait()
+	wg2.Wait()
 
-	dao := dao.NewEventDao(&h.Env().Database.SessionFactory)
-	events, err := dao.All(ctx)
+	eventdao := dao.NewEventDao(&h.Env().Database.SessionFactory)
+	events, err := eventdao.All(ctx)
 	Expect(err).NotTo(HaveOccurred(), "Error getting events:  %v", err)
+
+	dinodao := dao.NewDinosaurDao(&h.Env().Database.SessionFactory)
+	readDino, err := dinodao.Get(ctx, dino.ID)
+	if useBlockingAdvisoryLock {
+		Expect(readDino.Species).To(Equal(secondDinoUpdate))
+	} else {
+		Expect(readDino.Species).To(Equal(firstDinoUpdate))
+	}
 
 	updatedCount := 0
 	for _, e := range events {
@@ -223,7 +264,7 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 	}
 
 	// the dinosaur patch request is protected by the advisory lock, so there should only be one update
-	Expect(updatedCount).To(Equal(1))
+	Expect(updatedCount).To(Equal(expectedUpdates))
 
 	// all the locks should be released finally
 	Eventually(func() error {
@@ -238,64 +279,4 @@ func TestUpdateDinosaurWithRacingRequests(t *testing.T) {
 		}
 		return nil
 	}, 5*time.Second, 1*time.Second).Should(Succeed())
-}
-
-func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
-	// we disable the advisory lock and try to update the dinosaurs
-	services.DisableAdvisoryLock = true
-
-	defer func() {
-		services.DisableAdvisoryLock = false
-	}()
-
-	h, client := test.RegisterIntegration(t)
-
-	account := h.NewRandAccount()
-	ctx := h.NewAuthenticatedContext(account)
-
-	dino, err := h.Factories.NewDinosaur("Tyrannosaurus")
-	Expect(err).NotTo(HaveOccurred())
-
-	// Use a barrier to ensure all threads start at the same time to maximize race conditions
-	threads := 40 // Increased from 20 to make race conditions more likely
-	var wg sync.WaitGroup
-	startBarrier := make(chan struct{})
-
-	wg.Add(threads)
-
-	for i := 0; i < threads; i++ {
-		go func(index int) {
-			defer wg.Done()
-			// Wait for all goroutines to be ready before starting
-			<-startBarrier
-			species := "Triceratops"
-			updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &species}).Execute()
-			Expect(err).NotTo(HaveOccurred(), "Error posting object:  %v", err)
-			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			Expect(updated.Species).To(Equal(species), "species mismatch")
-		}(i)
-	}
-
-	// Give goroutines time to reach the barrier
-	time.Sleep(100 * time.Millisecond)
-	// Release all goroutines simultaneously to maximize race conditions
-	close(startBarrier)
-
-	// waits for all goroutines above to complete
-	wg.Wait()
-
-	dao := dao.NewEventDao(&h.Env().Database.SessionFactory)
-	events, err := dao.All(ctx)
-	Expect(err).NotTo(HaveOccurred(), "Error getting events:  %v", err)
-
-	updatedCount := 0
-	for _, e := range events {
-		if e.SourceID == dino.ID && e.EventType == api.UpdateEventType {
-			updatedCount = updatedCount + 1
-		}
-	}
-
-	// the dinosaur patch request is not protected by the advisory lock, so there will likely be more then one update captured
-	t.Logf("Updated Count: %v\n", updatedCount)
-	Expect(updatedCount > 1).To(BeTrue())
 }

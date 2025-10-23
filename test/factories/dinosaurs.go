@@ -28,7 +28,10 @@ func (f *Factories) NewDinosaurList(namePrefix string, count int) ([]*api.Dinosa
 	var dinosaurs []*api.Dinosaur
 	for i := 1; i <= count; i++ {
 		name := fmt.Sprintf("%s_%d", namePrefix, i)
-		c, _ := f.NewDinosaur(name)
+		c, error := f.NewDinosaur(name)
+		if error != nil {
+			return nil, error
+		}
 		dinosaurs = append(dinosaurs, c)
 	}
 	return dinosaurs, nil
