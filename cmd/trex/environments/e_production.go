@@ -1,6 +1,7 @@
 package environments
 
 import (
+	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 )
 
@@ -18,7 +19,7 @@ func (e *productionEnvImpl) VisitDatabase(c *Database) error {
 	return nil
 }
 
-func (e *productionEnvImpl) VisitConfig(c *ApplicationConfig) error {
+func (e *productionEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
 	return nil
 }
 

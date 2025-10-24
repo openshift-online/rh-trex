@@ -3,6 +3,7 @@ package environments
 import (
 	"os"
 
+	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 )
 
@@ -18,10 +19,10 @@ func (e *integrationTestingEnvImpl) VisitDatabase(c *Database) error {
 	return nil
 }
 
-func (e *integrationTestingEnvImpl) VisitConfig(c *ApplicationConfig) error {
+func (e *integrationTestingEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
 	// Support a one-off env to allow enabling db debug in testing
 	if os.Getenv("DB_DEBUG") == "true" {
-		c.ApplicationConfig.Database.Debug = true
+		c.Database.Debug = true
 	}
 	return nil
 }
