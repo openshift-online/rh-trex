@@ -21,7 +21,6 @@ func init() {
 
 		// Create the configuration
 		environment.Config = config.NewApplicationConfig()
-		environment.ApplicationConfig = ApplicationConfig{config.NewApplicationConfig()}
 		environment.Name = GetEnvironmentStrFromEnv()
 
 		environments = map[string]EnvironmentImpl{
@@ -41,7 +40,7 @@ func init() {
 // VisitorConfig is applies after instantiation but before ReadFiles is called.
 type EnvironmentImpl interface {
 	Flags() map[string]string
-	VisitConfig(c *ApplicationConfig) error
+	VisitConfig(c *config.ApplicationConfig) error
 	VisitDatabase(s *Database) error
 	VisitServices(s *Services) error
 	VisitHandlers(c *Handlers) error
@@ -77,7 +76,7 @@ func (e *Env) Initialize() error {
 		glog.Fatalf("Unknown runtime environment: %s", e.Name)
 	}
 
-	if err := envImpl.VisitConfig(&e.ApplicationConfig); err != nil {
+	if err := envImpl.VisitConfig(e.Config); err != nil {
 		glog.Fatalf("Failed to visit ApplicationConfig: %s", err)
 	}
 
