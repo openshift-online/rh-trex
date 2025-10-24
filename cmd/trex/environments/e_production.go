@@ -12,26 +12,24 @@ type productionEnvImpl struct {
 	env *Env
 }
 
-var _ EnvironmentImpl = &productionEnvImpl{}
-
-func (e *productionEnvImpl) VisitDatabase(c *Database) error {
+func (e *productionEnvImpl) OverrideDatabase(c *Database) error {
 	c.SessionFactory = db_session.NewProdFactory(e.env.Config.Database)
 	return nil
 }
 
-func (e *productionEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
+func (e *productionEnvImpl) OverrideConfig(c *config.ApplicationConfig) error {
 	return nil
 }
 
-func (e *productionEnvImpl) VisitServices(s *Services) error {
+func (e *productionEnvImpl) OverrideServices(s *Services) error {
 	return nil
 }
 
-func (e *productionEnvImpl) VisitHandlers(h *Handlers) error {
+func (e *productionEnvImpl) OverrideHandlers(h *Handlers) error {
 	return nil
 }
 
-func (e *productionEnvImpl) VisitClients(c *Clients) error {
+func (e *productionEnvImpl) OverrideClients(c *Clients) error {
 	return nil
 }
 

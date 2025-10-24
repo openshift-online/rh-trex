@@ -14,12 +14,12 @@ type unitTestingEnvImpl struct {
 	env *Env
 }
 
-func (e *unitTestingEnvImpl) VisitDatabase(c *Database) error {
+func (e *unitTestingEnvImpl) OverrideDatabase(c *Database) error {
 	c.SessionFactory = dbmocks.NewMockSessionFactory()
 	return nil
 }
 
-func (e *unitTestingEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
+func (e *unitTestingEnvImpl) OverrideConfig(c *config.ApplicationConfig) error {
 	// Support a one-off env to allow enabling db debug in testing
 	if os.Getenv("DB_DEBUG") == "true" {
 		c.Database.Debug = true
@@ -27,15 +27,15 @@ func (e *unitTestingEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
 	return nil
 }
 
-func (e *unitTestingEnvImpl) VisitServices(s *Services) error {
+func (e *unitTestingEnvImpl) OverrideServices(s *Services) error {
 	return nil
 }
 
-func (e *unitTestingEnvImpl) VisitHandlers(h *Handlers) error {
+func (e *unitTestingEnvImpl) OverrideHandlers(h *Handlers) error {
 	return nil
 }
 
-func (e *unitTestingEnvImpl) VisitClients(c *Clients) error {
+func (e *unitTestingEnvImpl) OverrideClients(c *Clients) error {
 	return nil
 }
 
