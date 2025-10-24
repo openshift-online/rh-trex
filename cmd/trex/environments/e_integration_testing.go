@@ -14,12 +14,12 @@ type testingEnvImpl struct {
 	env *Env
 }
 
-func (e *testingEnvImpl) VisitDatabase(c *Database) error {
+func (e *testingEnvImpl) OverrideDatabase(c *Database) error {
 	c.SessionFactory = db_session.NewTestFactory(e.env.Config.Database)
 	return nil
 }
 
-func (e *testingEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
+func (e *testingEnvImpl) OverrideConfig(c *config.ApplicationConfig) error {
 	// Support a one-off env to allow enabling db debug in testing
 	if os.Getenv("DB_DEBUG") == "true" {
 		c.Database.Debug = true
@@ -27,15 +27,15 @@ func (e *testingEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
 	return nil
 }
 
-func (e *testingEnvImpl) VisitServices(s *Services) error {
+func (e *testingEnvImpl) OverrideServices(s *Services) error {
 	return nil
 }
 
-func (e *testingEnvImpl) VisitHandlers(h *Handlers) error {
+func (e *testingEnvImpl) OverrideHandlers(h *Handlers) error {
 	return nil
 }
 
-func (e *testingEnvImpl) VisitClients(c *Clients) error {
+func (e *testingEnvImpl) OverrideClients(c *Clients) error {
 	return nil
 }
 
