@@ -16,7 +16,8 @@ func TestDinosaurFindBySpecies(t *testing.T) {
 
 	dinoDAO := mocks.NewDinosaurDao()
 	events := NewEventService(mocks.NewEventDao())
-	dinoService := NewDinosaurService(dbmocks.NewMockAdvisoryLockFactory(), dinoDAO, events)
+	sessionFactory := dbmocks.NewMockSessionFactory()
+	dinoService := NewDinosaurService(dbmocks.NewMockAdvisoryLockFactory(), dinoDAO, events, sessionFactory)
 
 	const Fukuisaurus = "Fukuisaurus"
 	const Seismosaurus = "Seismosaurus"

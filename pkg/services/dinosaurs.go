@@ -29,20 +29,22 @@ type DinosaurService interface {
 	OnDelete(ctx context.Context, id string) error
 }
 
-func NewDinosaurService(lockFactory db.LockFactory, dinosaurDao dao.DinosaurDao, events EventService) DinosaurService {
+func NewDinosaurService(lockFactory db.LockFactory, dinosaurDao dao.DinosaurDao, events EventService, sessionFactory db.SessionFactory) DinosaurService {
 	return &sqlDinosaurService{
-		lockFactory: lockFactory,
-		dinosaurDao: dinosaurDao,
-		events:      events,
+		lockFactory:    lockFactory,
+		dinosaurDao:    dinosaurDao,
+		events:         events,
+		sessionFactory: sessionFactory,
 	}
 }
 
 var _ DinosaurService = &sqlDinosaurService{}
 
 type sqlDinosaurService struct {
-	lockFactory db.LockFactory
-	dinosaurDao dao.DinosaurDao
-	events      EventService
+	lockFactory    db.LockFactory
+	dinosaurDao    dao.DinosaurDao
+	events         EventService
+	sessionFactory db.SessionFactory
 }
 
 func (s *sqlDinosaurService) OnUpsert(ctx context.Context, id string) error {
@@ -73,24 +75,79 @@ func (s *sqlDinosaurService) Get(ctx context.Context, id string) (*api.Dinosaur,
 }
 
 func (s *sqlDinosaurService) Create(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, *errors.ServiceError) {
-	dinosaur, err := s.dinosaurDao.Create(ctx, dinosaur)
+	var createdDinosaur *api.Dinosaur
+	var serviceErr *errors.ServiceError
+
+	// Execute within a transaction
+	txErr := db.WithTransaction(ctx, s.sessionFactory, func(txCtx context.Context) error {
+		var err error
+		createdDinosaur, serviceErr = s.create(txCtx, dinosaur)
+		if serviceErr != nil {
+			return serviceErr
+		}
+		return err
+	})
+
+	if txErr != nil {
+		if serviceErr != nil {
+			return nil, serviceErr
+		}
+		return nil, handleCreateError("Dinosaur", txErr)
+	}
+
+	return createdDinosaur, nil
+}
+
+// create contains the business logic for creating a dinosaur and its associated event.
+// This internal function is called within a transaction context.
+func (s *sqlDinosaurService) create(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, *errors.ServiceError) {
+	createdDinosaur, err := s.dinosaurDao.Create(ctx, dinosaur)
 	if err != nil {
 		return nil, handleCreateError("Dinosaur", err)
 	}
 
-	_, eErr := s.events.Create(ctx, &api.Event{
-		Source:    "Dinosaurs",
-		SourceID:  dinosaur.ID,
-		EventType: api.CreateEventType,
-	})
-	if eErr != nil {
-		return nil, handleCreateError("Dinosaur", err)
+	if createdDinosaur != nil {
 	}
 
-	return dinosaur, nil
+	_, eventErr := s.events.Create(ctx, &api.Event{
+		Source:    "Dinosaurs",
+		SourceID:  createdDinosaur.ID,
+		EventType: api.CreateEventType,
+	})
+	if eventErr != nil {
+		return nil, eventErr
+	}
+
+	return createdDinosaur, nil
 }
 
 func (s *sqlDinosaurService) Replace(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, *errors.ServiceError) {
+	var updatedDinosaur *api.Dinosaur
+	var serviceErr *errors.ServiceError
+
+	// Execute within a transaction
+	txErr := db.WithTransaction(ctx, s.sessionFactory, func(txCtx context.Context) error {
+		var err error
+		updatedDinosaur, serviceErr = s.replace(txCtx, dinosaur)
+		if serviceErr != nil {
+			return serviceErr
+		}
+		return err
+	})
+
+	if txErr != nil {
+		if serviceErr != nil {
+			return nil, serviceErr
+		}
+		return nil, handleUpdateError("Dinosaur", txErr)
+	}
+
+	return updatedDinosaur, nil
+}
+
+// replace contains the business logic for updating a dinosaur and its associated event.
+// This internal function is called within a transaction context.
+func (s *sqlDinosaurService) replace(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, *errors.ServiceError) {
 	if !DisableAdvisoryLock {
 		// Updates the dinosaur species only when its species changes.
 		// If there are multiple requests at the same time, it will cause the race conditions among these
@@ -113,34 +170,60 @@ func (s *sqlDinosaurService) Replace(ctx context.Context, dinosaur *api.Dinosaur
 	}
 
 	found.Species = dinosaur.Species
-	updated, err := s.dinosaurDao.Replace(ctx, found)
+	updatedDinosaur, err := s.dinosaurDao.Replace(ctx, found)
 	if err != nil {
 		return nil, handleUpdateError("Dinosaur", err)
 	}
 
-	_, eErr := s.events.Create(ctx, &api.Event{
+	_, eventErr := s.events.Create(ctx, &api.Event{
 		Source:    "Dinosaurs",
-		SourceID:  updated.ID,
+		SourceID:  updatedDinosaur.ID,
 		EventType: api.UpdateEventType,
 	})
-	if eErr != nil {
-		return nil, handleUpdateError("Dinosaur", err)
+	if eventErr != nil {
+		return nil, eventErr
 	}
-	return updated, nil
+
+	return updatedDinosaur, nil
 }
 
 func (s *sqlDinosaurService) Delete(ctx context.Context, id string) *errors.ServiceError {
-	if err := s.dinosaurDao.Delete(ctx, id); err != nil {
+	var serviceErr *errors.ServiceError
+
+	// Execute within a transaction
+	txErr := db.WithTransaction(ctx, s.sessionFactory, func(txCtx context.Context) error {
+		serviceErr = s.delete(txCtx, id)
+		if serviceErr != nil {
+			return serviceErr
+		}
+		return nil
+	})
+
+	if txErr != nil {
+		if serviceErr != nil {
+			return serviceErr
+		}
+		return handleDeleteError("Dinosaur", errors.GeneralError("Unable to delete dinosaur: %s", txErr))
+	}
+
+	return nil
+}
+
+// delete contains the business logic for deleting a dinosaur and its associated event.
+// This internal function is called within a transaction context.
+func (s *sqlDinosaurService) delete(ctx context.Context, id string) *errors.ServiceError {
+	err := s.dinosaurDao.Delete(ctx, id)
+	if err != nil {
 		return handleDeleteError("Dinosaur", errors.GeneralError("Unable to delete dinosaur: %s", err))
 	}
 
-	_, err := s.events.Create(ctx, &api.Event{
+	_, eventErr := s.events.Create(ctx, &api.Event{
 		Source:    "Dinosaurs",
 		SourceID:  id,
 		EventType: api.DeleteEventType,
 	})
-	if err != nil {
-		return handleDeleteError("Dinosaur", err)
+	if eventErr != nil {
+		return eventErr
 	}
 
 	return nil

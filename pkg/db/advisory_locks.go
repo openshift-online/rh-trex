@@ -174,6 +174,7 @@ type AdvisoryLock struct {
 	id        *string
 	lockType  *LockType
 	startTime time.Time
+	isNested  bool // true if using a parent transaction, false if we started our own
 }
 
 // newAdvisoryLock constructs a new AdvisoryLock object.
@@ -181,10 +182,21 @@ func newAdvisoryLock(ctx context.Context, connection SessionFactory) (*AdvisoryL
 	// it requires a new DB session to start the advisory lock.
 	g2 := connection.New(ctx)
 
-	// start a Tx to ensure gorm will obtain/release the lock using a same connection.
-	tx := g2.Begin()
-	if tx.Error != nil {
-		return nil, tx.Error
+	// Check if we're already in a transaction (from service layer)
+	// If so, use the existing transaction; otherwise start a new one
+	var tx *gorm.DB
+	var isNested bool
+	if _, ok := ctx.Value("gormTx").(*gorm.DB); ok {
+		// Already in a transaction, use it
+		tx = g2
+		isNested = true
+	} else {
+		// start a Tx to ensure gorm will obtain/release the lock using a same connection.
+		tx = g2.Begin()
+		if tx.Error != nil {
+			return nil, tx.Error
+		}
+		isNested = false
 	}
 
 	// current transaction ID set by postgres.  these are *not* distinct across time
@@ -196,6 +208,7 @@ func newAdvisoryLock(ctx context.Context, connection SessionFactory) (*AdvisoryL
 		txid:      txid.ID,
 		g2:        tx,
 		startTime: time.Now(),
+		isNested:  isNested, // Track if this is using a parent transaction
 	}, nil
 }
 
@@ -253,8 +266,15 @@ func (l *AdvisoryLock) unlock() error {
 		return errors.New("AdvisoryLock: transaction is missing")
 	}
 
-	// it ends the Tx and implicitly releases the lock.
-	err := l.g2.Commit().Error
+	// If we're nested in a parent transaction, don't commit - the parent will handle it
+	// If we started our own transaction, commit it to release the lock
+	var err error
+	if !l.isNested {
+		// it ends the Tx and implicitly releases the lock.
+		err = l.g2.Commit().Error
+	}
+	// else: using parent transaction, lock will be released when parent commits
+
 	l.g2 = nil
 	l.uuid = nil
 	l.id = nil

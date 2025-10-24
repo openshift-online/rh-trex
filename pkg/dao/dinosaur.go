@@ -41,7 +41,6 @@ func (d *sqlDinosaurDao) Get(ctx context.Context, id string) (*api.Dinosaur, err
 func (d *sqlDinosaurDao) Create(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, error) {
 	g2 := (*d.sessionFactory).New(ctx)
 	if err := g2.Omit(clause.Associations).Create(dinosaur).Error; err != nil {
-		db.MarkForRollback(ctx, err)
 		return nil, err
 	}
 	return dinosaur, nil
@@ -50,7 +49,6 @@ func (d *sqlDinosaurDao) Create(ctx context.Context, dinosaur *api.Dinosaur) (*a
 func (d *sqlDinosaurDao) Replace(ctx context.Context, dinosaur *api.Dinosaur) (*api.Dinosaur, error) {
 	g2 := (*d.sessionFactory).New(ctx)
 	if err := g2.Omit(clause.Associations).Save(dinosaur).Error; err != nil {
-		db.MarkForRollback(ctx, err)
 		return nil, err
 	}
 	return dinosaur, nil
@@ -59,7 +57,6 @@ func (d *sqlDinosaurDao) Replace(ctx context.Context, dinosaur *api.Dinosaur) (*
 func (d *sqlDinosaurDao) Delete(ctx context.Context, id string) error {
 	g2 := (*d.sessionFactory).New(ctx)
 	if err := g2.Omit(clause.Associations).Delete(&api.Dinosaur{Meta: api.Meta{ID: id}}).Error; err != nil {
-		db.MarkForRollback(ctx, err)
 		return err
 	}
 	return nil
