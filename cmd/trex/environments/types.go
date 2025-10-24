@@ -24,8 +24,6 @@ type Env struct {
 	Handlers Handlers
 	Clients  Clients
 	Database Database
-	// packaging requires this construct for visiting
-	ApplicationConfig ApplicationConfig
 	// most code relies on env.Config
 	Config *config.ApplicationConfig
 }
@@ -77,9 +75,11 @@ type ConfigDefaults struct {
 	Options  map[string]interface{}
 }
 
-var environment *Env
-var once sync.Once
-var environments map[string]EnvironmentImpl
+var (
+	environment  *Env
+	once         sync.Once
+	environments map[string]EnvironmentImpl
+)
 
 // ApplicationConfig visitor
 var _ ConfigVisitable = &ApplicationConfig{}
