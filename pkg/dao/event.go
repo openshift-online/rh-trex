@@ -41,7 +41,6 @@ func (d *sqlEventDao) Get(ctx context.Context, id string) (*api.Event, error) {
 func (d *sqlEventDao) Create(ctx context.Context, event *api.Event) (*api.Event, error) {
 	g2 := (*d.sessionFactory).New(ctx)
 	if err := g2.Omit(clause.Associations).Create(event).Error; err != nil {
-		db.MarkForRollback(ctx, err)
 		return nil, err
 	}
 
@@ -58,7 +57,6 @@ func (d *sqlEventDao) Create(ctx context.Context, event *api.Event) (*api.Event,
 func (d *sqlEventDao) Replace(ctx context.Context, event *api.Event) (*api.Event, error) {
 	g2 := (*d.sessionFactory).New(ctx)
 	if err := g2.Omit(clause.Associations).Save(event).Error; err != nil {
-		db.MarkForRollback(ctx, err)
 		return nil, err
 	}
 	return event, nil
@@ -67,7 +65,6 @@ func (d *sqlEventDao) Replace(ctx context.Context, event *api.Event) (*api.Event
 func (d *sqlEventDao) Delete(ctx context.Context, id string) error {
 	g2 := (*d.sessionFactory).New(ctx)
 	if err := g2.Unscoped().Omit(clause.Associations).Delete(&api.Event{Meta: api.Meta{ID: id}}).Error; err != nil {
-		db.MarkForRollback(ctx, err)
 		return err
 	}
 	return nil

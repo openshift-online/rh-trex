@@ -9,7 +9,6 @@ import (
 	"github.com/openshift-online/rh-trex/cmd/trex/server/logging"
 	"github.com/openshift-online/rh-trex/pkg/api"
 	"github.com/openshift-online/rh-trex/pkg/auth"
-	"github.com/openshift-online/rh-trex/pkg/db"
 	"github.com/openshift-online/rh-trex/pkg/handlers"
 	"github.com/openshift-online/rh-trex/pkg/logger"
 )
@@ -96,12 +95,5 @@ func (s *apiServer) routes() *mux.Router {
 
 func registerApiMiddleware(router *mux.Router) {
 	router.Use(MetricsMiddleware)
-
-	router.Use(
-		func(next http.Handler) http.Handler {
-			return db.TransactionMiddleware(next, env().Database.SessionFactory)
-		},
-	)
-
 	router.Use(gorillahandlers.CompressHandler)
 }

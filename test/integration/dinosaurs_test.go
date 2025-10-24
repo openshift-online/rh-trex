@@ -299,3 +299,88 @@ func TestUpdateDinosaurWithRacingRequests_WithoutLock(t *testing.T) {
 	t.Logf("Updated Count: %v\n", updatedCount)
 	Expect(updatedCount > 1).To(BeTrue())
 }
+
+func TestServiceLayerTransactionCommitAndRollback(t *testing.T) {
+	h, client := test.RegisterIntegration(t)
+
+	account := h.NewRandAccount()
+	ctx := h.NewAuthenticatedContext(account)
+
+	// Test 1: Successful POST should commit the transaction at service layer
+	t.Run("POST commits transaction on success", func(t *testing.T) {
+		initialCount := h.Count("dinosaurs")
+
+		dino := openapi.Dinosaur{
+			Species: "Velociraptor",
+		}
+
+		dinosaur, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursPost(ctx).Dinosaur(dino).Execute()
+		Expect(err).NotTo(HaveOccurred(), "Error posting object: %v", err)
+		Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+		Expect(dinosaur.Species).To(Equal("Velociraptor"))
+
+		// Verify the transaction was committed - the record should exist
+		finalCount := h.Count("dinosaurs")
+		Expect(finalCount).To(Equal(initialCount + 1), "Transaction should have committed the new dinosaur")
+
+		// Verify we can retrieve it
+		retrieved, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdGet(ctx, *dinosaur.Id).Execute()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		Expect(retrieved.Species).To(Equal("Velociraptor"))
+
+		// Verify event was created in same transaction
+		eventDao := dao.NewEventDao(&h.Env().Database.SessionFactory)
+		events, err := eventDao.All(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		foundEvent := false
+		for _, e := range events {
+			if e.SourceID == *dinosaur.Id && e.EventType == api.CreateEventType {
+				foundEvent = true
+				break
+			}
+		}
+		Expect(foundEvent).To(BeTrue(), "Event should have been created in same transaction")
+	})
+
+	// Test 2: Failed POST should rollback the transaction
+	t.Run("POST rolls back transaction on validation error", func(t *testing.T) {
+		initialCount := h.Count("dinosaurs")
+
+		// Invalid request - empty species should fail validation
+		jwtToken := ctx.Value(openapi.ContextAccessToken)
+		restyResp, err := resty.R().
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Authorization", fmt.Sprintf("Bearer %s", jwtToken)).
+			SetBody(`{"species": ""}`).
+			Post(h.RestURL("/dinosaurs"))
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(restyResp.StatusCode()).To(Equal(http.StatusBadRequest))
+
+		// Verify the transaction was rolled back - no new record should exist
+		finalCount := h.Count("dinosaurs")
+		Expect(finalCount).To(Equal(initialCount), "Transaction should have rolled back on validation error")
+	})
+
+	// Test 3: Successful PATCH should commit the transaction
+	t.Run("PATCH commits transaction on success", func(t *testing.T) {
+		dino, err := h.Factories.NewDinosaur("Triceratops")
+		Expect(err).NotTo(HaveOccurred())
+
+		newSpecies := "Ankylosaurus"
+		updated, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdPatch(ctx, dino.ID).
+			DinosaurPatchRequest(openapi.DinosaurPatchRequest{Species: &newSpecies}).
+			Execute()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		Expect(updated.Species).To(Equal(newSpecies))
+
+		// Verify the transaction was committed - the update should persist
+		retrieved, resp, err := client.DefaultAPI.ApiRhTrexV1DinosaursIdGet(ctx, dino.ID).Execute()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		Expect(retrieved.Species).To(Equal(newSpecies), "Transaction should have committed the update")
+	})
+
+}

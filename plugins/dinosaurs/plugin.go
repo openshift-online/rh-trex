@@ -28,6 +28,7 @@ func NewServiceLocator(env *environments.Env) ServiceLocator {
 			db.NewAdvisoryLockFactory(env.Database.SessionFactory),
 			dao.NewDinosaurDao(&env.Database.SessionFactory),
 			events.Service(&env.Services),
+			env.Database.SessionFactory,
 		)
 	}
 }
