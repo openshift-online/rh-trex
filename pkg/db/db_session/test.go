@@ -193,6 +193,13 @@ func (f *Test) New(ctx context.Context) *gorm.DB {
 		f.wasDisconnected = false
 	}
 
+	// Check if there's already a GORM transaction in the context
+	if tx, ok := ctx.Value("gormTx").(*gorm.DB); ok && tx != nil {
+		// Use the existing transaction
+		return tx.WithContext(ctx)
+	}
+
+	// No transaction in context, create a new session
 	conn := f.g2.Session(&gorm.Session{
 		Context: ctx,
 		Logger:  f.g2.Logger.LogMode(logger.Silent),

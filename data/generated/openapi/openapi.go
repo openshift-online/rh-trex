@@ -93,7 +93,7 @@ func openapiDinosaursYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "openapi.dinosaurs.yaml", size: 9546, mode: os.FileMode(420), modTime: time.Unix(1760640587, 0)}
+	info := bindataFileInfo{name: "openapi.dinosaurs.yaml", size: 9546, mode: os.FileMode(420), modTime: time.Unix(1761313245, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -113,7 +113,7 @@ func openapiYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "openapi.yaml", size: 4860, mode: os.FileMode(420), modTime: time.Unix(1760640620, 0)}
+	info := bindataFileInfo{name: "openapi.yaml", size: 4860, mode: os.FileMode(420), modTime: time.Unix(1761313245, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -178,13 +178,11 @@ var _bindata = map[string]func() (*asset, error){
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//
-//	data/
-//	  foo.txt
-//	  img/
-//	    a.png
-//	    b.png
-//
+//     data/
+//       foo.txt
+//       img/
+//         a.png
+//         b.png
 // then AssetDir("data") would return []string{"foo.txt", "img"}
 // AssetDir("data/img") would return []string{"a.png", "b.png"}
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error
@@ -217,8 +215,8 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"openapi.dinosaurs.yaml": {openapiDinosaursYaml, map[string]*bintree{}},
-	"openapi.yaml":           {openapiYaml, map[string]*bintree{}},
+	"openapi.dinosaurs.yaml": &bintree{openapiDinosaursYaml, map[string]*bintree{}},
+	"openapi.yaml":           &bintree{openapiYaml, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
