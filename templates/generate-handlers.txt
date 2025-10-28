@@ -62,7 +62,10 @@ func (h {{.KindLowerSingular}}Handler) Patch(w http.ResponseWriter, r *http.Requ
 				return nil, err
 			}
 
-            //patch a field
+            //patch a field{{range .Fields}}
+			if patch.{{.Name}} != nil {
+				found.{{.Name}} = patch.{{.Name}}
+			}{{end}}
 
 			{{.KindLowerSingular}}Model, err := h.{{.KindLowerSingular}}.Replace(ctx, found)
 			if err != nil {
