@@ -86,6 +86,9 @@ func clone(_ *cobra.Command, _ []string) {
 			}
 
 			content = strings.ReplaceAll(content, "github.com/openshift-online/rh-trex", "__PLACEHOLDER_IMPORT__")
+			// Only replace github.com/openshift-online when it's used for generator hardcode, not for dependencies
+			content = strings.ReplaceAll(content, `= "github.com/openshift-online"`, `= "__PLACEHOLDER_REPO_BASE__"`)
+			content = strings.ReplaceAll(content, "ApiRhTrexV1", "__PLACEHOLDER_API_PREFIX__")
 			content = strings.ReplaceAll(content, "RHTrex", "__PLACEHOLDER_RHTREX__")
 			content = strings.ReplaceAll(content, "rh-trex", "__PLACEHOLDER_RH_TREX__")
 			content = strings.ReplaceAll(content, "rhtrex", "__PLACEHOLDER_RHTREX_LOW__")
@@ -94,6 +97,18 @@ func clone(_ *cobra.Command, _ []string) {
 
 			replacement := fmt.Sprintf("%s/%s", provisionCfg.RepoBase, strings.ToLower(provisionCfg.Name))
 			content = strings.ReplaceAll(content, "__PLACEHOLDER_IMPORT__", replacement)
+			content = strings.ReplaceAll(content, `= "__PLACEHOLDER_REPO_BASE__"`, fmt.Sprintf(`= "%s"`, provisionCfg.RepoBase))
+			// For example, convert the service name "rh-birds" to "RhBirds"
+			serviceName := strings.ToLower(provisionCfg.Name)
+			parts := strings.Split(serviceName, "-")
+			var titleCase string
+			for _, part := range parts {
+				if len(part) > 0 {
+					titleCase += strings.ToUpper(string(part[0])) + part[1:]
+				}
+			}
+			apiPrefix := fmt.Sprintf("Api%sV1", titleCase)
+			content = strings.ReplaceAll(content, "__PLACEHOLDER_API_PREFIX__", apiPrefix)
 			content = strings.ReplaceAll(content, "__PLACEHOLDER_RHTREX__", provisionCfg.Name)
 			content = strings.ReplaceAll(content, "__PLACEHOLDER_TREX_CAP__", provisionCfg.Name)
 			content = strings.ReplaceAll(content, "__PLACEHOLDER_RH_TREX__", strings.ToLower(provisionCfg.Name))
