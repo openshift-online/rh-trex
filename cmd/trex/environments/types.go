@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	TestingEnv     string = "testing"
-	DevelopmentEnv string = "development"
-	ProductionEnv  string = "production"
+	UnitTestingEnv        string = "unit_testing"
+	IntegrationTestingEnv string = "integration_testing"
+	DevelopmentEnv        string = "development"
+	ProductionEnv         string = "production"
 
 	EnvironmentStringKey string = "OCM_ENV"
 	EnvironmentDefault          = DevelopmentEnv
@@ -77,9 +78,11 @@ type ConfigDefaults struct {
 	Options  map[string]interface{}
 }
 
-var environment *Env
-var once sync.Once
-var environments map[string]EnvironmentImpl
+var (
+	environment  *Env
+	once         sync.Once
+	environments map[string]EnvironmentImpl
+)
 
 // ApplicationConfig visitor
 var _ ConfigVisitable = &ApplicationConfig{}

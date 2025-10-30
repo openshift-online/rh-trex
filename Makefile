@@ -86,7 +86,7 @@ help:
 
 # Encourage consistent tool versions
 OPENAPI_GENERATOR_VERSION:=5.4.0
-GO_VERSION:=go1.21.
+GO_VERSION:=go1.24.
 
 ### Constants:
 version:=$(shell date +%s)
@@ -95,7 +95,7 @@ GOLANGCI_LINT_BIN:=$(shell go env GOPATH)/bin/golangci-lint
 ### Envrionment-sourced variables with defaults
 # Can be overriden by setting environment var before running
 # Example:
-#   OCM_ENV=testing make run
+#   OCM_ENV=unit_testing make run
 #   export OCM_ENV=testing; make run
 # Set the environment to development by default
 ifndef OCM_ENV
@@ -171,7 +171,7 @@ install: check-gopath
 # Examples:
 #   make test TESTFLAGS="-run TestSomething"
 test: install
-	OCM_ENV=testing gotestsum --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+	OCM_ENV=unit_testing gotestsum --format short-verbose -- -p 1 -v $(TESTFLAGS) \
 		./pkg/... \
 		./cmd/...
 .PHONY: test
@@ -185,7 +185,7 @@ test: install
 #   make test-unit-json TESTFLAGS="-run TestSomething"
 ci-test-unit: install
 	@echo $(db_password) > ${PWD}/secrets/db.password
-	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
+	OCM_ENV=unit_testing gotestsum --jsonfile-timing-events=$(unit_test_json_output) --format short-verbose -- -p 1 -v $(TESTFLAGS) \
 		./pkg/... \
 		./cmd/...
 .PHONY: ci-test-unit
@@ -202,7 +202,7 @@ ci-test-unit: install
 #   make test-integration TESTFLAGS="-short"                skips long-run tests
 ci-test-integration: install
 	@echo $(db_password) > ${PWD}/secrets/db.password
-	OCM_ENV=testing gotestsum --jsonfile-timing-events=$(integration_test_json_output) --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
+	OCM_ENV=integration_testing gotestsum --jsonfile-timing-events=$(integration_test_json_output) --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
 			./test/integration
 .PHONY: ci-test-integration
 
@@ -218,7 +218,7 @@ ci-test-integration: install
 #   make test-integration TESTFLAGS="-short"                skips long-run tests
 test-integration: install
 	@echo $(db_password) > ${PWD}/secrets/db.password
-	OCM_ENV=testing gotestsum --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
+	OCM_ENV=integration_testing gotestsum --format $(TEST_SUMMARY_FORMAT) -- -p 1 -ldflags -s -v -timeout 1h $(TESTFLAGS) \
 			./test/integration
 .PHONY: test-integration
 

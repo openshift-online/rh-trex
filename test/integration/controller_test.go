@@ -73,15 +73,21 @@ func TestControllerRacing(t *testing.T) {
 		}()
 	}
 
-	_, err := h.Factories.NewDinosaurList("bronto", 50)
+	// make some time for the controllers to start, or they will miss events
+	time.Sleep(100 * time.Millisecond)
+
+	const N = 50
+
+	dinos, err := h.Factories.NewDinosaurList("bronto", N)
 	Expect(err).NotTo(HaveOccurred())
+	Expect(len(dinos)).To(Equal(N))
 
 	// This is to check only two create events is processed. It waits for 5 seconds to ensure all events have been
 	// processed by the controllers.
 	Eventually(func() error {
-		if len(proccessedEvent) != 50 {
-			return fmt.Errorf("should have only 2 create events but got %d", len(proccessedEvent))
+		if len(proccessedEvent) != N {
+			return fmt.Errorf("should have %d create events but got %d", N, len(proccessedEvent))
 		}
 		return nil
-	}, 5*time.Second, 1*time.Second).Should(Succeed())
+	}, 10*time.Second, 1*time.Second).Should(Succeed())
 }

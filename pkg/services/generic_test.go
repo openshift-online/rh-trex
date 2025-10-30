@@ -6,13 +6,12 @@ import (
 
 	"github.com/openshift-online/rh-trex/pkg/dao"
 	"github.com/openshift-online/rh-trex/pkg/db"
+	dbmocks "github.com/openshift-online/rh-trex/pkg/db/mocks"
 
 	"github.com/onsi/gomega/types"
 	"github.com/yaacov/tree-search-language/pkg/tsl"
 
 	"github.com/openshift-online/rh-trex/pkg/api"
-	"github.com/openshift-online/rh-trex/pkg/config"
-	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 
 	. "github.com/onsi/gomega"
@@ -20,10 +19,7 @@ import (
 
 func TestSQLTranslation(t *testing.T) {
 	RegisterTestingT(t)
-	dbConfig := config.NewDatabaseConfig()
-	err := dbConfig.ReadFiles()
-	Expect(err).ToNot(HaveOccurred())
-	var dbFactory db.SessionFactory = db_session.NewProdFactory(dbConfig)
+	var dbFactory db.SessionFactory = dbmocks.NewMockSessionFactory()
 	defer dbFactory.Close()
 
 	g := dao.NewGenericDao(&dbFactory)

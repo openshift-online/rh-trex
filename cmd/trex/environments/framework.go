@@ -25,9 +25,10 @@ func init() {
 		environment.Name = GetEnvironmentStrFromEnv()
 
 		environments = map[string]EnvironmentImpl{
-			DevelopmentEnv: &devEnvImpl{environment},
-			TestingEnv:     &testingEnvImpl{environment},
-			ProductionEnv:  &productionEnvImpl{environment},
+			DevelopmentEnv:        &devEnvImpl{environment},
+			UnitTestingEnv:        &unitTestingEnvImpl{environment},
+			IntegrationTestingEnv: &integrationTestingEnvImpl{environment},
+			ProductionEnv:         &productionEnvImpl{environment},
 		}
 	})
 }
@@ -207,12 +208,12 @@ func (e *Env) InitializeSentry() error {
 }
 
 func (e *Env) Teardown() {
-	if e.Name != TestingEnv {
+	if e.Database.SessionFactory != nil {
 		if err := e.Database.SessionFactory.Close(); err != nil {
-			glog.Fatalf("Unable to close db connection: %s", err.Error())
+			glog.Errorf("Error closing database session factory: %s", err.Error())
 		}
-		e.Clients.OCM.Close()
 	}
+	e.Clients.OCM.Close()
 }
 
 func setConfigDefaults(flags *pflag.FlagSet, defaults map[string]string) error {
