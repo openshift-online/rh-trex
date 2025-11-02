@@ -153,12 +153,21 @@ func (f *Testcontainer) ResetDB() {
 	ctx := context.Background()
 	g2 := f.New(ctx)
 
-	tables := []string{"dinosaurs", "events"}
-	for _, table := range tables {
-		if g2.Migrator().HasTable(table) {
-			if err := g2.Exec(fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table)).Error; err != nil {
-				glog.Errorf("Error truncating table %s: %s", table, err)
-			}
+	// Dynamically retrieve all table names except for the "migrations" table and truncate them
+	var tableNames []string
+	err := g2.Raw(`
+		SELECT tablename
+		FROM pg_tables
+		WHERE schemaname = 'public'
+		AND tablename != 'migrations'
+	`).Scan(&tableNames).Error
+	if err != nil {
+		glog.Errorf("Error retrieving table names for reset: %s", err)
+		return
+	}
+	for _, table := range tableNames {
+		if err := g2.Exec(fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table)).Error; err != nil {
+			glog.Errorf("Error truncating table %s: %s", table, err)
 		}
 	}
 }
