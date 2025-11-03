@@ -24,27 +24,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// CollectionMetadata represents a collection.
-type CollectionMetadata struct {
-	ID   string `json:"id"`
-	HREF string `json:"href"`
-	Kind string `json:"kind"`
-}
-
-// VersionMetadata represents a version.
-type VersionMetadata struct {
-	ID          string               `json:"id"`
-	HREF        string               `json:"href"`
-	Kind        string               `json:"kind"`
-	Collections []CollectionMetadata `json:"collections"`
-}
-
 // Metadata api metadata.
 type Metadata struct {
-	ID       string            `json:"id"`
-	HREF     string            `json:"href"`
-	Kind     string            `json:"kind"`
-	Versions []VersionMetadata `json:"versions"`
+	ID        string `json:"id"`
+	HREF      string `json:"href"`
+	Kind      string `json:"kind"`
+	Version   string `json:"version"`
+	BuildTime string `json:"build_time"`
 }
 
 // Meta is base model definition, embedded in all kinds

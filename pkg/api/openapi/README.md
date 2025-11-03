@@ -90,7 +90,6 @@ Class | Method | HTTP request | Description
  - [DinosaurList](docs/DinosaurList.md)
  - [DinosaurPatchRequest](docs/DinosaurPatchRequest.md)
  - [Error](docs/Error.md)
- - [ErrorList](docs/ErrorList.md)
  - [List](docs/List.md)
  - [ObjectReference](docs/ObjectReference.md)
 

@@ -92,6 +92,13 @@ GO_VERSION:=go1.24.
 version:=$(shell date +%s)
 GOLANGCI_LINT_BIN:=$(shell go env GOPATH)/bin/golangci-lint
 
+# Version information for ldflags
+git_sha:=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+git_dirty:=$(shell git diff --quiet 2>/dev/null || echo "-modified")
+build_version:=$(git_sha)$(git_dirty)
+build_time:=$(shell date -u '+%Y-%m-%d %H:%M:%S UTC')
+ldflags=-X github.com/openshift-online/rh-trex/pkg/api.Version=$(build_version) -X 'github.com/openshift-online/rh-trex/pkg/api.BuildTime=$(build_time)'
+
 ### Envrionment-sourced variables with defaults
 # Can be overriden by setting environment var before running
 # Example:
@@ -147,7 +154,8 @@ lint:
 # Build binaries
 # NOTE it may be necessary to use CGO_ENABLED=0 for backwards compatibility with centos7 if not using centos7
 binary: check-gopath
-	${GO} build ./cmd/trex
+	echo "Building version: ${build_version}"
+	${GO} build -ldflags="$(ldflags)" ./cmd/trex
 .PHONY: binary
 
 # Install
@@ -257,7 +265,7 @@ clean:
 .PHONY: cmds
 cmds:
 	for cmd in $$(ls cmd); do \
-		${GO} build \
+		CGO_ENABLED=$(CGO_ENABLED) ${GO} build \
 			-ldflags="$(ldflags)" \
 			-o "$${cmd}" \
 			"./cmd/$${cmd}" \
