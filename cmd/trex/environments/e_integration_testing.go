@@ -14,12 +14,12 @@ type integrationTestingEnvImpl struct {
 	env *Env
 }
 
-func (e *integrationTestingEnvImpl) VisitDatabase(c *Database) error {
+func (e *integrationTestingEnvImpl) OverrideDatabase(c *Database) error {
 	c.SessionFactory = db_session.NewTestcontainerFactory(e.env.Config.Database)
 	return nil
 }
 
-func (e *integrationTestingEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
+func (e *integrationTestingEnvImpl) OverrideConfig(c *config.ApplicationConfig) error {
 	// Support a one-off env to allow enabling db debug in testing
 	if os.Getenv("DB_DEBUG") == "true" {
 		c.Database.Debug = true
@@ -27,15 +27,15 @@ func (e *integrationTestingEnvImpl) VisitConfig(c *config.ApplicationConfig) err
 	return nil
 }
 
-func (e *integrationTestingEnvImpl) VisitServices(s *Services) error {
+func (e *integrationTestingEnvImpl) OverrideServices(s *Services) error {
 	return nil
 }
 
-func (e *integrationTestingEnvImpl) VisitHandlers(h *Handlers) error {
+func (e *integrationTestingEnvImpl) OverrideHandlers(h *Handlers) error {
 	return nil
 }
 
-func (e *integrationTestingEnvImpl) VisitClients(c *Clients) error {
+func (e *integrationTestingEnvImpl) OverrideClients(c *Clients) error {
 	return nil
 }
 

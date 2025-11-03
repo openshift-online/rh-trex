@@ -33,19 +33,15 @@ func init() {
 }
 
 // EnvironmentImpl defines a set of behaviors for an OCM environment.
-// Each environment provides a set of flags for basic set/override of the environment.
-// Each environment is a set of configured things (services, handlers, clients, etc.) and
-// we may expect a stable set of components. Use Visitor pattern to allow external callers (an environment)
-// to affect the internal structure of components.
-// Each visitor is applied after a component is instantiated with flags set.
-// VisitorConfig is applies after instantiation but before ReadFiles is called.
+// Each environment provides a set of flags for basic set/override of the environment
+// and configuration functions for each component type.
 type EnvironmentImpl interface {
 	Flags() map[string]string
-	VisitConfig(c *config.ApplicationConfig) error
-	VisitDatabase(s *Database) error
-	VisitServices(s *Services) error
-	VisitHandlers(c *Handlers) error
-	VisitClients(c *Clients) error
+	OverrideConfig(c *config.ApplicationConfig) error
+	OverrideServices(s *Services) error
+	OverrideDatabase(s *Database) error
+	OverrideHandlers(c *Handlers) error
+	OverrideClients(c *Clients) error
 }
 
 func GetEnvironmentStrFromEnv() string {
@@ -77,8 +73,8 @@ func (e *Env) Initialize() error {
 		glog.Fatalf("Unknown runtime environment: %s", e.Name)
 	}
 
-	if err := envImpl.VisitConfig(e.Config); err != nil {
-		glog.Fatalf("Failed to visit ApplicationConfig: %s", err)
+	if err := envImpl.OverrideConfig(e.Config); err != nil {
+		glog.Fatalf("Failed to configure ApplicationConfig: %s", err)
 	}
 
 	messages := environment.Config.ReadFiles()
@@ -89,21 +85,21 @@ func (e *Env) Initialize() error {
 	}
 
 	// each env will set db explicitly because the DB impl has a `once` init section
-	if err := envImpl.VisitDatabase(&e.Database); err != nil {
-		glog.Fatalf("Failed to visit Database: %s", err)
+	if err := envImpl.OverrideDatabase(&e.Database); err != nil {
+		glog.Fatalf("Failed to configure Database: %s", err)
 	}
 
 	err := e.LoadClients()
 	if err != nil {
 		return err
 	}
-	if err := envImpl.VisitClients(&e.Clients); err != nil {
-		glog.Fatalf("Failed to visit Clients: %s", err)
+	if err := envImpl.OverrideClients(&e.Clients); err != nil {
+		glog.Fatalf("Failed to configure Clients: %s", err)
 	}
 
 	e.LoadServices()
-	if err := envImpl.VisitServices(&e.Services); err != nil {
-		glog.Fatalf("Failed to visit Services: %s", err)
+	if err := envImpl.OverrideServices(&e.Services); err != nil {
+		glog.Fatalf("Failed to configure Services: %s", err)
 	}
 
 	err = e.InitializeSentry()
@@ -116,10 +112,8 @@ func (e *Env) Initialize() error {
 		return seedErr
 	}
 
-	if _, ok := envImpl.(HandlerVisitor); ok {
-		if err := (envImpl.(HandlerVisitor)).VisitHandlers(&e.Handlers); err != nil {
-			glog.Fatalf("Failed to visit Handlers: %s", err)
-		}
+	if err := envImpl.OverrideHandlers(&e.Handlers); err != nil {
+		glog.Fatalf("Failed to configure Handlers: %s", err)
 	}
 
 	return nil

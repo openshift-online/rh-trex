@@ -12,26 +12,26 @@ type devEnvImpl struct {
 
 var _ EnvironmentImpl = &devEnvImpl{}
 
-func (e *devEnvImpl) VisitDatabase(c *Database) error {
+func (e *devEnvImpl) OverrideDatabase(c *Database) error {
 	c.SessionFactory = db_session.NewProdFactory(e.env.Config.Database)
 	return nil
 }
 
-func (e *devEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
+func (e *devEnvImpl) OverrideConfig(c *config.ApplicationConfig) error {
 	c.Server.EnableJWT = false
 	c.Server.EnableHTTPS = false
 	return nil
 }
 
-func (e *devEnvImpl) VisitServices(s *Services) error {
+func (e *devEnvImpl) OverrideServices(s *Services) error {
 	return nil
 }
 
-func (e *devEnvImpl) VisitHandlers(h *Handlers) error {
+func (e *devEnvImpl) OverrideHandlers(h *Handlers) error {
 	return nil
 }
 
-func (e *devEnvImpl) VisitClients(c *Clients) error {
+func (e *devEnvImpl) OverrideClients(c *Clients) error {
 	return nil
 }
 
