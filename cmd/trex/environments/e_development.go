@@ -1,6 +1,7 @@
 package environments
 
 import (
+	"github.com/openshift-online/rh-trex/pkg/config"
 	"github.com/openshift-online/rh-trex/pkg/db/db_session"
 )
 
@@ -16,9 +17,9 @@ func (e *devEnvImpl) VisitDatabase(c *Database) error {
 	return nil
 }
 
-func (e *devEnvImpl) VisitConfig(c *ApplicationConfig) error {
-	c.ApplicationConfig.Server.EnableJWT = false
-	c.ApplicationConfig.Server.EnableHTTPS = false
+func (e *devEnvImpl) VisitConfig(c *config.ApplicationConfig) error {
+	c.Server.EnableJWT = false
+	c.Server.EnableHTTPS = false
 	return nil
 }
 

@@ -25,8 +25,6 @@ type Env struct {
 	Handlers Handlers
 	Clients  Clients
 	Database Database
-	// packaging requires this construct for visiting
-	ApplicationConfig ApplicationConfig
 	// most code relies on env.Config
 	Config *config.ApplicationConfig
 }
