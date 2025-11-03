@@ -38,17 +38,10 @@ func (h metadataHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Prepare the body:
-	versions := []api.VersionMetadata{
-		{
-			ID:   "v1",
-			HREF: r.URL.Path + "/v1",
-		},
-	}
 	body := api.Metadata{
 		ID:        "trex",
 		Kind:      "API",
 		HREF:      r.URL.Path,
-		Versions:  versions,
 		Version:   api.Version,
 		BuildTime: api.BuildTime,
 	}
@@ -64,40 +57,6 @@ func (h metadataHandler) Get(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("can't send response body for request '%s'", r.URL.Path)
 		glog.Error(err)
 		sentry.CaptureException(err)
-		return
-	}
-}
-
-// GetV1 sends API version v1 documentation response.
-func (h metadataHandler) GetV1(w http.ResponseWriter, r *http.Request) {
-	// Set the content type:
-	w.Header().Set("Content-Type", "application/json")
-
-	// Prepare the body:
-	id := "v1"
-	collections := []api.CollectionMetadata{
-		{
-			ID:   "dinosaurs",
-			Kind: "DinosaurList",
-			HREF: r.URL.Path + "/dinosaurs",
-		},
-	}
-	body := api.VersionMetadata{
-		ID:          id,
-		Kind:        "APIVersion",
-		HREF:        r.URL.Path,
-		Collections: collections,
-	}
-	data, err := json.Marshal(body)
-	if err != nil {
-		api.SendPanic(w, r)
-		return
-	}
-
-	// Send the response:
-	_, err = w.Write(data)
-	if err != nil {
-		glog.Errorf("can't send response body for request '%s'", r.URL.Path)
 		return
 	}
 }

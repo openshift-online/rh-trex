@@ -424,15 +424,6 @@ components:
         operation_id: operation_id
         id: id
         href: href
-    ErrorList:
-      allOf:
-      - $ref: "#/components/schemas/List"
-      - properties:
-          items:
-            items:
-              $ref: "#/components/schemas/Error"
-            type: array
-        type: object
     Dinosaur:
       allOf:
       - $ref: "#/components/schemas/ObjectReference"

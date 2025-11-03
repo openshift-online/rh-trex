@@ -42,7 +42,6 @@ func (s *apiServer) routes() *mux.Router {
 	}
 
 	metadataHandler := handlers.NewMetadataHandler()
-	errorsHandler := handlers.NewErrorsHandler()
 
 	var authMiddleware auth.JWTMiddleware
 	authMiddleware = &auth.MiddlewareMock{}
@@ -77,17 +76,10 @@ func (s *apiServer) routes() *mux.Router {
 
 	//  /api/rh-trex/v1
 	apiV1Router := apiRouter.PathPrefix("/v1").Subrouter()
-	apiV1Router.HandleFunc("", metadataHandler.GetV1).Methods(http.MethodGet)
-	apiV1Router.HandleFunc("/", metadataHandler.GetV1).Methods(http.MethodGet)
 
 	//  /api/rh-trex/v1/openapi
 	apiV1Router.HandleFunc("/openapi", handlers.NewOpenAPIHandler(openAPIDefinitions).Get).Methods(http.MethodGet)
 	registerApiMiddleware(apiV1Router)
-
-	//  /api/rh-trex/v1/errors
-	apiV1ErrorsRouter := apiV1Router.PathPrefix("/errors").Subrouter()
-	apiV1ErrorsRouter.HandleFunc("", errorsHandler.List).Methods(http.MethodGet)
-	apiV1ErrorsRouter.HandleFunc("/{id}", errorsHandler.Get).Methods(http.MethodGet)
 
 	// Auto-discovered routes (no manual editing needed)
 	LoadDiscoveredRoutes(apiV1Router, services, authMiddleware, authzMiddleware)
