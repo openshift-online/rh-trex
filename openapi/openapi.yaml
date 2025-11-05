@@ -23,6 +23,21 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Angel:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        href:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     ObjectReference:
       type: object
       properties:

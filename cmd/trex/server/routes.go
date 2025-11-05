@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	gorillahandlers "github.com/gorilla/handlers"
@@ -36,11 +37,6 @@ func LoadDiscoveredRoutes(apiV1Router *mux.Router, services ServicesInterface, a
 func (s *apiServer) routes() *mux.Router {
 	services := &env().Services
 
-	openAPIDefinitions, err := s.loadOpenAPISpec("openapi.yaml")
-	if err != nil {
-		check(err, "Can't load OpenAPI specification")
-	}
-
 	metadataHandler := handlers.NewMetadataHandler()
 
 	var authMiddleware auth.JWTMiddleware
@@ -51,13 +47,13 @@ func (s *apiServer) routes() *mux.Router {
 		check(err, "Unable to create auth middleware")
 	}
 	if authMiddleware == nil {
-		check(err, "Unable to create auth middleware: missing middleware")
+		check(fmt.Errorf("auth middleware is nil"), "Unable to create auth middleware: missing middleware")
 	}
 
 	authzMiddleware := auth.NewAuthzMiddlewareMock()
 	if env().Config.Server.EnableAuthz {
 		// TODO: authzMiddleware, err = auth.NewAuthzMiddleware()
-		check(err, "Unable to create authz middleware")
+		// check(err, "Unable to create authz middleware")
 	}
 
 	// mainRouter is top level "/"
@@ -78,7 +74,13 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1Router := apiRouter.PathPrefix("/v1").Subrouter()
 
 	//  /api/rh-trex/v1/openapi
-	apiV1Router.HandleFunc("/openapi", handlers.NewOpenAPIHandler(openAPIDefinitions).Get).Methods(http.MethodGet)
+	openapiUIHandler, err := handlers.NewOpenAPIUIHandler()
+	check(err, "Unable to create OpenAPI UI handler")
+	apiV1Router.HandleFunc("/openapi", openapiUIHandler.Get).Methods(http.MethodGet)
+
+	openapiHandler, err := handlers.NewOpenAPIHandler()
+	check(err, "Unable to create OpenAPI handler")
+	apiV1Router.HandleFunc("/openapi.json", openapiHandler.Get).Methods(http.MethodGet)
 	registerApiMiddleware(apiV1Router)
 
 	// Auto-discovered routes (no manual editing needed)
