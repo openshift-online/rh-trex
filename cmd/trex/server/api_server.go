@@ -9,7 +9,6 @@ import (
 
 	_ "github.com/auth0/go-jwt-middleware"
 	sentryhttp "github.com/getsentry/sentry-go/http"
-	"github.com/ghodss/yaml"
 	_ "github.com/golang-jwt/jwt/v4"
 	"github.com/golang/glog"
 	gorillahandlers "github.com/gorilla/handlers"
@@ -17,8 +16,6 @@ import (
 	"github.com/openshift-online/ocm-sdk-go/authentication"
 
 	"github.com/openshift-online/rh-trex/cmd/trex/environments"
-	"github.com/openshift-online/rh-trex/data/generated/openapi"
-	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
 type apiServer struct {
@@ -70,6 +67,7 @@ func NewAPIServer() Server {
 			Public("^/api/rh-trex/?$").
 			Public("^/api/rh-trex/v1/?$").
 			Public("^/api/rh-trex/v1/openapi/?$").
+			Public("^/api/rh-trex/v1/openapi.html/?$").
 			Public("^/api/rh-trex/v1/errors(/.*)?$").
 			Next(mainHandler).
 			Build()
@@ -173,24 +171,4 @@ func (s apiServer) Start() {
 
 func (s apiServer) Stop() error {
 	return s.httpServer.Shutdown(context.Background())
-}
-
-func (s *apiServer) loadOpenAPISpec(asset string) (data []byte, err error) {
-	data, err = openapi.Asset(asset)
-	if err != nil {
-		err = errors.GeneralError(
-			"can't load OpenAPI specification from asset '%s'",
-			asset,
-		)
-		return
-	}
-	data, err = yaml.YAMLToJSON(data)
-	if err != nil {
-		err = errors.GeneralError(
-			"can't convert OpenAPI specification loaded from asset '%s' from YAML to JSON",
-			asset,
-		)
-		return
-	}
-	return
 }
