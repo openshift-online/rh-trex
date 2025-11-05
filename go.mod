@@ -2,7 +2,7 @@ module github.com/openshift-online/rh-trex
 
 go 1.24.0
 
-toolchain go1.24.9
+toolchain go1.25.4
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
