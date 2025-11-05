@@ -74,13 +74,10 @@ func (s *apiServer) routes() *mux.Router {
 	apiV1Router := apiRouter.PathPrefix("/v1").Subrouter()
 
 	//  /api/rh-trex/v1/openapi
-	openapiUIHandler, err := handlers.NewOpenAPIUIHandler()
-	check(err, "Unable to create OpenAPI UI handler")
-	apiV1Router.HandleFunc("/openapi", openapiUIHandler.Get).Methods(http.MethodGet)
-
 	openapiHandler, err := handlers.NewOpenAPIHandler()
 	check(err, "Unable to create OpenAPI handler")
-	apiV1Router.HandleFunc("/openapi.json", openapiHandler.Get).Methods(http.MethodGet)
+	apiV1Router.HandleFunc("/openapi.html", openapiHandler.GetOpenAPIUI).Methods(http.MethodGet)
+	apiV1Router.HandleFunc("/openapi", openapiHandler.GetOpenAPI).Methods(http.MethodGet)
 	registerApiMiddleware(apiV1Router)
 
 	// Auto-discovered routes (no manual editing needed)

@@ -67,6 +67,7 @@ func NewAPIServer() Server {
 			Public("^/api/rh-trex/?$").
 			Public("^/api/rh-trex/v1/?$").
 			Public("^/api/rh-trex/v1/openapi/?$").
+			Public("^/api/rh-trex/v1/openapi.html/?$").
 			Public("^/api/rh-trex/v1/errors(/.*)?$").
 			Next(mainHandler).
 			Build()
