@@ -81,14 +81,6 @@ Serves the rh-trex REST API with full authentication, database connectivity, and
   - `--metrics-server-bindaddress` - Metrics server address (default: "localhost:8080")
   - `--enable-metrics-https` - Enable HTTPS for metrics server
 
-- **Error Monitoring:**
-  - `--enable-sentry` - Enable Sentry error monitoring
-  - `--enable-sentry-debug` - Enable Sentry debug mode
-  - `--sentry-url` - Sentry instance base URL (default: "glitchtip.devshift.net")
-  - `--sentry-key-file` - Sentry key file (default: "secrets/sentry.key")
-  - `--sentry-project` - Sentry project ID (default: "53")
-  - `--sentry-timeout` - Sentry request timeout (default: 5s)
-
 - **Performance Tuning:**
   - `--http-read-timeout` - HTTP server read timeout (default: 5s)
   - `--http-write-timeout` - HTTP server write timeout (default: 30s)
@@ -156,7 +148,6 @@ All subcommands support these logging flags:
   --https-cert-file /etc/certs/tls.crt \
   --https-key-file /etc/certs/tls.key \
   --db-sslmode verify-full \
-  --enable-sentry \
   --ocm-base-url https://api.openshift.com \
   --disable-ocm-mock
 ```

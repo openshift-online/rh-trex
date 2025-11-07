@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 	"github.com/openshift-online/rh-trex/pkg/api"
 )
@@ -56,7 +55,6 @@ func (h metadataHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = fmt.Errorf("can't send response body for request '%s'", r.URL.Path)
 		glog.Error(err)
-		sentry.CaptureException(err)
 		return
 	}
 }

@@ -159,28 +159,6 @@ parameters:
   description: A cluster's last telemetry date needs be within in this duration in order to have labels collected
   value: "168h"
 
-- name: ENABLE_SENTRY
-  displayName: Enable Sentry Error Reporting
-  value: "false"
-
-- name: SENTRY_URL
-  displayName: Sentry base URL
-  description: Base URL (without https://) of sentry server
-  value: "glitchtip.devshift.net"
-
-- name: SENTRY_PROJECT
-  displayName: Sentry Project ID
-  value: "53"
-
-- name: ENABLE_SENTRY_DEBUG
-  displayName: Enable Sentry Debug Logging
-  value: "false"
-
-- name: SENTRY_TIMEOUT
-  displayName: Sentry Timeout
-  description: Timeout for all Sentry operations
-  value: "5s"
-
 objects:
   - kind: ServiceAccount
     apiVersion: v1
@@ -288,12 +266,6 @@ objects:
             - --enable-authz=${ENABLE_AUTHZ}
             - --enable-db-debug=${ENABLE_DB_DEBUG}
             - --enable-metrics-https=${ENABLE_METRICS_HTTPS}
-            - --enable-sentry=${ENABLE_SENTRY}
-            - --enable-sentry-debug=${ENABLE_SENTRY_DEBUG}
-            - --sentry-url=${SENTRY_URL}
-            - --sentry-project=${SENTRY_PROJECT}
-            - --sentry-timeout=${SENTRY_TIMEOUT}
-            - --sentry-key-file=/secrets/service/sentry.key
             - --http-read-timeout=${HTTP_READ_TIMEOUT}
             - --http-write-timeout=${HTTP_WRITE_TIMEOUT}
             - --label-metrics-inclusion-duration=${LABEL_METRICS_INCLUSION_DURATION}

@@ -293,8 +293,6 @@ cmds:
 		--param="IMAGE_TAG=$(image_tag)" \
 		--param="VERSION=$(version)" \
 		--param="AUTHZ_RULES=$$AUTHZ_RULES" \
-		--param="ENABLE_SENTRY"=false \
-		--param="SENTRY_KEY"=TODO \
 		--param="JWKS_URL=$(jwks_url)" \
 		--param="OCM_SERVICE_CLIENT_ID=$(CLIENT_ID)" \
 		--param="OCM_SERVICE_CLIENT_SECRET=$(CLIENT_SECRET)" \

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 	"github.com/openshift-online/rh-trex/pkg/errors"
 )
@@ -41,7 +40,6 @@ func SendNotFound(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = fmt.Errorf("can't send response body for request '%s'", r.URL.Path)
 		glog.Error(err)
-		sentry.CaptureException(err)
 		return
 	}
 }
@@ -63,7 +61,6 @@ func SendUnauthorized(w http.ResponseWriter, r *http.Request, message string) {
 	if err != nil {
 		err = fmt.Errorf("can't send response body for request '%s'", r.URL.Path)
 		glog.Error(err)
-		sentry.CaptureException(err)
 		return
 	}
 }
@@ -79,7 +76,6 @@ func SendPanic(w http.ResponseWriter, r *http.Request) {
 			err.Error(),
 		)
 		glog.Error(err)
-		sentry.CaptureException(err)
 	}
 }
 
@@ -110,7 +106,6 @@ func init() {
 			err.Error(),
 		)
 		glog.Error(err)
-		sentry.CaptureException(err)
 		os.Exit(1)
 	}
 }

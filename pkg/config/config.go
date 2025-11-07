@@ -18,7 +18,6 @@ type ApplicationConfig struct {
 	HealthCheck *HealthCheckConfig `json:"health_check"`
 	Database    *DatabaseConfig    `json:"database"`
 	OCM         *OCMConfig         `json:"ocm"`
-	Sentry      *SentryConfig      `json:"sentry"`
 }
 
 func NewApplicationConfig() *ApplicationConfig {
@@ -28,7 +27,6 @@ func NewApplicationConfig() *ApplicationConfig {
 		HealthCheck: NewHealthCheckConfig(),
 		Database:    NewDatabaseConfig(),
 		OCM:         NewOCMConfig(),
-		Sentry:      NewSentryConfig(),
 	}
 }
 
@@ -39,7 +37,6 @@ func (c *ApplicationConfig) AddFlags(flagset *pflag.FlagSet) {
 	c.HealthCheck.AddFlags(flagset)
 	c.Database.AddFlags(flagset)
 	c.OCM.AddFlags(flagset)
-	c.Sentry.AddFlags(flagset)
 }
 
 func (c *ApplicationConfig) ReadFiles() []string {
@@ -52,7 +49,6 @@ func (c *ApplicationConfig) ReadFiles() []string {
 		{c.OCM.ReadFiles, "OCM"},
 		{c.Metrics.ReadFiles, "Metrics"},
 		{c.HealthCheck.ReadFiles, "HealthCheck"},
-		{c.Sentry.ReadFiles, "Sentry"},
 	}
 	var messages []string
 	for _, rf := range readFiles {

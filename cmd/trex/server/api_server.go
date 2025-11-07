@@ -8,7 +8,6 @@ import (
 	"time"
 
 	_ "github.com/auth0/go-jwt-middleware"
-	sentryhttp "github.com/getsentry/sentry-go/http"
 	_ "github.com/golang-jwt/jwt/v4"
 	"github.com/golang/glog"
 	gorillahandlers "github.com/gorilla/handlers"
@@ -32,20 +31,6 @@ func NewAPIServer() Server {
 	s := &apiServer{}
 
 	mainRouter := s.routes()
-
-	// Sentryhttp middleware performs two operations:
-	// 1) Attaches an instance of *sentry.Hub to the request’s context. Accessit by using the sentry.GetHubFromContext() method on the request
-	//   NOTE this is the only way middleware, handlers, and services should be reporting to sentry, through the hub
-	// 2) Reports panics to the configured sentry service
-	if env().Config.Sentry.Enabled {
-		sentryhttpOptions := sentryhttp.Options{
-			Repanic:         true,
-			WaitForDelivery: false,
-			Timeout:         env().Config.Sentry.Timeout,
-		}
-		sentryMW := sentryhttp.New(sentryhttpOptions)
-		mainRouter.Use(sentryMW.Handle)
-	}
 
 	// referring to the router as type http.Handler allows us to add middleware via more handlers
 	var mainHandler http.Handler = mainRouter
