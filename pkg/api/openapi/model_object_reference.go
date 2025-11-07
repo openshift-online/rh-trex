@@ -12,7 +12,6 @@ package openapi
 
 import (
 	"encoding/json"
-	"time"
 )
 
 // checks if the ObjectReference type satisfies the MappedNullable interface at compile time
@@ -20,11 +19,9 @@ var _ MappedNullable = &ObjectReference{}
 
 // ObjectReference struct for ObjectReference
 type ObjectReference struct {
-	Id        *string    `json:"id,omitempty"`
-	Kind      *string    `json:"kind,omitempty"`
-	Href      *string    `json:"href,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	Id   *string `json:"id,omitempty"`
+	Kind *string `json:"kind,omitempty"`
+	Href *string `json:"href,omitempty"`
 }
 
 // NewObjectReference instantiates a new ObjectReference object
@@ -140,70 +137,6 @@ func (o *ObjectReference) SetHref(v string) {
 	o.Href = &v
 }
 
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *ObjectReference) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ObjectReference) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
-		return nil, false
-	}
-	return o.CreatedAt, true
-}
-
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *ObjectReference) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
-func (o *ObjectReference) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
-}
-
-// GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
-func (o *ObjectReference) GetUpdatedAt() time.Time {
-	if o == nil || IsNil(o.UpdatedAt) {
-		var ret time.Time
-		return ret
-	}
-	return *o.UpdatedAt
-}
-
-// GetUpdatedAtOk returns a tuple with the UpdatedAt field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ObjectReference) GetUpdatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.UpdatedAt) {
-		return nil, false
-	}
-	return o.UpdatedAt, true
-}
-
-// HasUpdatedAt returns a boolean if a field has been set.
-func (o *ObjectReference) HasUpdatedAt() bool {
-	if o != nil && !IsNil(o.UpdatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetUpdatedAt gets a reference to the given time.Time and assigns it to the UpdatedAt field.
-func (o *ObjectReference) SetUpdatedAt(v time.Time) {
-	o.UpdatedAt = &v
-}
-
 func (o ObjectReference) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -222,12 +155,6 @@ func (o ObjectReference) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Href) {
 		toSerialize["href"] = o.Href
-	}
-	if !IsNil(o.CreatedAt) {
-		toSerialize["created_at"] = o.CreatedAt
-	}
-	if !IsNil(o.UpdatedAt) {
-		toSerialize["updated_at"] = o.UpdatedAt
 	}
 	return toSerialize, nil
 }

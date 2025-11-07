@@ -7,9 +7,9 @@ Name | Type | Description | Notes
 **Id** | Pointer to **string** |  | [optional] 
 **Kind** | Pointer to **string** |  | [optional] 
 **Href** | Pointer to **string** |  | [optional] 
+**Species** | **string** |  | 
 **CreatedAt** | Pointer to **time.Time** |  | [optional] 
 **UpdatedAt** | Pointer to **time.Time** |  | [optional] 
-**Species** | **string** |  | 
 
 ## Methods
 
@@ -105,6 +105,26 @@ SetHref sets Href field to given value.
 
 HasHref returns a boolean if a field has been set.
 
+### GetSpecies
+
+`func (o *Dinosaur) GetSpecies() string`
+
+GetSpecies returns the Species field if non-nil, zero value otherwise.
+
+### GetSpeciesOk
+
+`func (o *Dinosaur) GetSpeciesOk() (*string, bool)`
+
+GetSpeciesOk returns a tuple with the Species field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetSpecies
+
+`func (o *Dinosaur) SetSpecies(v string)`
+
+SetSpecies sets Species field to given value.
+
+
 ### GetCreatedAt
 
 `func (o *Dinosaur) GetCreatedAt() time.Time`
@@ -154,26 +174,6 @@ SetUpdatedAt sets UpdatedAt field to given value.
 `func (o *Dinosaur) HasUpdatedAt() bool`
 
 HasUpdatedAt returns a boolean if a field has been set.
-
-### GetSpecies
-
-`func (o *Dinosaur) GetSpecies() string`
-
-GetSpecies returns the Species field if non-nil, zero value otherwise.
-
-### GetSpeciesOk
-
-`func (o *Dinosaur) GetSpeciesOk() (*string, bool)`
-
-GetSpeciesOk returns a tuple with the Species field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetSpecies
-
-`func (o *Dinosaur) SetSpecies(v string)`
-
-SetSpecies sets Species field to given value.
-
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -25,9 +25,9 @@ type Dinosaur struct {
 	Id        *string    `json:"id,omitempty"`
 	Kind      *string    `json:"kind,omitempty"`
 	Href      *string    `json:"href,omitempty"`
+	Species   string     `json:"species"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	Species   string     `json:"species"`
 }
 
 type _Dinosaur Dinosaur
@@ -146,6 +146,30 @@ func (o *Dinosaur) SetHref(v string) {
 	o.Href = &v
 }
 
+// GetSpecies returns the Species field value
+func (o *Dinosaur) GetSpecies() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Species
+}
+
+// GetSpeciesOk returns a tuple with the Species field value
+// and a boolean to check if the value has been set.
+func (o *Dinosaur) GetSpeciesOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Species, true
+}
+
+// SetSpecies sets field value
+func (o *Dinosaur) SetSpecies(v string) {
+	o.Species = v
+}
+
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
 func (o *Dinosaur) GetCreatedAt() time.Time {
 	if o == nil || IsNil(o.CreatedAt) {
@@ -210,30 +234,6 @@ func (o *Dinosaur) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = &v
 }
 
-// GetSpecies returns the Species field value
-func (o *Dinosaur) GetSpecies() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Species
-}
-
-// GetSpeciesOk returns a tuple with the Species field value
-// and a boolean to check if the value has been set.
-func (o *Dinosaur) GetSpeciesOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Species, true
-}
-
-// SetSpecies sets field value
-func (o *Dinosaur) SetSpecies(v string) {
-	o.Species = v
-}
-
 func (o Dinosaur) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -253,13 +253,13 @@ func (o Dinosaur) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Href) {
 		toSerialize["href"] = o.Href
 	}
+	toSerialize["species"] = o.Species
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}
 	if !IsNil(o.UpdatedAt) {
 		toSerialize["updated_at"] = o.UpdatedAt
 	}
-	toSerialize["species"] = o.Species
 	return toSerialize, nil
 }
 
