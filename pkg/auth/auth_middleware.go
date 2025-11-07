@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/getsentry/sentry-go"
-
 	"github.com/openshift-online/rh-trex/pkg/errors"
 )
 
@@ -36,12 +34,6 @@ func (a *Middleware) AuthenticateAccountJWT(next http.Handler) http.Handler {
 		ctx = SetUsernameContext(ctx, payload.Username)
 		*r = *r.WithContext(ctx)
 
-		// Add username to sentry context
-		if hub := sentry.GetHubFromContext(ctx); hub != nil {
-			hub.ConfigureScope(func(scope *sentry.Scope) {
-				scope.SetUser(sentry.User{ID: payload.Username})
-			})
-		}
 		next.ServeHTTP(w, r)
 	})
 }

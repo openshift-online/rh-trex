@@ -6,10 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
-
-	"github.com/openshift-online/rh-trex/cmd/trex/environments"
 )
 
 type Server interface {
@@ -30,8 +27,6 @@ func removeTrailingSlash(next http.Handler) http.Handler {
 func check(err error, msg string) {
 	if err != nil && err != http.ErrServerClosed {
 		glog.Errorf("%s: %s", msg, err)
-		sentry.CaptureException(err)
-		sentry.Flush(environments.Environment().Config.Sentry.Timeout)
 		os.Exit(1)
 	}
 }

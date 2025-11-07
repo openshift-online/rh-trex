@@ -49,6 +49,5 @@ func (e *unitTestingEnvImpl) Flags() map[string]string {
 		"enable-authz":         "true",
 		"ocm-debug":            "false",
 		"enable-ocm-mock":      "true",
-		"enable-sentry":        "false",
 	}
 }

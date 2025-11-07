@@ -93,7 +93,7 @@ func openapiDinosaursYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "openapi.dinosaurs.yaml", size: 9546, mode: os.FileMode(420), modTime: time.Unix(1762342540, 0)}
+	info := bindataFileInfo{name: "openapi.dinosaurs.yaml", size: 9546, mode: os.FileMode(420), modTime: time.Unix(1762520040, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -113,7 +113,7 @@ func openapiYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "openapi.yaml", size: 4640, mode: os.FileMode(420), modTime: time.Unix(1762342540, 0)}
+	info := bindataFileInfo{name: "openapi.yaml", size: 4640, mode: os.FileMode(420), modTime: time.Unix(1762520040, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

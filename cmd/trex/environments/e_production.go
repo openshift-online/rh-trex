@@ -38,6 +38,5 @@ func (e *productionEnvImpl) Flags() map[string]string {
 		"v":               "1",
 		"ocm-debug":       "false",
 		"enable-ocm-mock": "false",
-		"enable-sentry":   "true",
 	}
 }
