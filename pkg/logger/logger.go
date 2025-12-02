@@ -49,7 +49,7 @@ func NewOCMLogger(ctx context.Context) OCMLogger {
 func (l *logger) prepareLogPrefix(message string, extra extra) string {
 	prefix := " "
 
-	if txid, ok := l.context.Value("txid").(int64); ok {
+	if txid, ok := l.context.Value(TxIDKey).(int64); ok {
 		prefix = fmt.Sprintf("[tx_id=%d]%s", txid, prefix)
 	}
 
@@ -73,7 +73,7 @@ func (l *logger) prepareLogPrefixf(format string, args ...interface{}) string {
 	orig := fmt.Sprintf(format, args...)
 	prefix := " "
 
-	if txid, ok := l.context.Value("txid").(int64); ok {
+	if txid, ok := l.context.Value(TxIDKey).(int64); ok {
 		prefix = fmt.Sprintf("[tx_id=%d]%s", txid, prefix)
 	}
 

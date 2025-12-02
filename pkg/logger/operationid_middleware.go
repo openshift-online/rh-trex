@@ -9,8 +9,10 @@ import (
 )
 
 type OperationIDKey string
+type TransactionIDKey string
 
-const OpIDKey OperationIDKey = "opID"
+const OpIDKey OperationIDKey = "op_id"
+const TxIDKey TransactionIDKey = "tx_id"
 const OpIDHeader OperationIDKey = "X-Operation-ID"
 
 // OperationIDMiddleware Middleware wraps the given HTTP handler so that the details of the request are sent to the log.
