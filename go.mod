@@ -1,8 +1,6 @@
 module github.com/openshift-online/rh-trex
 
-go 1.24.0
-
-toolchain go1.24.9
+go 1.25.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -104,7 +102,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
-	github.com/tklauser/numcpus v0.6.1 // indirect
+	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
@@ -115,7 +113,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251014184007-4626949a642f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251014184007-4626949a642f // indirect
