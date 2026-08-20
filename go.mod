@@ -1,8 +1,6 @@
 module github.com/openshift-online/rh-trex
 
-go 1.24.0
-
-toolchain go1.24.9
+go 1.25
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -55,7 +53,7 @@ require (
 	github.com/docker/docker v28.5.1+incompatible // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
