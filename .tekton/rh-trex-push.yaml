@@ -110,6 +110,10 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
+    - name: sast-target-dirs
+      type: string
+      default: .
+      description: Target directories to scan with SAST tools. Multiple values should be separated with commas.
     results:
     - description: ""
       name: IMAGE_URL
@@ -146,7 +150,7 @@ spec:
         - name: name
           value: init
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-init:0.2@sha256:596b7c11572bb94eb67d9ffb4375068426e2a8249ff2792ce04ad2a4bc593a63
+          value: quay.io/redhat-appstudio-tekton-catalog/task-init:0.4@sha256:72af9a2df6eb60ee70393cd23952c6315ca97f2782ee329f6581710d5ced2d9c
         - name: kind
           value: task
         resolver: bundles
@@ -356,6 +360,8 @@ spec:
         value: $(tasks.build-container.results.IMAGE_DIGEST)
       - name: image-url
         value: $(tasks.build-container.results.IMAGE_URL)
+      - name: TARGET_DIRS
+        value: $(params.sast-target-dirs)
     - name: clamav-scan
       params:
       - name: image-digest
