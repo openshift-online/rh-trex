@@ -41,25 +41,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-    - name: show-summary
-      params:
-      - name: pipelinerun-name
-        value: $(context.pipelineRun.name)
-      - name: git-url
-        value: $(tasks.clone-repository.results.url)?rev=$(tasks.clone-repository.results.commit)
-      - name: image-url
-        value: $(params.output-image)
-      - name: build-task-status
-        value: $(tasks.build-container.status)
-      taskRef:
-        params:
-        - name: name
-          value: summary
-        - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-summary:0.2@sha256:abdf426424f1331c27be80ed98a0fbcefb8422767d1724308b9d57b37f977155
-        - name: kind
-          value: task
-        resolver: bundles
     params:
     - description: Source Repository URL
       name: git-url
