@@ -110,6 +110,10 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
+    - name: enable-package-registry-proxy
+      default: 'true'
+      description: Use the package registry proxy when prefetching dependencies
+      type: string
     results:
     - description: ""
       name: IMAGE_URL
@@ -181,6 +185,8 @@ spec:
       params:
       - name: input
         value: $(params.prefetch-input)
+      - name: enable-package-registry-proxy
+        value: $(params.enable-package-registry-proxy)
       runAfter:
       - clone-repository
       taskRef:
@@ -188,7 +194,7 @@ spec:
         - name: name
           value: prefetch-dependencies
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-prefetch-dependencies:0.1@sha256:4067e332949e005bd8782013de463078b8914d81e0333c85908bbf4db745d5aa
+          value: quay.io/redhat-appstudio-tekton-catalog/task-prefetch-dependencies:0.3@sha256:00ab75f5adf0934c0348cfdc47e63216dd06dc5bf79f11ba71c79a19508ae6eb
         - name: kind
           value: task
         resolver: bundles
