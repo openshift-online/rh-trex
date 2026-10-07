@@ -1,8 +1,6 @@
 module github.com/openshift-online/rh-trex
 
-go 1.24.0
-
-toolchain go1.24.9
+go 1.26
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -100,7 +98,7 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
-	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/shoenig/go-m1cpu v0.2.3 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
