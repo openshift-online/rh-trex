@@ -191,7 +191,7 @@ spec:
         - name: name
           value: prefetch-dependencies
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-prefetch-dependencies:0.1@sha256:4067e332949e005bd8782013de463078b8914d81e0333c85908bbf4db745d5aa
+          value: quay.io/redhat-appstudio-tekton-catalog/task-prefetch-dependencies:0.1@sha256:7142f299621fcb02a8eb01dc4ddd93230143847f59038ba8f973cb07f69db367
         - name: kind
           value: task
         resolver: bundles
